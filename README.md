@@ -204,7 +204,7 @@ alias ai-status="ollama ps"
 
 Full documentation is available as a GitHub Pages site:
 
-📖 **[View the docs →](https://yourusername.github.io/Local-AI/)**
+📖 **[View the docs →](https://simoneiaci.github.io/local-AI/)**
 
 ---
 

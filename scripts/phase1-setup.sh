@@ -104,7 +104,7 @@ export OLLAMA_HOST=0.0.0.0:11434     # allow Podman/Tailscale to reach Ollama
 # Quick model switching aliases
 alias ai="ollama run gemma3:12b"          # default model
 alias ai-chat="ollama run phi4-mini"       # fast lightweight chat (when pulled)
-alias ai-code="ollama run devstral-small"  # coding model (when pulled)
+alias ai-code="ollama run devstral"  # coding model (when pulled)
 alias ai-reason="ollama run phi4-reasoning" # reasoning model (when pulled)
 alias ai-status="ollama ps"                # show loaded models + VRAM
 alias ai-stop='for m in $(ollama ps | tail -n +2 | awk "{print \$1}"); do curl -s http://localhost:11434/api/generate -d "{\"model\":\"$m\",\"keep_alive\":0}" > /dev/null; done && echo "All models unloaded"'

@@ -98,7 +98,7 @@ All Gemma models are Green-approved. Here's every variant and whether it runs on
 | Phi 4 Reasoning (14B)   | `phi4-reasoning`         | ~9 GB     | ~14 tok/s     | Math & reasoning (75.3% AIME 2024) |
 | Mistral Small 3.1 24B   | `mistral-small3.1:24b`   | ~14 GB    | ~10 tok/s     | Best all-around model on the list |
 | Magistral Small 2506    | `magistral:24b-small-2506`| ~14 GB   | ~10 tok/s     | Advanced reasoning (70.7% AIME 2024) |
-| Devstral Small 1.1 (24B)| `devstral-small`         | ~14 GB    | ~10 tok/s     | **Best coder** (53.6% SWE-Bench) |
+| Devstral Small 1.1 (24B)| `devstral`         | ~14 GB    | ~10 tok/s     | **Best coder** (53.6% SWE-Bench) |
 | Mistral NeMo            | `mistral-nemo`           | ~7 GB     | ~15 tok/s     | Good mid-range general model |
 
 ### 3c. Yellow-Risk Models (use with caution)
@@ -136,7 +136,7 @@ All Gemma models are Green-approved. Here's every variant and whether it runs on
 ```
 TASK                               → BEST MODEL                         → RUNNER-UP                    VRAM
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-CODE GENERATION / DEBUGGING        → devstral-small (53.6% SWE-Bench)   → granite3.3:8b (lighter)      14 / 6 GB
+CODE GENERATION / DEBUGGING        → devstral (53.6% SWE-Bench)   → granite3.3:8b (lighter)      14 / 6 GB
 CREATIVE WRITING / EMAILS          → mistral-small3.1:24b (87.6% Arena) → gemma3:12b (faster)          14 / 7 GB
 REASONING / MATH / LOGIC           → phi4-reasoning (75.3% AIME)        → magistral:24b-small-2506     9 / 14 GB
 SUMMARIZATION                      → gemma3:12b (88.9% IFEval)          → granite3.3:8b (128K ctx)     7 / 6 GB
@@ -150,7 +150,7 @@ TAB AUTOCOMPLETE IN IDE            → smollm2:1.7b (~1 GB, instant)      → ph
 ```
 
 > **The "Two Model" Strategy:** Keep `gemma3:12b` as your always-loaded daily driver (~7 GB).
-> When you need specialized power, swap to: `devstral-small` (coding), `phi4-reasoning` (math),
+> When you need specialized power, swap to: `devstral` (coding), `phi4-reasoning` (math),
 > or `mistral-small3.1:24b` (everything else). Only one 14 GB model at a time.
 
 ### Quantization Guide
@@ -192,7 +192,7 @@ ollama pull phi4-mini
 ollama pull gemma3:12b
 
 # Coding specialist (Green, ~14 GB)
-ollama pull devstral-small
+ollama pull devstral
 
 # Power model — general + reasoning (Green, ~14 GB)
 ollama pull mistral-small3.1:24b
@@ -224,7 +224,7 @@ Ollama handles model switching automatically — when you request a model, it lo
 ollama ps
 
 # Preload a model
-ollama run devstral-small --keepalive 0  # load then immediately make available
+ollama run devstral --keepalive 0  # load then immediately make available
 
 # Force unload everything (free RAM)
 curl http://localhost:11434/api/generate -d '{"model":"phi4-mini","keep_alive":0}'
@@ -236,7 +236,7 @@ curl http://localhost:11434/api/generate -d '{"model":"phi4-mini","keep_alive":0
 # Model shortcuts (all approved Green models)
 alias ai-chat="ollama run phi4-mini"              # ~3 GB, ultra-fast
 alias ai-general="ollama run gemma3:12b"           # ~8 GB, balanced
-alias ai-code="ollama run devstral-small"          # ~14 GB, coding
+alias ai-code="ollama run devstral"          # ~14 GB, coding
 alias ai-reason="ollama run phi4-reasoning"        # ~9 GB, chain-of-thought
 alias ai-power="ollama run mistral-small3.1:24b"   # ~14 GB, best overall
 
@@ -259,7 +259,7 @@ Install from VS Code marketplace. Create `~/.continue/config.json`:
     {
       "title": "Devstral Small 1.1 (coding)",
       "provider": "ollama",
-      "model": "devstral-small",
+      "model": "devstral",
       "apiBase": "http://localhost:11434"
     },
     {
@@ -297,7 +297,7 @@ brew install opencode
 # Configure for local Ollama
 export OPENCODE_PROVIDER=openai-compatible
 export OPENCODE_API_BASE=http://localhost:11434/v1
-export OPENCODE_MODEL=devstral-small
+export OPENCODE_MODEL=devstral
 ```
 
 OpenCode needs models with **tool calling** support and **64K+ context**. Devstral Small 1.1 and Mistral Small 3.1 both support this.
@@ -308,7 +308,7 @@ OpenCode needs models with **tool calling** support and **64K+ context**. Devstr
 pip install aider-chat --break-system-packages
 
 # Run with local approved coding model
-aider --model ollama/devstral-small
+aider --model ollama/devstral
 ```
 
 ### 5.4 Cline / Roo Code (VS Code)
@@ -316,7 +316,7 @@ aider --model ollama/devstral-small
 Both support Ollama. In VS Code settings, configure:
 - API Provider: `OpenAI Compatible`
 - Base URL: `http://localhost:11434/v1`
-- Model: `devstral-small`
+- Model: `devstral`
 
 Note: These are context-heavy tools. Use Devstral Small or Mistral Small 3.1 for best results.
 
@@ -431,7 +431,7 @@ Quick benchmark script to test your models:
 #!/bin/bash
 # save as ~/Local-AI/benchmark.sh
 
-models=("phi4-mini" "gemma3:12b" "devstral-small" "phi4-reasoning")
+models=("phi4-mini" "gemma3:12b" "devstral" "phi4-reasoning")
 prompt="Write a Python function that implements binary search on a sorted list."
 
 for model in "${models[@]}"; do
@@ -618,7 +618,7 @@ Any tool that supports the **OpenAI API** can use your local models. Just set:
 |----------------|--------------------------------------|
 | API Base URL   | `http://localhost:11434/v1`          |
 | API Key        | `ollama` (or any non-empty string)   |
-| Model          | e.g. `devstral-small`                |
+| Model          | e.g. `devstral`                |
 
 For tools that need a proxy to multiple backends, use **LiteLLM**:
 
@@ -626,7 +626,7 @@ For tools that need a proxy to multiple backends, use **LiteLLM**:
 pip install litellm --break-system-packages
 
 # Proxy that routes to Ollama
-litellm --model ollama/devstral-small --port 4000
+litellm --model ollama/devstral --port 4000
 ```
 
 Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
@@ -638,7 +638,7 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 | Step | Action                                         | Time   |
 |------|------------------------------------------------|--------|
 | 1    | Install Ollama + pull `phi4-mini`              | 10 min |
-| 2    | Pull coding model (`devstral-small`)           | 15 min |
+| 2    | Pull coding model (`devstral`)           | 15 min |
 | 3    | Pull general model (`gemma3:12b`)              | 10 min |
 | 4    | Set up shell aliases + env vars                | 5 min  |
 | 5    | Install Continue.dev in VS Code                | 10 min |
@@ -663,7 +663,7 @@ SITUATION                          → MODEL TO USE                           RI
 Quick question / brainstorm        → phi4-mini (~3 GB, ultra-fast)          Green   ~3 GB
 Write an email / document          → gemma3:12b (good prose)                Green   ~8 GB
 General-purpose workhorse          → mistral-small3.1:24b (best overall)    Green   ~14 GB
-Code generation / refactoring      → devstral-small (best approved coder)   Green   ~14 GB
+Code generation / refactoring      → devstral (best approved coder)   Green   ~14 GB
 Lighter coding tasks               → granite3.3:8b (code-aware, smaller)    Green   ~6 GB
 Tab autocomplete in IDE            → smollm2:1.7b (instant)                 Green   ~1 GB
 Deep reasoning / math              → phi4-reasoning (chain-of-thought)      Green   ~9 GB

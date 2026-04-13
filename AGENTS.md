@@ -54,7 +54,7 @@ When suggesting or selecting models, use the task guide below:
 |------------------------------|------------------------------|------------------------|---------|
 | Quick Q&A / brainstorm       | `phi4-mini` (3 GB)           | `gemma3:4b` (3 GB)    | Light   |
 | General writing / emails     | `mistral-small3.1:24b`       | `gemma3:12b`           | 14 / 7  |
-| Code generation / debugging  | `devstral-small` (24B)       | `granite3.3:8b`        | 14 / 6  |
+| Code generation / debugging  | `devstral` (24B)       | `granite3.3:8b`        | 14 / 6  |
 | Reasoning / math / logic     | `phi4-reasoning` (14B)       | `magistral:24b-small-2506` | 9 / 14 |
 | Summarization                | `gemma3:12b`                 | `granite3.3:8b`        | 7 / 6   |
 | RAG / document Q&A           | `granite3.3:8b` (128K ctx)   | `mistral-small3.1:24b` | 6 / 14  |
@@ -104,7 +104,7 @@ When suggesting or selecting models, use the task guide below:
 ### OpenCode
 - Set `OPENCODE_API_BASE=http://localhost:11434/v1`
 - Requires models with tool-calling support and 64K+ context
-- Recommended model: `devstral-small` or `mistral-small3.1:24b`
+- Recommended model: `devstral` or `mistral-small3.1:24b`
 
 ### Open WebUI
 - Runs in Podman on port 3000
@@ -181,7 +181,7 @@ done
 | "out of memory" error | Model + system exceed 24 GB | Unload other models, close apps, use smaller quant |
 | Tool can't connect to Ollama | Ollama not running | `ollama serve` or `brew services start ollama` |
 | Podman can't reach Ollama | Network isolation | Use `host.containers.internal:11434` — Podman's hostname for the Mac host |
-| Poor code quality from model | Model too small or wrong type | Switch to `devstral-small` for coding tasks |
+| Poor code quality from model | Model too small or wrong type | Switch to `devstral` for coding tasks |
 | Continue.dev autocomplete laggy | Autocomplete model too large | Use `smollm2:1.7b` for autocomplete only |
 
 ---
@@ -199,12 +199,12 @@ export OLLAMA_HOST=0.0.0.0:11434     # Allow Podman containers to connect
 
 # OpenCode
 export OPENCODE_API_BASE=http://localhost:11434/v1
-export OPENCODE_MODEL=devstral-small
+export OPENCODE_MODEL=devstral
 
 # Convenience aliases (all Green-approved models)
 alias ai-chat="ollama run phi4-mini"              # ~3 GB, ultra-fast
 alias ai-general="ollama run gemma3:12b"           # ~8 GB, balanced
-alias ai-code="ollama run devstral-small"          # ~14 GB, coding
+alias ai-code="ollama run devstral"          # ~14 GB, coding
 alias ai-reason="ollama run phi4-reasoning"        # ~9 GB, chain-of-thought
 alias ai-power="ollama run mistral-small3.1:24b"   # ~14 GB, best overall
 alias ai-status="ollama ps"

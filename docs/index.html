@@ -546,7 +546,7 @@
         <div class="card-grid">
             <div class="card">
                 <h4>Devstral Small 1.1 <span class="vram-tag vram-high">~14 GB</span></h4>
-                <div class="meta"><code>devstral-small</code> &middot; Mistral AI &middot; <span class="fit-yes">Fits</span></div>
+                <div class="meta"><code>devstral</code> &middot; Mistral AI &middot; <span class="fit-yes">Fits</span></div>
                 <p>Best approved coding model. 53.6% SWE-Bench Verified. Outperforms many cloud models on code tasks.</p>
                 <div class="tag-row"><span class="tag green">Best Coder</span><span class="tag">24B</span></div>
             </div>
@@ -593,7 +593,7 @@
                 <tr><th>Task</th><th>Best Model</th><th>Runner-Up</th><th>VRAM</th></tr>
                 <tr>
                     <td><strong>Code generation / debugging</strong></td>
-                    <td><code>devstral-small</code></td>
+                    <td><code>devstral</code></td>
                     <td><code>granite3.3:8b</code></td>
                     <td>14 / 6 GB</td>
                 </tr>
@@ -656,7 +656,7 @@
 
         <div class="alert success">
             <strong>The "Two Model" Strategy</strong>
-            Keep <code>gemma3:12b</code> as your always-loaded daily driver (~7 GB). When you need specialized power, swap to: <code>devstral-small</code> (coding), <code>phi4-reasoning</code> (math), or <code>mistral-small3.1:24b</code> (everything else). Only one 14 GB model at a time.
+            Keep <code>gemma3:12b</code> as your always-loaded daily driver (~7 GB). When you need specialized power, swap to: <code>devstral</code> (coding), <code>phi4-reasoning</code> (math), or <code>mistral-small3.1:24b</code> (everything else). Only one 14 GB model at a time.
         </div>
     </div>
 
@@ -684,7 +684,7 @@
 <span class="cmd">ollama pull</span> gemma3:12b
 
 <span class="comment"># Coding specialist (~14 GB)</span>
-<span class="cmd">ollama pull</span> devstral-small
+<span class="cmd">ollama pull</span> devstral
 
 <span class="comment"># Quick chat (~3 GB)</span>
 <span class="cmd">ollama pull</span> phi4-mini
@@ -707,7 +707,7 @@
 <span class="comment"># Quick model switching</span>
 <span class="cmd">alias</span> ai-chat=<span class="flag">"ollama run phi4-mini"</span>
 <span class="cmd">alias</span> ai-general=<span class="flag">"ollama run gemma3:12b"</span>
-<span class="cmd">alias</span> ai-code=<span class="flag">"ollama run devstral-small"</span>
+<span class="cmd">alias</span> ai-code=<span class="flag">"ollama run devstral"</span>
 <span class="cmd">alias</span> ai-reason=<span class="flag">"ollama run phi4-reasoning"</span>
 <span class="cmd">alias</span> ai-power=<span class="flag">"ollama run mistral-small3.1:24b"</span>
 <span class="cmd">alias</span> ai-status=<span class="flag">"ollama ps"</span></code></pre>
@@ -756,13 +756,13 @@
             <div class="card">
                 <h4>OpenCode</h4>
                 <div class="meta">CLI coding assistant</div>
-                <p>Set <code>OPENCODE_API_BASE=http://localhost:11434/v1</code> and <code>OPENCODE_MODEL=devstral-small</code>. Needs tool-calling support.</p>
+                <p>Set <code>OPENCODE_API_BASE=http://localhost:11434/v1</code> and <code>OPENCODE_MODEL=devstral</code>. Needs tool-calling support.</p>
                 <div class="tag-row"><span class="tag">CLI</span><span class="tag">Agentic</span></div>
             </div>
             <div class="card">
                 <h4>Aider</h4>
                 <div class="meta">CLI pair programmer</div>
-                <p>Run with <code>aider --model ollama/devstral-small</code>. Great for focused code editing sessions.</p>
+                <p>Run with <code>aider --model ollama/devstral</code>. Great for focused code editing sessions.</p>
                 <div class="tag-row"><span class="tag">CLI</span><span class="tag">Pair Programming</span></div>
             </div>
             <div class="card">
@@ -785,7 +785,7 @@
                 <tr><th>Setting</th><th>Value</th></tr>
                 <tr><td>API Base URL</td><td><code>http://localhost:11434/v1</code></td></tr>
                 <tr><td>API Key</td><td><code>ollama</code> (or any non-empty string)</td></tr>
-                <tr><td>Model</td><td><code>devstral-small</code> (for coding)</td></tr>
+                <tr><td>Model</td><td><code>devstral</code> (for coding)</td></tr>
             </table>
         </div>
     </div>

@@ -91,7 +91,7 @@ Only organization-approved models are used. Sorted by use case:
 |----------------------|----------------------------|--------------------------|--------|
 | **Quick chat**       | Phi 4 Mini                 | `phi4-mini`              | ~3 GB  |
 | **Daily driver**     | Gemma 3 12B                | `gemma3:12b`             | ~7 GB  |
-| **Coding**           | Devstral Small 1.1         | `devstral-small`         | ~14 GB |
+| **Coding**           | Devstral Small 1.1         | `devstral`         | ~14 GB |
 | **Reasoning**        | Phi 4 Reasoning            | `phi4-reasoning`         | ~9 GB  |
 | **Power model**      | Mistral Small 3.1 24B      | `mistral-small3.1:24b`   | ~14 GB |
 | **RAG / docs**       | Granite 3.3 8B             | `granite3.3:8b`          | ~6 GB  |
@@ -169,7 +169,7 @@ See [PROJECT-PLAN.md](PROJECT-PLAN.md) § Phase 5 for full setup instructions.
 
 | Task                        | Best Model                    | VRAM   |
 |-----------------------------|-------------------------------|--------|
-| Code generation / debugging | `devstral-small`              | 14 GB  |
+| Code generation / debugging | `devstral`              | 14 GB  |
 | Creative writing / emails   | `mistral-small3.1:24b`        | 14 GB  |
 | Reasoning / math / logic    | `phi4-reasoning`              | 9 GB   |
 | Summarization               | `gemma3:12b`                  | 7 GB   |
@@ -195,7 +195,7 @@ export OLLAMA_HOST=0.0.0.0:11434
 # Quick model switching
 alias ai-chat="ollama run phi4-mini"
 alias ai-general="ollama run gemma3:12b"
-alias ai-code="ollama run devstral-small"
+alias ai-code="ollama run devstral"
 alias ai-reason="ollama run phi4-reasoning"
 alias ai-power="ollama run mistral-small3.1:24b"
 alias ai-status="ollama ps"

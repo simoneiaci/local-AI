@@ -52,7 +52,7 @@ pull_if_missing() {
   fi
 }
 
-pull_if_missing "devstral-small"   "Devstral Small 1.1 (best coding model)"
+pull_if_missing "devstral"   "Devstral Small 1.1 (best coding model)"
 pull_if_missing "smollm2:1.7b"     "SmolLM2 1.7B (fast tab autocomplete)"
 
 echo ""
@@ -81,7 +81,7 @@ cat > "$CONTINUE_CFG" << 'EOF'
     {
       "title": "Devstral Small 1.1 (coding)",
       "provider": "ollama",
-      "model": "devstral-small",
+      "model": "devstral",
       "apiBase": "http://localhost:11434",
       "contextLength": 32768
     },
@@ -169,14 +169,14 @@ else
 # OpenCode: use local Ollama (approved models only)
 export OPENCODE_PROVIDER=openai-compatible
 export OPENCODE_API_BASE=http://localhost:11434/v1
-export OPENCODE_MODEL=devstral-small
+export OPENCODE_MODEL=devstral
 
 # Aider: use local Ollama
-alias aider-code='aider --model ollama/devstral-small'
+alias aider-code='aider --model ollama/devstral'
 alias aider-think='aider --model ollama/phi4-reasoning'
 
 # Quick model switcher for coding tools
-ai-use-coding()  { export OPENCODE_MODEL=devstral-small; echo "→ devstral-small"; }
+ai-use-coding()  { export OPENCODE_MODEL=devstral; echo "→ devstral"; }
 ai-use-general() { export OPENCODE_MODEL=mistral-small3.1:24b; echo "→ mistral-small3.1"; }
 SHELLBLOCK
 
@@ -185,11 +185,11 @@ SHELLBLOCK
 fi
 
 # ── 7. Smoke test ─────────────────────────────────────────────────────────────
-header "7. Smoke test — devstral-small"
+header "7. Smoke test — devstral"
 
-info "Sending a test prompt to devstral-small…"
+info "Sending a test prompt to devstral…"
 RESULT=$(curl -s http://localhost:11434/api/generate \
-  -d '{"model":"devstral-small","prompt":"Reply with exactly: CODING TOOLS OK","stream":false}' \
+  -d '{"model":"devstral","prompt":"Reply with exactly: CODING TOOLS OK","stream":false}' \
   2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('response','').strip())" 2>/dev/null || true)
 
 if [[ "$RESULT" == *"OK"* ]]; then
@@ -208,7 +208,7 @@ echo -e "${BOLD}What's set up:${NC}"
 echo "  • Continue.dev config  → ~/.continue/config.json"
 echo "  • VS Code shortcut:    Cmd+L (chat), Cmd+I (inline edit)"
 echo "  • Tab autocomplete:    SmolLM2 1.7B (fast)"
-echo "  • OpenCode:            opencode  (uses devstral-small)"
+echo "  • OpenCode:            opencode  (uses devstral)"
 echo "  • Aider aliases:       aider-code / aider-think"
 echo ""
 echo -e "${BOLD}Next step:${NC} source ~/.zshrc  →  then run: ${BLUE}opencode${NC}"

@@ -47,20 +47,28 @@ else
   fail "Not installed — run: brew install ollama"
 fi
 
-# Open WebUI
+# Podman machine
 echo ""
-echo "${BOLD}Open WebUI${RESET}"
-if command -v docker &>/dev/null && docker info &>/dev/null; then
-  STATUS=$(docker inspect --format='{{.State.Status}}' open-webui 2>/dev/null || echo "not found")
-  if [[ "$STATUS" == "running" ]]; then
-    ok "Running at http://localhost:3000"
-  elif [[ "$STATUS" == "exited" ]]; then
-    warn "Container exists but stopped — start with: docker start open-webui"
+echo "${BOLD}Podman${RESET}"
+if command -v podman &>/dev/null; then
+  ok "Installed: $(podman --version)"
+  MACHINE_STATE=$(podman machine list --format '{{.LastUp}}' 2>/dev/null | head -1)
+  if [[ "$MACHINE_STATE" == *"Currently running"* ]]; then
+    ok "Machine is running"
+    # Open WebUI container
+    STATUS=$(podman inspect --format='{{.State.Status}}' open-webui 2>/dev/null || echo "not found")
+    if [[ "$STATUS" == "running" ]]; then
+      ok "Open WebUI running at ${BLUE}http://localhost:3000${RESET}"
+    elif [[ "$STATUS" == "exited" ]]; then
+      warn "Open WebUI container stopped — start with: podman start open-webui"
+    else
+      warn "Open WebUI not installed — run: ./scripts/phase3-webui.sh"
+    fi
   else
-    warn "Not installed — run: ./scripts/phase3-webui.sh"
+    warn "Podman machine not running — start with: podman machine start"
   fi
 else
-  warn "Docker not running — needed for Open WebUI"
+  warn "Podman not installed — run: brew install podman"
 fi
 
 # Tailscale

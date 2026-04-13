@@ -339,12 +339,16 @@ Tabby provides IDE-integrated code completion similar to GitHub Copilot, entirel
 ### 6.1 Open WebUI (Primary Chat Interface)
 
 ```bash
-# Install via Docker
-docker run -d -p 3000:8080 \
-  --add-host=host.docker.internal:host-gateway \
-  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+# Start Podman machine first (macOS requirement)
+podman machine start
+
+# Run Open WebUI via Podman
+# host.containers.internal resolves to the Mac host automatically — no --add-host needed
+podman run -d -p 3000:8080 \
+  -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
   -v open-webui:/app/backend/data \
   --name open-webui \
+  --restart=always \
   ghcr.io/open-webui/open-webui:main
 ```
 
@@ -447,7 +451,7 @@ For serious monitoring, set up the Ollama Metrics sidecar:
 # Clone and run the metrics exporter
 git clone https://github.com/NorskHelsenett/ollama-metrics
 cd ollama-metrics
-docker-compose up -d
+podman compose up -d
 ```
 
 This exposes metrics like `ollama_loaded_models`, `ollama_model_ram_mb`, and inference speed to Grafana.
@@ -638,7 +642,7 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 | 3    | Pull general model (`gemma3:12b`)              | 10 min |
 | 4    | Set up shell aliases + env vars                | 5 min  |
 | 5    | Install Continue.dev in VS Code                | 10 min |
-| 6    | Install Open WebUI (Docker)                    | 10 min |
+| 6    | Install Open WebUI (Podman)                    | 10 min |
 | 7    | Pull embedding model + test RAG                | 10 min |
 | 8    | Install macmon for monitoring                  | 5 min  |
 | 9    | (Optional) Pull power models (`mistral-small3.1:24b`, `phi4-reasoning`) | 15 min |

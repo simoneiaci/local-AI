@@ -2,6 +2,7 @@
 # ============================================================
 #  Local-AI — Phase 3 Setup: Open WebUI
 #  Run after phase1-setup.sh
+#  Uses Podman (not Docker)
 # ============================================================
 
 set -e
@@ -19,22 +20,33 @@ warn()    { echo "${YELLOW}⚠ ${RESET}$1"; }
 section() { echo "\n${BOLD}═══ $1 ═══${RESET}"; }
 
 # ─────────────────────────────────────────────
-# 1. Check Docker
+# 1. Check Podman
 # ─────────────────────────────────────────────
-section "Checking Docker"
+section "Checking Podman"
 
-if ! command -v docker &>/dev/null; then
-  echo "${RED}✗ Docker not found.${RESET}"
-  echo "  Install Docker Desktop from: https://www.docker.com/products/docker-desktop/"
+if ! command -v podman &>/dev/null; then
+  echo "${RED}✗ Podman not found.${RESET}"
+  echo "  Install it with: brew install podman"
   exit 1
 fi
 
-if ! docker info &>/dev/null; then
-  echo "${RED}✗ Docker is not running.${RESET} Please start Docker Desktop first."
+success "Podman installed: $(podman --version)"
+
+# Ensure the Podman machine is running (required on macOS)
+MACHINE_STATE=$(podman machine list --format '{{.LastUp}}' 2>/dev/null | head -1)
+if [[ "$MACHINE_STATE" != *"Currently running"* ]]; then
+  info "Podman machine is not running. Starting it..."
+  podman machine start
+  sleep 5
+fi
+
+if ! podman info &>/dev/null; then
+  echo "${RED}✗ Podman machine failed to start.${RESET}"
+  echo "  Try manually: podman machine start"
   exit 1
 fi
 
-success "Docker is running"
+success "Podman machine is running"
 
 # ─────────────────────────────────────────────
 # 2. Check Ollama is running
@@ -54,27 +66,29 @@ success "Ollama is running"
 # ─────────────────────────────────────────────
 section "Setting up Open WebUI"
 
-if docker ps -a --format '{{.Names}}' | grep -q '^open-webui$'; then
+# On macOS, Podman containers reach the host via host.containers.internal
+# No --add-host flag needed — it resolves automatically with libkrun
+
+if podman ps -a --format '{{.Names}}' | grep -q '^open-webui$'; then
   warn "Open WebUI container already exists."
   info "Options:"
-  echo "  - Start existing: docker start open-webui"
-  echo "  - Update to latest: docker rm -f open-webui && run this script again"
+  echo "  - Start existing:  podman start open-webui"
+  echo "  - Update to latest: podman rm -f open-webui && run this script again"
   echo ""
   read "REPLY?Start the existing container? [Y/n] "
   if [[ "$REPLY" =~ ^[Nn]$ ]]; then
     echo "Aborted."
     exit 0
   fi
-  docker start open-webui
+  podman start open-webui
 else
   info "Pulling and starting Open WebUI (this may take a few minutes)..."
-  docker run -d \
+  podman run -d \
     -p 3000:8080 \
-    --add-host=host.docker.internal:host-gateway \
-    -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+    -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
     -v open-webui:/app/backend/data \
     --name open-webui \
-    --restart always \
+    --restart=always \
     ghcr.io/open-webui/open-webui:main
 fi
 
@@ -115,7 +129,14 @@ echo "  ${BOLD}Model:${RESET}   gemma3:12b (via Ollama)"
 echo ""
 echo "  ${BOLD}First time?${RESET}"
 echo "  Create an admin account on the sign-up screen."
-echo "  Your data is stored locally in a Docker volume."
+echo "  Your data is stored locally in a Podman volume."
+echo ""
+echo "  ${BOLD}Useful Podman commands:${RESET}"
+echo "  podman ps                  # list running containers"
+echo "  podman stop open-webui     # stop the UI"
+echo "  podman start open-webui    # restart it"
+echo "  podman logs open-webui     # view logs"
+echo "  podman rm -f open-webui    # remove (data volume kept)"
 echo ""
 echo "  ${BOLD}iPhone access:${RESET}"
 echo "  Install Tailscale on your Mac + iPhone, then access"

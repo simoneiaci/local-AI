@@ -107,9 +107,10 @@ When suggesting or selecting models, use the task guide below:
 - Recommended model: `devstral-small` or `mistral-small3.1:24b`
 
 ### Open WebUI
-- Runs in Docker on port 3000
-- Connects to Ollama via `http://host.docker.internal:11434`
+- Runs in Podman on port 3000
+- Connects to Ollama via `http://host.containers.internal:11434` (Podman's hostname for the Mac host)
 - Has built-in RAG with document upload
+- Manage with: `podman start/stop/logs open-webui`
 
 ### LiteLLM (API Proxy)
 - Use when a tool needs a unified proxy to multiple backends
@@ -124,7 +125,7 @@ When writing scripts, configs, or automation for this project:
 
 1. **Shell scripts** should target `zsh` (macOS default). Use `#!/bin/zsh` shebang.
 2. **Python scripts** should use Python 3.11+ (system Python on macOS). Use `pip install --break-system-packages` if needed.
-3. **Docker** is available for services like Open WebUI. Prefer Docker for isolated services.
+3. **Podman** is used for containerized services like Open WebUI. Use `podman` commands, not `docker`.
 4. **Homebrew** is the primary package manager. Prefer `brew install` where possible.
 5. **Config files** belong in `~/.config/local-ai/` or within this project directory.
 6. All API interactions should default to the **OpenAI-compatible format** for maximum tool compatibility.
@@ -179,7 +180,7 @@ done
 | Model loads but generation is very slow | Memory swapping — model too large | Use a smaller model or Q4_K_M quantization |
 | "out of memory" error | Model + system exceed 24 GB | Unload other models, close apps, use smaller quant |
 | Tool can't connect to Ollama | Ollama not running | `ollama serve` or `brew services start ollama` |
-| Docker can't reach Ollama | Network isolation | Use `host.docker.internal:11434` instead of `localhost` |
+| Podman can't reach Ollama | Network isolation | Use `host.containers.internal:11434` — Podman's hostname for the Mac host |
 | Poor code quality from model | Model too small or wrong type | Switch to `devstral-small` for coding tasks |
 | Continue.dev autocomplete laggy | Autocomplete model too large | Use `smollm2:1.7b` for autocomplete only |
 
@@ -194,7 +195,7 @@ Add these to `~/.zshrc`:
 export OLLAMA_KEEP_ALIVE=5m           # Auto-unload after 5 min idle
 export OLLAMA_MAX_LOADED_MODELS=1     # Only 1 model at a time (24GB constraint)
 export OLLAMA_NUM_GPU=99              # Use all GPU layers (Metal)
-export OLLAMA_HOST=0.0.0.0:11434     # Allow Docker containers to connect
+export OLLAMA_HOST=0.0.0.0:11434     # Allow Podman containers to connect
 
 # OpenCode
 export OPENCODE_API_BASE=http://localhost:11434/v1

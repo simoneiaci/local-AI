@@ -99,7 +99,7 @@ else
 export OLLAMA_KEEP_ALIVE=5m           # auto-unload model after 5 min idle
 export OLLAMA_MAX_LOADED_MODELS=1     # only 1 model at a time (24 GB constraint)
 export OLLAMA_NUM_GPU=99              # use all GPU layers via Metal
-export OLLAMA_HOST=0.0.0.0:11434     # allow Docker/Tailscale to reach Ollama
+export OLLAMA_HOST=0.0.0.0:11434     # allow Podman/Tailscale to reach Ollama
 
 # Quick model switching aliases
 alias ai="ollama run gemma3:12b"          # default model

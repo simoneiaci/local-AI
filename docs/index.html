@@ -718,11 +718,14 @@
                 <div class="step-content">
                     <h4>Install Open WebUI</h4>
                     <p>A ChatGPT-like interface for all your local models.</p>
-                    <pre><code><span class="cmd">docker run</span> <span class="flag">-d -p 3000:8080</span> \
-  --add-host=host.docker.internal:host-gateway \
-  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+                    <pre><code><span class="comment"># Start Podman machine (macOS requirement)</span>
+<span class="cmd">podman machine start</span>
+
+<span class="cmd">podman run</span> <span class="flag">-d -p 3000:8080</span> \
+  -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
   -v open-webui:/app/backend/data \
   --name open-webui \
+  --restart=always \
   ghcr.io/open-webui/open-webui:main</code></pre>
                     <p>Open <a href="http://localhost:3000" style="color:var(--accent)">http://localhost:3000</a></p>
                 </div>
@@ -797,7 +800,7 @@
                 <h4>Open WebUI</h4>
                 <div class="meta">Primary chat interface</div>
                 <p>ChatGPT-like UI with built-in RAG. Upload documents, hybrid search (BM25 + semantic), model switching via dropdown, conversation history.</p>
-                <div class="tag-row"><span class="tag green">Recommended</span><span class="tag">Docker</span><span class="tag">RAG</span></div>
+                <div class="tag-row"><span class="tag green">Recommended</span><span class="tag">Podman</span><span class="tag">RAG</span></div>
             </div>
             <div class="card">
                 <h4>AnythingLLM</h4>
@@ -925,7 +928,7 @@ macmon</code></pre>
                 <div class="meta">Advanced dashboards (optional)</div>
                 <p>Full metrics: loaded models, RAM usage, inference speed. Uses Ollama Metrics sidecar.</p>
                 <pre style="font-size:0.8rem;"><code><span class="cmd">git clone</span> github.com/NorskHelsenett/ollama-metrics
-<span class="cmd">docker-compose up</span> -d</code></pre>
+<span class="cmd">podman compose up</span> -d</code></pre>
             </div>
         </div>
 

@@ -151,7 +151,15 @@ if command -v aider &>/dev/null; then
   log "Aider already installed ($(aider --version 2>/dev/null | head -1))"
 else
   info "Installing aider…"
-  pip install aider-chat --break-system-packages --quiet && log "Aider installed" || warn "pip install failed — try: pip3 install aider-chat --break-system-packages"
+  # Prefer pipx (isolated), fall back to pyenv pip, then system pip
+  if command -v pipx &>/dev/null; then
+    pipx install aider-chat && log "Aider installed via pipx"
+  elif command -v pyenv &>/dev/null; then
+    pyenv exec pip install aider-chat && log "Aider installed via pyenv pip"
+  else
+    pip install aider-chat --break-system-packages --quiet && log "Aider installed" \
+      || warn "Install manually: pipx install aider-chat"
+  fi
 fi
 
 # ── 6. Append env vars to .zshrc ─────────────────────────────────────────────

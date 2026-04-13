@@ -58,7 +58,7 @@ pull_if_missing "smollm2:1.7b"     "SmolLM2 1.7B (fast tab autocomplete)"
 echo ""
 info "Optional: pull Phi 4 Mini for quick Q&A chat"
 read -r -p "  Pull phi4-mini? (y/N) " answer
-if [[ "${answer,,}" == "y" ]]; then
+if [[ "$(echo "$answer" | tr '[:upper:]' '[:lower:]')" == "y" ]]; then
   pull_if_missing "phi4-mini" "Phi 4 Mini"
 fi
 

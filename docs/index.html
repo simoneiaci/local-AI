@@ -788,6 +788,37 @@
                 <tr><td>Model</td><td><code>devstral</code> (for coding)</td></tr>
             </table>
         </div>
+
+        <h3>Workflow Pattern: Plan &rarr; Build</h3>
+        <p>Community consensus (r/opencodeCLI) is to split coding agent work into two phases. Even with the best proprietary models, a single call trying to reason deeply <em>and</em> emit correct code tends to underperform a two-step split. On a 24 GB M4 Pro with approved local models:</p>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Phase</th><th>Model</th><th>Why</th></tr>
+                <tr><td>Plan / think</td><td><code>phi4-reasoning</code></td><td>75.3% AIME — strong step-by-step reasoning</td></tr>
+                <tr><td>Build / code</td><td><code>devstral</code></td><td>53.6% SWE-Bench — best approved coder</td></tr>
+                <tr><td>Debug / review</td><td><code>mistral-small3.1:24b</code></td><td>128K context, good at tracing bugs</td></tr>
+            </table>
+        </div>
+        <pre><code><span class="comment"># Plan the approach with a reasoning model</span>
+<span class="cmd">OPENCODE_MODEL</span>=phi4-reasoning opencode <span class="flag">"Design a retry layer"</span>
+
+<span class="comment"># Switch to devstral to implement</span>
+<span class="cmd">ai-use-coding</span>   <span class="comment"># alias sets OPENCODE_MODEL=devstral</span>
+<span class="cmd">opencode</span> <span class="flag">"Now implement the plan"</span></code></pre>
+
+        <h3>Context Budget &mdash; Keep Under ~100K Tokens</h3>
+        <p>Even models advertising 128K context degrade noticeably after ~100K (hallucinations, lost references, language drift). Recommended working budgets:</p>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Model</th><th>Advertised</th><th>Working budget</th></tr>
+                <tr><td><code>gemma3:12b</code></td><td>128K</td><td>&le; 32K (sweet spot)</td></tr>
+                <tr><td><code>mistral-small3.1:24b</code></td><td>128K</td><td>&le; 100K</td></tr>
+                <tr><td><code>granite3.3:8b</code></td><td>128K</td><td>&le; 100K</td></tr>
+                <tr><td><code>devstral</code></td><td>32K</td><td>&le; 32K</td></tr>
+                <tr><td><code>phi4-reasoning</code></td><td>16K</td><td>&le; 16K (hard limit)</td></tr>
+            </table>
+        </div>
+        <p><strong>Rules of thumb:</strong> summarize-and-restart at ~20K increments, reserve ~20% of context for the output, and feed directory listings first before pulling in specific files.</p>
     </div>
 
     <!-- ==================== CHAT & RAG ==================== -->

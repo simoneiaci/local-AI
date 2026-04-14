@@ -129,6 +129,8 @@ When writing scripts, configs, or automation for this project:
 4. **Homebrew** is the primary package manager. Prefer `brew install` where possible.
 5. **Config files** belong in `~/.config/local-ai/` or within this project directory.
 6. All API interactions should default to the **OpenAI-compatible format** for maximum tool compatibility.
+7. **Plan-then-build**: for non-trivial coding tasks, first use `phi4-reasoning` to outline the approach, then switch to `devstral` to implement it. Do not attempt to reason deeply and emit code in the same call with a 24B model on 24 GB RAM.
+8. **Context budget**: keep prompt + context under ~100K tokens even for 128K-context models (`gemma3:12b`, `mistral-small3.1:24b`, `granite3.3:8b`). Quality degrades measurably above that threshold. If approaching the limit, summarize and restart the session with the summary as the new seed.
 
 ---
 

@@ -332,6 +332,46 @@ tabby serve --model SmolLM2-1.7B --device metal
 
 Tabby provides IDE-integrated code completion similar to GitHub Copilot, entirely local.
 
+### 5.6 Workflow Patterns — Plan + Build
+
+Real-world users of coding agents (see r/opencodeCLI discussions) consistently land on a two-phase workflow: one model reasons about the plan, a second model executes it. This splits cognitive vs. mechanical work and keeps each model in its comfort zone.
+
+Adapted to the approved-model roster on a 24 GB M4 Pro:
+
+| Phase           | Model                                | Why                                                  |
+|-----------------|--------------------------------------|------------------------------------------------------|
+| **Plan / think**| `phi4-reasoning` (14B)               | 75.3% AIME 2024 — strong step-by-step reasoning      |
+| **Build / code**| `devstral` (24B)                     | 53.6% SWE-Bench — best approved coder                |
+| **Debug / review** | `mistral-small3.1:24b`            | 128K context, broad knowledge, good at tracing bugs  |
+
+Practical OpenCode example:
+
+```bash
+# Plan mode — draft the approach, no code yet
+OPENCODE_MODEL=phi4-reasoning opencode "Design a retry layer for the API client"
+
+# Switch to devstral to implement
+ai-use-coding   # alias from Phase 2 → sets OPENCODE_MODEL=devstral
+opencode "Now implement the plan we just designed"
+```
+
+### 5.7 Context Budget — Keep Prompts Under ~100K Tokens
+
+Reddit practitioners consistently report that even models advertising 128K context degrade noticeably after ~100K (hallucinations, language drift, lost references). Approved models and their realistic effective context:
+
+| Model                        | Advertised | Recommended working budget |
+|------------------------------|------------|----------------------------|
+| `gemma3:12b`                 | 128K       | ≤ 32K (sweet spot)         |
+| `mistral-small3.1:24b`       | 128K       | ≤ 100K                     |
+| `granite3.3:8b`              | 128K       | ≤ 100K                     |
+| `phi4-reasoning`             | 16K        | ≤ 16K (hard limit)         |
+| `devstral`                   | 32K        | ≤ 32K                      |
+
+Practical rules:
+- **Summarize, don't stuff** — ask the model to produce a running summary every ~20K tokens and restart the session with that summary as the new seed.
+- **Split large repos** — feed directory listings + file headers first, then pull in specific files on demand.
+- **Reserve 20% of context for the output** — a 32K-context model writing a 4K patch has only 28K for inputs.
+
 ---
 
 ## 6. Phase 3 — Chat & RAG

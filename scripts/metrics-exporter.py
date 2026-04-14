@@ -2,9 +2,13 @@
 """
 Local-AI Metrics Exporter — runs on the HOST Mac.
 Writes /tmp/ai-metrics.json every 3 seconds for the dashboard container to read.
+Also runs a control server on port 9091 so the dashboard can start/stop services.
 No external dependencies — uses only stdlib + macOS built-ins.
 """
-import subprocess, json, re, time, shutil, os
+import subprocess, json, re, time, shutil, os, threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+# ── Metric collectors ─────────────────────────────────────────────────────────
 
 def cpu_pct():
     try:
@@ -19,12 +23,10 @@ def cpu_pct():
 
 def ram_stats():
     try:
-        # Total RAM from sysctl
         out = subprocess.check_output(['sysctl', 'hw.memsize'], text=True)
         total_bytes = int(re.search(r'hw.memsize:\s*(\d+)', out).group(1))
         total_gb = round(total_bytes / 1024**3, 1)
 
-        # Used RAM from vm_stat
         out = subprocess.check_output(['vm_stat'], text=True)
         page_size = int(re.search(r'page size of (\d+) bytes', out).group(1))
 
@@ -35,9 +37,15 @@ def ram_stats():
         active   = pages('Pages active')
         wired    = pages('Pages wired down')
         occupied = pages('Pages occupied by compressor')
+        swapped  = pages('Pages swapped out')
         used_gb  = round((active + wired + occupied) * page_size / 1024**3, 1)
-        return {'used_gb': used_gb, 'total_gb': total_gb,
-                'pct': round(used_gb / total_gb * 100, 1)}
+        swap_gb  = round(swapped * page_size / 1024**3, 2)
+        return {
+            'used_gb':  used_gb,
+            'total_gb': total_gb,
+            'pct':      round(used_gb / total_gb * 100, 1),
+            'swap_gb':  swap_gb,
+        }
     except Exception:
         return None
 
@@ -61,42 +69,31 @@ def disk_stats():
         return None
 
 def services():
+    import urllib.request
     status = {}
 
-    # Ollama
-    try:
-        import urllib.request
-        urllib.request.urlopen('http://localhost:11434', timeout=2)
-        status['ollama'] = 'up'
-    except Exception:
-        status['ollama'] = 'down'
+    for key, url in [('ollama', 'http://localhost:11434'),
+                     ('open_webui', 'http://localhost:3000')]:
+        try:
+            urllib.request.urlopen(url, timeout=2)
+            status[key] = 'up'
+        except Exception:
+            status[key] = 'down'
 
-    # Open WebUI
-    try:
-        urllib.request.urlopen('http://localhost:3000', timeout=2)
-        status['open_webui'] = 'up'
-    except Exception:
-        status['open_webui'] = 'down'
-
-    # Tailscale
     try:
         out = subprocess.check_output(['tailscale', 'status', '--json'],
                                       text=True, timeout=3)
         data = json.loads(out)
         status['tailscale'] = 'up' if data.get('BackendState') == 'Running' else 'down'
-        status['tailscale_ip'] = ''
-        self_node = data.get('Self', {})
-        ips = self_node.get('TailscaleIPs', [])
-        if ips:
-            status['tailscale_ip'] = ips[0]
+        ips = data.get('Self', {}).get('TailscaleIPs', [])
+        status['tailscale_ip'] = ips[0] if ips else ''
     except Exception:
         status['tailscale'] = 'down'
         status['tailscale_ip'] = ''
 
-    # Podman machine
     try:
         out = subprocess.check_output(
-            ['podman', 'machine', 'list', '--format', '{{.Running}}'],
+            ['/opt/homebrew/bin/podman', 'machine', 'list', '--format', '{{.Running}}'],
             text=True, stderr=subprocess.DEVNULL)
         status['podman'] = 'up' if 'true' in out.lower() else 'down'
     except Exception:
@@ -113,9 +110,75 @@ def collect():
         'services': services(),
     }
 
+# ── Control server (port 9091) ────────────────────────────────────────────────
+
+OLLAMA_BIN  = '/opt/homebrew/bin/ollama'
+PODMAN_BIN  = '/opt/homebrew/bin/podman'
+TS_BIN      = '/usr/local/bin/tailscale'
+
+ACTIONS = {
+    'ollama_stop':    lambda: subprocess.Popen(['pkill', '-x', 'ollama']),
+    'ollama_start':   lambda: subprocess.Popen([OLLAMA_BIN, 'serve'],
+                          stdout=open('/tmp/ollama.log','a'), stderr=subprocess.STDOUT),
+    'webui_stop':     lambda: subprocess.Popen([PODMAN_BIN, 'stop', 'open-webui']),
+    'webui_start':    lambda: subprocess.Popen([PODMAN_BIN, 'start', 'open-webui']),
+    'podman_stop':    lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'stop']),
+    'podman_start':   lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'start']),
+    'tailscale_up':   lambda: subprocess.Popen([TS_BIN, 'up']),
+    'tailscale_down': lambda: subprocess.Popen([TS_BIN, 'down']),
+}
+
+class ControlHandler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        self._cors()
+        self.send_response(204)
+        self.end_headers()
+
+    def do_POST(self):
+        if self.path != '/control':
+            self.send_response(404); self.end_headers(); return
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            body   = json.loads(self.rfile.read(length))
+            action = body.get('action', '')
+            if action in ACTIONS:
+                ACTIONS[action]()
+                resp = json.dumps({'ok': True, 'action': action}).encode()
+            else:
+                resp = json.dumps({'ok': False, 'error': f'unknown action: {action}'}).encode()
+        except Exception as e:
+            resp = json.dumps({'ok': False, 'error': str(e)}).encode()
+        self._cors()
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', len(resp))
+        self.end_headers()
+        self.wfile.write(resp)
+
+    def _cors(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+
+    def log_message(self, *_): pass
+
+class ReusableHTTPServer(HTTPServer):
+    allow_reuse_address = True
+
+def run_control_server():
+    server = ReusableHTTPServer(('', 9091), ControlHandler)
+    print('Control server -> http://localhost:9091/control', flush=True)
+    server.serve_forever()
+
+# ── Main loop ─────────────────────────────────────────────────────────────────
+
 OUT = '/tmp/ai-metrics.json'
 
 if __name__ == '__main__':
+    # Start control server in background thread
+    t = threading.Thread(target=run_control_server, daemon=True)
+    t.start()
+
     print(f'metrics-exporter started → writing {OUT} every 3s')
     while True:
         try:

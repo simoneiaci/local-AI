@@ -73,6 +73,7 @@ podman run -d \
   --name "$CONTAINER_NAME" \
   -p "${PORT}:9090" \
   -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
+  -e CONTROL_URL=http://host.containers.internal:9091 \
   -v "${METRICS_DIR}:/hostmetrics:ro" \
   --restart=always \
   "$IMAGE_NAME"

@@ -238,6 +238,27 @@ function renderServices(svc){
   }).join('');
 }
 
+const MODEL_HINTS = {
+  'qwen3:14b':              '🇮🇹 Italian · tax docs · reasoning · thinking mode',
+  'devstral':               '💻 Coding · code gen · refactors · terminal agent',
+  'mistral-small3.1:24b':   '🏆 Best overall · long context · versatile',
+  'gemma3:12b':             '💬 Daily chat · multimodal · vision · balanced',
+  'granite3.3:8b':          '📄 RAG · Q&A · document analysis · fast',
+  'phi4-reasoning':         '🔢 Step-by-step · math · complex reasoning',
+  'smollm2:1.7b':           '⚡ Tab autocomplete · tiny · always loaded',
+  'nomic-embed-text':       '🔍 Embeddings · RAG pipelines · semantic search',
+  'tax-assistant':          '📋 Italian tax assistant · 730 · F24 · detrazioni',
+  'swift-mentor':           '🍎 iOS/macOS · Swift 6 · SwiftUI · TCA',
+};
+function modelHint(name){
+  if(MODEL_HINTS[name]) return MODEL_HINTS[name];
+  // fuzzy match on prefix
+  for(const [k,v] of Object.entries(MODEL_HINTS)){
+    if(name.startsWith(k.split(':')[0])) return v;
+  }
+  return '';
+}
+
 function renderModels(ps,tags){
   const loadedMap={};
   (ps.models||[]).forEach(m=>{loadedMap[m.name]=m});
@@ -257,9 +278,12 @@ function renderModels(ps,tags){
       if(loaded.expires_at) parts.push(timeUntil(loaded.expires_at));
       if(parts.length) extra=`<div class="model-extra">${parts.map(p=>`<span>${p}</span>`).join('')}</div>`;
     }
+    const hint=modelHint(name);
+    const hintHtml=hint?`<div style="font-size:.72rem;color:var(--muted2);margin-top:5px;line-height:1.4">${hint}</div>`:'';
     return `<div class="model-card ${loaded?'active':''}">
       <div class="model-name">${name}</div>
       <div class="model-meta"><span class="model-size">${sizeGb}</span>${badge}</div>
+      ${hintHtml}
       ${extra}
     </div>`;
   }).join('');

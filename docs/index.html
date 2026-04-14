@@ -170,6 +170,7 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
     <a onclick="show('coding')">Coding Tools</a>
     <a onclick="show('dashboard')">Dashboard</a>
     <a onclick="show('websearch')">Web Search</a>
+    <a onclick="show('webui')">Open WebUI</a>
     <a onclick="show('remote')">Remote Access</a>
     <a onclick="show('commands')">Commands</a>
   </div>
@@ -281,17 +282,27 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
 
   <div class="alert alert-yellow">⚠️ With 24 GB unified memory, about 14–16 GB is available for models. <code>smollm2:1.7b</code> can stay loaded alongside any other model.</div>
 
-  <h3>Recommended Stack</h3>
+  <h3>Current Stack</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
       <tr><td>Daily driver</td><td><code>gemma3:12b</code></td><td><span class="tag tag-yellow">7 GB</span></td><td>Chat, summarisation, multimodal (images)</td></tr>
       <tr><td>Coding</td><td><code>devstral</code></td><td><span class="tag tag-orange">14 GB</span></td><td>Code gen, refactor, debugging, agents</td></tr>
-      <tr><td>Reasoning</td><td><code>phi4-reasoning</code></td><td><span class="tag tag-yellow">9 GB</span></td><td>Math, logic, step-by-step analysis</td></tr>
+      <tr><td>Italian · Tax · Reasoning</td><td><code>qwen3:14b</code></td><td><span class="tag tag-yellow">9.3 GB</span></td><td>Italian docs, 730/CU/F24, reasoning, thinking mode (<code>/think</code>)</td></tr>
       <tr><td>Power model</td><td><code>mistral-small3.1:24b</code></td><td><span class="tag tag-orange">14 GB</span></td><td>Long context, tool use, best all-round</td></tr>
-      <tr><td>RAG / docs</td><td><code>granite3.3:8b</code></td><td><span class="tag tag-yellow">5 GB</span></td><td>Document Q&A, structured extraction</td></tr>
       <tr><td>Tab autocomplete</td><td><code>smollm2:1.7b</code></td><td><span class="tag tag-green">1 GB</span></td><td>VS Code inline completions (always loaded)</td></tr>
       <tr><td>Embeddings</td><td><code>nomic-embed-text</code></td><td><span class="tag tag-green">0.3 GB</span></td><td>RAG pipelines, semantic search</td></tr>
+    </table>
+  </div>
+
+  <div class="alert alert-blue">💡 <strong>qwen3:14b</strong> replaced <code>phi4-reasoning</code> and <code>granite3.3:8b</code> — it handles Italian language, tax documents, and reasoning in a single model. Use <code>/think</code> prefix to enable deep step-by-step reasoning mode.</div>
+
+  <h3>Custom Modelfiles</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Name</th><th>Based on</th><th>Purpose</th></tr>
+      <tr><td><code>tax-assistant</code></td><td><code>qwen3:14b</code></td><td>Italian tax expert — 730, CU, F24, detrazioni IRPEF, bonus edilizi</td></tr>
+      <tr><td><code>swift-mentor</code></td><td><code>devstral</code></td><td>iOS/macOS Swift 6 expert — SwiftUI, UIKit, async/await, TCA</td></tr>
     </table>
   </div>
 
@@ -300,17 +311,17 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
     <table>
       <tr><th>Task</th><th>Best model</th><th>Why</th></tr>
       <tr><td>Code generation</td><td><code>devstral</code></td><td>Trained specifically for coding tasks</td></tr>
-      <tr><td>Complex refactoring</td><td><code>phi4-reasoning</code> → <code>devstral</code></td><td>Plan with phi4, build with devstral</td></tr>
-      <tr><td>Tax / legal documents</td><td><code>mistral-small3.1:24b</code></td><td>128K context, accurate structured output</td></tr>
-      <tr><td>iOS / Swift coding</td><td><code>devstral</code></td><td>Best code model, strong on Swift/Xcode</td></tr>
+      <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> / <code>devstral</code></td><td>Custom persona pre-loaded with Swift 6 context</td></tr>
+      <tr><td>Tax / Italian documents</td><td><code>tax-assistant</code> / <code>qwen3:14b</code></td><td>Best Italian language + reasoning, knows 730/F24/CU</td></tr>
+      <tr><td>Complex reasoning</td><td><code>qwen3:14b</code></td><td>Hybrid thinking mode — type <code>/think</code> before your prompt</td></tr>
+      <tr><td>Long documents / RAG</td><td><code>mistral-small3.1:24b</code></td><td>128K context, accurate structured output</td></tr>
       <tr><td>Image analysis</td><td><code>gemma3:12b</code></td><td>Multimodal, fast, high accuracy</td></tr>
-      <tr><td>Summarise PDFs</td><td><code>granite3.3:8b</code></td><td>Optimised for document Q&A</td></tr>
-      <tr><td>Math / reasoning</td><td><code>phi4-reasoning</code></td><td>Chain-of-thought reasoning model</td></tr>
       <tr><td>Quick chat</td><td><code>gemma3:12b</code></td><td>Fast, 7 GB, always available</td></tr>
+      <tr><td>Embeddings / RAG pipeline</td><td><code>nomic-embed-text</code></td><td>Required by Open WebUI knowledge base</td></tr>
     </table>
   </div>
 
-  <h3>Gemma Family Reference</h3>
+  <h3>What Fits in 24 GB? (Gemma Reference)</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Model</th><th>VRAM</th><th>Fits?</th><th>Notes</th></tr>
@@ -566,6 +577,224 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
   </div>
 
   <div class="alert alert-blue">💡 The API key is stored locally in <code>.secrets</code> (gitignored) and entered manually in Open WebUI. It is never committed to the repository.</div>
+</section>
+
+<!-- ── Open WebUI Features ── -->
+<section class="section" id="s-webui">
+  <h2>🌐 Open WebUI Features</h2>
+  <p class="section-desc">Open WebUI has powerful features beyond basic chat. Here's how to enable each one. All settings are under <strong>Admin Panel</strong> (click your avatar → Admin Panel).</p>
+
+  <div class="alert alert-green">✓ Pipelines container is already running at <code>localhost:9099</code> — started by <code>phase3-webui.sh</code> or <code>ai-stack-start</code>.</div>
+
+  <!-- ── 1. RAG / Knowledge Base ── -->
+  <h3>1 · RAG / Knowledge Base</h3>
+  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Upload documents (PDFs, Word files, receipts, Swift docs) and let the model answer questions from them using semantic search — far more accurate than keyword matching.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Set the embedding model</h4>
+        <p>Admin Panel → Settings → Documents. Set <strong>Embedding Model</strong> to <code>nomic-embed-text</code> (already pulled). Save.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Create a Knowledge collection</h4>
+        <p>Workspace → Knowledge → New Knowledge. Name it (e.g. "Tax Docs 2025"). Upload PDFs — 730 forms, CU, F24, ricevute.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Use in chat</h4>
+        <p>In a new chat, click <strong>+</strong> → select your Knowledge collection. Or use the 📎 button to attach a single file directly to the message. Then ask: "Quali spese mediche posso detrarre nel 730/2025?"</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-blue">💡 Best models for RAG: <code>tax-assistant</code> / <code>qwen3:14b</code> for Italian tax docs · <code>mistral-small3.1:24b</code> for long documents requiring 128K context.</div>
+
+  <!-- ── 2. Memory ── -->
+  <h3>2 · Memory</h3>
+  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your tax situation — building a personal context that persists between sessions.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Enable Memory</h4>
+        <p>Admin Panel → Settings → Personalization. Toggle <strong>Memory</strong> on. Save.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Seed your memory (optional)</h4>
+        <p>Go to your profile → Memory. Add facts manually: "I'm an iOS developer using Swift 6 and TCA" or "I live in Italy and file 730/redditi with a partita IVA".</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Let the model build it automatically</h4>
+        <p>During conversations, the model will extract and save relevant facts. You can review and edit them any time in your profile → Memory.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. Code Execution / Artifacts ── -->
+  <h3>3 · Code Execution (Artifacts)</h3>
+  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Models can write Python or JavaScript and actually run it inline, showing output. Ideal for tax calculations, data processing, or verifying code snippets.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Enable Code Interpreter</h4>
+        <p>Admin Panel → Settings → Interface. Toggle <strong>Code Interpreter</strong> (or "Artifacts") on. Save.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Ask the model to run code</h4>
+        <p>Just ask naturally: "Calculate my IRPEF for €45,000 gross income" or "Write and run a Python script to parse this CSV". The model writes the code, a Run button appears, and you see the output inline.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-yellow">⚠️ Code runs inside the Open WebUI Podman container — sandboxed and safe. Output is shown inline in the chat.</div>
+
+  <!-- ── 4. Pipelines ── -->
+  <h3>4 · Pipelines</h3>
+  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Custom Python middleware that intercepts every message. Use it to auto-translate Italian documents, post-process model output, add rate limiting, or inject context automatically.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Verify the Pipelines container is running</h4>
+        <pre><span class="cmd">podman ps | grep pipelines</span>
+<span class="c"># Should show open-webui-pipelines on port 9099</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Connect Open WebUI to Pipelines</h4>
+        <p>Admin Panel → Settings → Connections. Under <strong>OpenAI API</strong> connections, add a new entry:</p>
+        <div class="table-wrap" style="margin:10px 0">
+          <table>
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>URL</td><td><code>http://host.containers.internal:9099</code></td></tr>
+            <tr><td>API Key</td><td><code>0p3n-w3bu!</code></td></tr>
+          </table>
+        </div>
+        <p>Click <strong>Verify</strong> — you should see a green checkmark. Save.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Install a pipeline</h4>
+        <p>Admin Panel → Pipelines → Install from GitHub URL or upload a <code>.py</code> file. Browse examples at <a href="https://github.com/open-webui/pipelines/tree/main/examples" target="_blank">github.com/open-webui/pipelines</a>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. Image Input ── -->
+  <h3>5 · Image Input (Vision)</h3>
+  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Already works — just select <code>gemma3:12b</code> and attach an image. Useful for reading receipts, screenshots of Xcode errors, diagrams, or scanned documents.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Select a vision model</h4>
+        <p>In the chat model selector, choose <code>gemma3:12b</code> (multimodal). <code>mistral-small3.1:24b</code> also supports vision.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Attach an image</h4>
+        <p>Click the 📎 paperclip in the chat input → select an image. Then type your question: "What does this Xcode error mean?" or "Transcribe this receipt and list the deductible expenses."</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Use case</th><th>Prompt example</th></tr>
+      <tr><td>Xcode error</td><td>Attach screenshot → "What's wrong and how do I fix this?"</td></tr>
+      <tr><td>Receipt scan</td><td>Attach photo → "List all items and their amounts. Which are tax-deductible?"</td></tr>
+      <tr><td>UI sketch</td><td>Attach wireframe → "Write SwiftUI code for this layout"</td></tr>
+      <tr><td>Bank statement</td><td>Attach PDF screenshot → "Summarise all transactions above €500"</td></tr>
+    </table>
+  </div>
+
+  <!-- ── 6. Custom Modelfiles / Personas ── -->
+  <h3>6 · Custom Modelfiles (Personas)</h3>
+  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Custom models pre-loaded with expert system prompts. Already created: <code>tax-assistant</code> and <code>swift-mentor</code>.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Access your custom models</h4>
+        <p>In Open WebUI, open the model selector — <code>tax-assistant</code> and <code>swift-mentor</code> appear alongside the base models.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Create a new persona</h4>
+        <p>Workspace → Models → Create Model. Choose a base model, write a System Prompt, and save. It appears immediately in the chat selector.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Or create via Ollama CLI</h4>
+        <pre><span class="c"># Create a Modelfile</span>
+<span class="cmd">cat</span> &gt; ~/my-assistant.modelfile &lt;&lt;'EOF'
+FROM qwen3:14b
+SYSTEM """You are a helpful assistant..."""
+EOF
+<span class="cmd">ollama create</span> my-assistant -f ~/my-assistant.modelfile</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Model</th><th>Based on</th><th>System prompt focus</th></tr>
+      <tr><td><code>tax-assistant</code></td><td><code>qwen3:14b</code></td><td>Italian tax law — 730, CU, F24, detrazioni IRPEF, bonus edilizi, partita IVA</td></tr>
+      <tr><td><code>swift-mentor</code></td><td><code>devstral</code></td><td>iOS/macOS development — Swift 6, SwiftUI, UIKit, async/await, The Composable Architecture</td></tr>
+    </table>
+  </div>
+
+  <!-- ── Future features ── -->
+  <h3>Coming Soon</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🎤</div>
+      <h4>Whisper STT</h4>
+      <p>Voice input — speak to the model instead of typing. Requires the <code>whisper</code> model and microphone permission in Open WebUI settings.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚔️</div>
+      <h4>Arena Mode</h4>
+      <p>Compare two models side-by-side on the same prompt. Enable in Admin Panel → Settings → Interface. Great for choosing the best model for a task.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h4>SearXNG (Self-hosted Search)</h4>
+      <p>Replace Brave Search with your own SearXNG instance for fully private web search. Run a SearXNG Podman container and point Open WebUI to <code>localhost:8080</code>.</p>
+    </div>
+  </div>
 </section>
 
 <!-- ── Remote Access ── -->

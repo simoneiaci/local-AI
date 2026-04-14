@@ -500,43 +500,72 @@ This exposes metrics like `ollama_loaded_models`, `ollama_model_ram_mb`, and inf
 
 ## 8. Phase 5 — Remote Access (AI in Your Pocket)
 
-Access your local AI from your **iPhone or any device**, anywhere — using Tailscale.
-This is inspired by the r/ollama community: users running Gemma4 on their Macs and chatting from their phones via Tailscale.
-
-### 8.1 Install Tailscale
+Access your local AI from your **iPhone or any device**, anywhere. Run the setup script and pick your option:
 
 ```bash
-# Download the standalone version (NOT the App Store version)
-# https://tailscale.com/download/mac — use the .pkg installer
-
-# After install, launch Tailscale from the menu bar and sign in
-# Grant system extension permission: Settings → General → Network Extensions
+bash scripts/phase5-remote.sh
+# 1) Tailscale only
+# 2) Caddy + DuckDNS only
+# 3) Cloudflare Tunnel only
+# 4) Tailscale + Caddy (recommended — both together)
 ```
 
-Install Tailscale on your iPhone too (App Store → Tailscale). Sign in with the same account. Both devices are now on a private encrypted mesh network.
-
-### 8.2 Configure Ollama for Remote Access
-
-By default Ollama only listens on `localhost`. You need to allow connections from Tailscale:
+### 8.1 Option A — Tailscale (Simplest, Recommended)
 
 ```bash
-# Add to ~/.zshrc (if not already there)
-export OLLAMA_HOST=0.0.0.0:11434
+# 1. Download standalone .pkg (NOT App Store):
+#    https://tailscale.com/download/mac
 
-# Restart Ollama
+# 2. Connect your Mac:
+tailscale up
+# → opens browser to sign in / create free account
+
+# 3. Install Tailscale on iPhone (App Store), sign in with same account
+
+# 4. Get your Tailscale IP:
+tailscale ip -4   # → 100.x.y.z
+
+# 5. Access from iPhone:
+# http://100.x.y.z:3000   (Open WebUI)
+# http://100.x.y.z:11434  (Ollama API)
+```
+
+Ollama must listen on all interfaces (already done by the script):
+```bash
+export OLLAMA_HOST=0.0.0.0:11434
 brew services restart ollama
 ```
 
-### 8.3 Access Open WebUI from Your Phone
+### 8.2 Option B — Caddy + DuckDNS (Public HTTPS URL)
 
-1. Find your Mac's Tailscale IP: click the Tailscale menu bar icon → it shows something like `100.x.y.z`
-2. On your iPhone, open Safari and go to: `http://100.x.y.z:3000`
-3. Open WebUI loads with all your models available
+For a permanent URL like `https://myai.duckdns.org` accessible from any browser without Tailscale.
 
-**Make it feel like a native app (PWA):**
-1. In Safari on your iPhone, tap the Share button → "Add to Home Screen"
-2. Open WebUI installs as a Progressive Web App — launches fullscreen, no Safari toolbar
-3. You now have a "ChatGPT-like" icon on your home screen that talks to YOUR local models
+```bash
+# 1. Register free subdomain at duckdns.org (30 seconds)
+# 2. Run the script and pick option 2 — it:
+#    - Installs Caddy
+#    - Writes ~/.config/local-ai/Caddyfile
+#    - Creates a DuckDNS IP-updater script
+#    - Adds a cron job to update DNS every 5 minutes
+# 3. Forward ports 80 and 443 on your router → your Mac's LAN IP
+# 4. Start Caddy:
+caddy run --config ~/.config/local-ai/Caddyfile
+```
+
+> Test from mobile data, not home WiFi — NAT loopback gives false results.
+
+### 8.3 Running Both Together (Option 4)
+
+Tailscale = private daily use (E2E encrypted, no exposure).
+Caddy = shareable public URL for when you need it.
+Both run simultaneously — no conflict.
+
+### 8.4 Access Open WebUI from Your Phone (PWA)
+
+1. Open your AI URL in Safari on iPhone
+2. Tap Share → "Add to Home Screen"
+3. Open WebUI installs as a PWA — launches fullscreen, no browser toolbar
+4. Your own "ChatGPT" icon on your home screen, talking to YOUR local models
 
 ### 8.4 Keep Your Mac Awake for Remote Access
 
@@ -646,7 +675,7 @@ caddy run --config Caddyfile
 | **Cloudflare Tunnel** | Zero-trust   | 15 min | Not needed      | No port forwarding, free         |
 | **Caddy + DDNS**   | HTTPS/TLS       | 20 min | Ports 80 + 443  | Full control with your public IP |
 
-**Recommendation:** Start with Tailscale (simplest). If you want to use your public IP later, add Caddy + DuckDNS.
+**Recommendation:** Use option 4 (Tailscale + Caddy together). Tailscale for private daily use, Caddy+DuckDNS as a public-URL fallback. Both run simultaneously.
 
 ---
 

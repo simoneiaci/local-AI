@@ -852,25 +852,36 @@
     <!-- ==================== REMOTE ACCESS ==================== -->
     <div id="remote" class="section">
         <h2><span class="emoji">&#128241;</span> Remote Access</h2>
-        <p class="section-desc">Access your local AI from your iPhone — anywhere in the world.</p>
+        <p class="section-desc">Access your local AI from your iPhone — anywhere in the world. Run the setup script: <code>bash scripts/phase5-remote.sh</code> and pick your option.</p>
 
-        <h3>Three Options</h3>
+        <div class="alert info" style="margin-bottom:1.5rem;">
+            <strong>Recommended combo (option 4 in the script)</strong>: Tailscale for daily private access + Caddy+DuckDNS as a public-URL fallback. Both can run simultaneously.
+        </div>
+
+        <h3>Options</h3>
         <div class="compare-grid">
             <div class="compare-card recommended">
                 <div class="rank" style="color:var(--green)">Option A</div>
                 <h4>Tailscale (Simplest)</h4>
                 <p style="color:var(--text-muted);font-size:0.9rem;">Private mesh VPN. End-to-end WireGuard encryption. No port forwarding, no config. Install on Mac + iPhone, done.</p>
                 <div class="tag-row"><span class="tag green">Recommended</span><span class="tag">5 min setup</span><span class="tag">E2E encrypted</span></div>
-                <pre style="margin-top:12px;font-size:0.8rem;"><code><span class="comment"># Install</span>
-<span class="comment"># Download from tailscale.com (standalone .pkg)</span>
-<span class="comment"># Install Tailscale on iPhone from App Store</span>
-<span class="comment"># Sign in with same account on both</span>
+                <pre style="margin-top:12px;font-size:0.8rem;"><code><span class="comment"># 1. Download standalone .pkg (NOT App Store):</span>
+<span class="comment">#    tailscale.com/download/mac</span>
 
-<span class="comment"># Set Ollama to listen on all interfaces</span>
-<span class="cmd">export</span> OLLAMA_HOST=0.0.0.0:11434
+<span class="comment"># 2. Connect your Mac:</span>
+<span class="cmd">tailscale up</span>
+<span class="comment"># → opens browser to sign in / create account</span>
 
-<span class="comment"># Access from phone:</span>
-<span class="comment"># http://100.x.y.z:3000 (Open WebUI)</span></code></pre>
+<span class="comment"># 3. Install Tailscale on iPhone (App Store)</span>
+<span class="comment">#    Sign in with same account</span>
+
+<span class="comment"># 4. Get your Mac's Tailscale IP:</span>
+<span class="cmd">tailscale ip -4</span>
+<span class="comment"># → 100.x.y.z</span>
+
+<span class="comment"># Access from iPhone:</span>
+<span class="comment"># http://100.x.y.z:3000  (Open WebUI)</span>
+<span class="comment"># http://100.x.y.z:11434 (Ollama API)</span></code></pre>
             </div>
             <div class="compare-card">
                 <div class="rank" style="color:var(--accent)">Option B</div>
@@ -891,20 +902,24 @@
             </div>
             <div class="compare-card">
                 <div class="rank" style="color:var(--purple)">Option C</div>
-                <h4>Caddy + DDNS (Public IP)</h4>
-                <p style="color:var(--text-muted);font-size:0.9rem;">Use your home's public IP. Caddy handles automatic HTTPS via Let's Encrypt. Requires router port forwarding.</p>
-                <div class="tag-row"><span class="tag">20 min setup</span><span class="tag">Full control</span><span class="tag">Public IP</span></div>
-                <pre style="margin-top:12px;font-size:0.8rem;"><code><span class="cmd">brew install</span> caddy
+                <h4>Caddy + DuckDNS (Public URL)</h4>
+                <p style="color:var(--text-muted);font-size:0.9rem;">Your own HTTPS URL (e.g. <code>myai.duckdns.org</code>). Caddy handles TLS automatically. Requires router port forwarding (80 + 443).</p>
+                <div class="tag-row"><span class="tag">20 min setup</span><span class="tag">Full control</span><span class="tag">Public URL</span></div>
+                <pre style="margin-top:12px;font-size:0.8rem;"><code><span class="comment"># 1. Register free subdomain at duckdns.org</span>
+<span class="comment">#    e.g. myai.duckdns.org → get your token</span>
 
-<span class="comment"># Caddyfile:</span>
+<span class="comment"># 2. Install Caddy:</span>
+<span class="cmd">brew install</span> caddy
+
+<span class="comment"># 3. The setup script writes this Caddyfile:</span>
 <span class="comment"># myai.duckdns.org {</span>
 <span class="comment">#     reverse_proxy localhost:3000</span>
 <span class="comment"># }</span>
+<span class="cmd">caddy run</span> --config ~/.config/local-ai/Caddyfile
 
-<span class="cmd">caddy run</span> --config Caddyfile
-
-<span class="comment"># Forward port 443 on your router</span>
-<span class="comment"># Set up DuckDNS or Cloudflare DDNS</span></code></pre>
+<span class="comment"># 4. Forward ports 80 + 443 on your router → Mac IP</span>
+<span class="comment"># 5. Script adds cron to update DuckDNS every 5 min</span>
+<span class="comment"># Access: https://myai.duckdns.org</span></code></pre>
             </div>
         </div>
 

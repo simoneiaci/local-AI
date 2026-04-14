@@ -169,6 +169,7 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
     <a onclick="show('models')">Models</a>
     <a onclick="show('coding')">Coding Tools</a>
     <a onclick="show('dashboard')">Dashboard</a>
+    <a onclick="show('websearch')">Web Search</a>
     <a onclick="show('remote')">Remote Access</a>
     <a onclick="show('commands')">Commands</a>
   </div>
@@ -187,6 +188,7 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
     <div class="card"><div class="card-icon">🛠️</div><h4>Coding Tools</h4><p>Continue.dev in VS Code + OpenCode + Aider. All powered by local models — no cloud needed.</p></div>
     <div class="card"><div class="card-icon">📊</div><h4>Live Dashboard</h4><p>System stats, loaded models, and service controls at <code>localhost:9090</code>. Start/stop services with one click.</p></div>
     <div class="card"><div class="card-icon">📱</div><h4>iPhone Access</h4><p>Tailscale gives your phone a private encrypted connection to your Mac — from anywhere in the world.</p></div>
+    <div class="card"><div class="card-icon">🔍</div><h4>Web Search</h4><p>Brave Search integration in Open WebUI. Models can search the internet and cite sources — triggered per message.</p></div>
     <div class="card"><div class="card-icon">🔒</div><h4>Zero Cloud</h4><p>Your prompts, documents, and code never leave your machine. No subscriptions, no rate limits.</p></div>
   </div>
 
@@ -493,6 +495,77 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
 <span class="cmd">podman stop local-ai-dashboard</span>        <span class="c"># stop dashboard</span>
 <span class="cmd">pkill -f metrics-exporter.py</span>         <span class="c"># stop host exporter</span>
 <span class="cmd">cat /tmp/ai-metrics-exporter.log</span>     <span class="c"># exporter debug log</span></pre>
+</section>
+
+<!-- ── Web Search ── -->
+<section class="section" id="s-websearch">
+  <h2>🔍 Web Search</h2>
+  <p class="section-desc">Give your local models live internet access — search results are fetched and summarised privately, right inside Open WebUI.</p>
+
+  <h3>How It Works</h3>
+  <p>Open WebUI has built-in web search. When enabled, a 🌐 button appears in every chat. Toggle it before sending a message and the model will search the web, read the top results, and cite its sources — all without leaving your Mac.</p>
+
+  <div class="alert alert-green">✓ Web search is configured and ready. Engine: <strong>Brave Search</strong> — higher quality results than DuckDuckGo, with no tracking.</div>
+
+  <h3>Enable in Open WebUI</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Open Admin Panel</h4>
+        <p>Go to <a href="http://localhost:3000" target="_blank">localhost:3000</a> → click your avatar (top right) → <strong>Admin Panel</strong> → <strong>Settings</strong> → <strong>Web Search</strong></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Configure</h4>
+        <p>Enable Web Search → Search Engine: <strong>Brave</strong> → paste your API key → Save.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Use it</h4>
+        <p>In any chat, click the <strong>🌐</strong> icon in the message bar before sending. The model will search and cite sources inline.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Search Engine Comparison</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Engine</th><th>Quality</th><th>Privacy</th><th>Cost</th><th>Setup</th></tr>
+      <tr><td><strong>Brave</strong> ✓ <span class="tag tag-green">configured</span></td><td>⭐⭐⭐⭐⭐</td><td>No tracking</td><td>Free (2,000 req/mo)</td><td>API key</td></tr>
+      <tr><td>DuckDuckGo</td><td>⭐⭐⭐</td><td>No tracking</td><td>Free, unlimited</td><td>None</td></tr>
+      <tr><td>SearXNG (self-hosted)</td><td>⭐⭐⭐⭐</td><td>100% local</td><td>Free, unlimited</td><td>Podman container</td></tr>
+      <tr><td>Google / Bing</td><td>⭐⭐⭐⭐⭐</td><td>Tracked</td><td>Paid API</td><td>API key</td></tr>
+    </table>
+  </div>
+
+  <h3>Upgrade: Self-Hosted SearXNG (optional)</h3>
+  <p>For unlimited searches with zero external calls, run SearXNG locally:</p>
+  <pre><span class="cmd">podman run</span> -d --name searxng \
+  -p 8080:8080 \
+  --restart=always \
+  docker.io/searxng/searxng</pre>
+  <p>Then in Open WebUI → Web Search → Engine: <strong>SearXNG</strong> → URL: <code>http://host.containers.internal:8080</code></p>
+  <p>Add it to the stack aliases so it starts automatically:</p>
+  <pre><span class="c"># In ai-stack-start:</span>
+/opt/homebrew/bin/podman start searxng 2>/dev/null || true</pre>
+
+  <h3>Good Prompts for Web Search</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Use case</th><th>Example prompt</th></tr>
+      <tr><td>Tax deadlines</td><td>"Quali sono le scadenze fiscali 2025 per la dichiarazione dei redditi in Italia?"</td></tr>
+      <tr><td>Deduction limits</td><td>"Massimale detraibile spese mediche 730/2025"</td></tr>
+      <tr><td>Current news</td><td>"Latest news about [topic] this week"</td></tr>
+      <tr><td>Documentation</td><td>"Swift concurrency best practices 2025"</td></tr>
+    </table>
+  </div>
+
+  <div class="alert alert-blue">💡 The API key is stored locally in <code>.secrets</code> (gitignored) and entered manually in Open WebUI. It is never committed to the repository.</div>
 </section>
 
 <!-- ── Remote Access ── -->

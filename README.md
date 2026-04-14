@@ -1,232 +1,183 @@
-# 🧠 Local-AI
+# ⚡ Local-AI
 
-**Run powerful LLMs locally on your MacBook Pro M4 Pro (24GB) — for coding, chat, RAG, and productivity. Fully private, no cloud required.**
+> **Run powerful LLMs privately on a MacBook Pro M4 Pro — for coding, chat, RAG, and productivity. No cloud. No API costs. Works on your iPhone too.**
 
-> Access your AI from anywhere — even your iPhone — using Tailscale or Cloudflare Tunnel.
-
----
-
-## Why Local AI?
-
-- **Privacy** — Your data never leaves your machine. No cloud, no third-party APIs.
-- **Speed** — No network latency. Models respond in real-time.
-- **Cost** — Zero ongoing API costs after initial setup.
-- **Offline** — Works without internet. On planes, in the field, anywhere.
-- **Customizable** — Choose your models, configure system prompts, build knowledge bases.
+[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-black?logo=apple)](https://www.apple.com/mac/)
+[![Ollama](https://img.shields.io/badge/Ollama-v0.20+-white?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0id2hpdGUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjgiLz48L3N2Zz4=)](https://ollama.com)
+[![Podman](https://img.shields.io/badge/Podman-5.x-892CA0?logo=podman)](https://podman.io)
+[![License](https://img.shields.io/badge/license-Personal-gray)](#)
 
 ---
 
-## What's in This Repo
+## What This Is
 
-```
-Local-AI/
-├── README.md                 ← You are here
-├── PROJECT-PLAN.md           ← Full setup guide, model recommendations, architecture
-├── AGENTS.md                 ← Instructions for AI agents working on this project
-├── CLAUDE.md                 ← Entry point for Claude-based agents
-├── docs/
-│   └── index.html            ← GitHub Pages documentation site
-└── scripts/                  ← (future) Automation scripts
-```
+A complete, production-ready local AI stack on Apple Silicon:
+
+| Component | What it does |
+|-----------|-------------|
+| **Ollama** | Runs LLMs locally — fast GPU inference via Metal |
+| **Open WebUI** | ChatGPT-like interface, runs in Podman |
+| **Continue.dev** | AI assistant inside VS Code (Cmd+L / Cmd+I) |
+| **OpenCode + Aider** | Terminal AI coding agents |
+| **Dashboard** | Live system monitor at `localhost:9090` |
+| **Tailscale / Caddy** | Access your AI from iPhone, anywhere |
 
 ---
 
-## Quick Start (10 minutes)
-
-### 1. Install Ollama
+## Quick Start
 
 ```bash
-brew install ollama
-brew services start ollama
+# 1. Clone
+git clone https://github.com/simoneiaci/local-AI.git
+cd local-AI
+
+# 2. Run Phase 1 — Ollama + core models
+bash scripts/phase1-setup.sh
+
+# 3. Run Phase 2 — Coding tools (Continue.dev, OpenCode, Aider)
+bash scripts/phase2-coding-tools.sh
+
+# 4. Run Phase 3 — Open WebUI in Podman
+bash scripts/phase3-webui.sh
+
+# 5. Run Phase 4 — Live dashboard
+bash scripts/phase4-dashboard.sh
+
+# 6. Run Phase 5 — Remote access (Tailscale / Caddy / Cloudflare)
+bash scripts/phase5-remote.sh
 ```
 
-### 2. Pull your first model
+After Phase 1, use these aliases from any terminal:
 
 ```bash
-ollama pull gemma3:12b       # Best daily driver (~7 GB)
+ai-stack-start    # start everything (Ollama + WebUI + Dashboard)
+ai-stack-stop     # cleanly shut everything down
+ai-health         # check all services at a glance
+ai-monitor        # live GPU/CPU/RAM via macmon
 ```
-
-### 3. Chat with it
-
-```bash
-ollama run gemma3:12b
-```
-
-### 4. Install Open WebUI (ChatGPT-like interface)
-
-```bash
-# Start Podman machine first (macOS requirement)
-podman machine start
-
-podman run -d -p 3000:8080 \
-  -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
-  -v open-webui:/app/backend/data \
-  --name open-webui \
-  --restart=always \
-  ghcr.io/open-webui/open-webui:main
-```
-
-Open [http://localhost:3000](http://localhost:3000) — done.
 
 ---
 
 ## Hardware
 
-| Spec              | Value                        |
-|-------------------|------------------------------|
-| Machine           | MacBook Pro M4 Pro           |
-| RAM               | 24 GB unified memory         |
-| Usable for models | ~14-16 GB (after macOS)      |
-| GPU               | Apple Silicon Metal (built-in)|
+| | |
+|---|---|
+| **Machine** | MacBook Pro M4 Pro |
+| **RAM** | 24 GB unified memory |
+| **Available for models** | ~14–16 GB (after macOS overhead) |
+| **GPU** | Apple Silicon Neural Engine + Metal |
 
 ---
 
-## Approved Models
+## Model Stack
 
-Only organization-approved models are used. Sorted by use case:
+| Role | Model | Size | Notes |
+|------|-------|------|-------|
+| Daily driver | `gemma3:12b` | 7 GB | Best all-round, multimodal |
+| Coding | `devstral` | 14 GB | Top coding model by Mistral |
+| Reasoning / math | `phi4-reasoning` | 9 GB | Step-by-step thinking |
+| Power model | `mistral-small3.1:24b` | 14 GB | Best overall, long context |
+| RAG / documents | `granite3.3:8b` | 5 GB | IBM, excellent for Q&A |
+| Tab autocomplete | `smollm2:1.7b` | 1 GB | Instant, always loaded |
+| Embeddings | `nomic-embed-text` | 0.3 GB | For RAG pipelines |
 
-### Recommended Stack
-
-| Role                 | Model                      | Ollama name              | VRAM   |
-|----------------------|----------------------------|--------------------------|--------|
-| **Quick chat**       | Phi 4 Mini                 | `phi4-mini`              | ~3 GB  |
-| **Daily driver**     | Gemma 3 12B                | `gemma3:12b`             | ~7 GB  |
-| **Coding**           | Devstral Small 1.1         | `devstral`         | ~14 GB |
-| **Reasoning**        | Phi 4 Reasoning            | `phi4-reasoning`         | ~9 GB  |
-| **Power model**      | Mistral Small 3.1 24B      | `mistral-small3.1:24b`   | ~14 GB |
-| **RAG / docs**       | Granite 3.3 8B             | `granite3.3:8b`          | ~6 GB  |
-| **Autocomplete**     | SmolLM2 1.7B               | `smollm2:1.7b`           | ~1 GB  |
-| **Embeddings**       | Nomic Embed Text           | `nomic-embed-text`       | ~0.3 GB|
-
-> ⚠️ Only load ONE 14 GB model at a time. See [PROJECT-PLAN.md](PROJECT-PLAN.md) for full model details.
-
-### Gemma Family
-
-| Model               | VRAM   | Fits? | Notes                                         |
-|----------------------|--------|-------|-----------------------------------------------|
-| Gemma 3 4B          | ~3 GB  | ✅    | Lightweight, multimodal                       |
-| Gemma 2 9B          | ~6 GB  | ✅    | Solid general-purpose, text-only              |
-| Gemma 3 12B         | ~7 GB  | ✅    | **Best Gemma overall** — multimodal, 88.9% IFEval |
-| Gemma 4 26B-A4B     | ~15 GB | ⚠️    | MoE — tight fit but works (10-20 tok/s confirmed) |
-| Gemma 4 31B         | ~20 GB | ❌    | Too large — swapping kills performance        |
-| Gemma 3 27B         | ~16 GB | ❌    | Marginal — not recommended                    |
+> ⚠️ Only one 14 GB model fits in RAM at a time. `smollm2:1.7b` can co-exist with any of them.
 
 ---
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                    MACBOOK PRO M4 PRO (24 GB)                    │
-│                                                                  │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────────────┐ │
-│  │   Ollama      │   │  LM Studio   │   │   MLX (optional)     │ │
-│  │  (primary)    │   │  (GUI)       │   │   (speed tests)      │ │
-│  │  port 11434   │   │  port 1234   │   │                      │ │
-│  └──────┬───────┘   └──────────────┘   └──────────────────────┘ │
-│         │                                                        │
-│         │  OpenAI-compatible API: http://localhost:11434/v1       │
-│         │                                                        │
-│  ┌──────┴─────────────────────────────────────────────────────┐  │
-│  │  Continue.dev · OpenCode · Aider · Cline      (coding)    │  │
-│  │  Open WebUI · AnythingLLM · Khoj              (chat/RAG)  │  │
-│  └────────────────────────────────────────────────────────────┘  │
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │  macmon · ollama ps · Prometheus + Grafana   (monitoring)  │  │
-│  └────────────────────────────────────────────────────────────┘  │
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │  Tailscale / Caddy + DDNS / Cloudflare Tunnel (remote)    │  │
-│  └────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
-         │
-         │  Encrypted tunnel
-         ▼
-   ┌──────────┐
-   │  iPhone   │  Open WebUI PWA
-   │ (anywhere)│  = ChatGPT in your pocket
-   └──────────┘
+┌────────────────────────────────────────────────┐
+│           MacBook Pro M4 Pro (24 GB)           │
+│                                                │
+│  Ollama (:11434) ──► Open WebUI (:3000)        │
+│       │                                        │
+│       ├──► Continue.dev  (VS Code)             │
+│       ├──► OpenCode / Aider  (terminal)        │
+│       └──► Dashboard (:9090)                   │
+│                                                │
+│  Tailscale / Caddy ──► iPhone (anywhere)       │
+└────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Remote Access (AI in Your Pocket)
+## Dashboard
 
-Three options for accessing your AI from your iPhone:
+A lightweight Podman container at `http://localhost:9090` shows:
 
-| Method             | Security        | Setup      | Best for                           |
-|--------------------|-----------------|------------|------------------------------------|
-| **Tailscale**      | End-to-end E2EE | 5 min      | Personal use, simplest & safest    |
-| **Cloudflare Tunnel** | Zero-trust   | 15 min     | No port forwarding, free           |
-| **Caddy + DDNS**   | HTTPS/TLS       | 20 min     | Public IP, full control            |
+- **System** — CPU%, RAM used/total, disk free, swap
+- **Services** — Ollama, Open WebUI, Podman VM, Tailscale with start/stop buttons
+- **Models** — All available models, which is loaded, VRAM used, expiry countdown
 
-See [PROJECT-PLAN.md](PROJECT-PLAN.md) § Phase 5 for full setup instructions.
+![Dashboard](docs/dashboard-preview.png)
 
 ---
 
-## What's Best for What
+## Remote Access
 
-| Task                        | Best Model                    | VRAM   |
-|-----------------------------|-------------------------------|--------|
-| Code generation / debugging | `devstral`              | 14 GB  |
-| Creative writing / emails   | `mistral-small3.1:24b`        | 14 GB  |
-| Reasoning / math / logic    | `phi4-reasoning`              | 9 GB   |
-| Summarization               | `gemma3:12b`                  | 7 GB   |
-| RAG / document Q&A          | `granite3.3:8b`               | 6 GB   |
-| Tool / function calling     | `mistral-small3.1:24b`        | 14 GB  |
-| Multilingual                | `granite3.3:8b`               | 6 GB   |
-| Multimodal (text + images)  | `gemma3:12b`                  | 7 GB   |
-| Quick Q&A                   | `phi4-mini`                   | 3 GB   |
+Run `bash scripts/phase5-remote.sh` and choose:
+
+| Option | How | Setup time |
+|--------|-----|-----------|
+| **Tailscale** | Private mesh VPN | 5 min |
+| **Cloudflare Tunnel** | Zero-trust, no port forwarding | 15 min |
+| **Caddy + DuckDNS** | Public HTTPS, full control | 20 min |
+| **Both (recommended)** | Tailscale + Caddy | 25 min |
+
+Then on iPhone: Safari → Open WebUI → Share → **Add to Home Screen** for a native-looking PWA.
 
 ---
 
-## Shell Aliases
-
-Add to `~/.zshrc`:
+## Coding Tools
 
 ```bash
-# Ollama config
-export OLLAMA_KEEP_ALIVE=5m
-export OLLAMA_MAX_LOADED_MODELS=1
-export OLLAMA_NUM_GPU=99
-export OLLAMA_HOST=0.0.0.0:11434
+# VS Code — install Continue extension, then:
+Cmd+L    # open AI chat sidebar
+Cmd+I    # inline edit / refactor
+
+# Terminal agents
+opencode          # full TUI coding agent (uses devstral)
+aider-code        # Aider with devstral
+aider-think       # Aider with phi4-reasoning (for complex refactors)
 
 # Quick model switching
-alias ai-chat="ollama run phi4-mini"
-alias ai-general="ollama run gemma3:12b"
-alias ai-code="ollama run devstral"
-alias ai-reason="ollama run phi4-reasoning"
-alias ai-power="ollama run mistral-small3.1:24b"
-alias ai-status="ollama ps"
+ai-use-coding     # → devstral
+ai-use-general    # → mistral-small3.1:24b
+```
+
+---
+
+## Repo Structure
+
+```
+Local-AI/
+├── scripts/
+│   ├── phase1-setup.sh          # Ollama + core models + shell aliases
+│   ├── phase2-coding-tools.sh   # Continue.dev, OpenCode, Aider
+│   ├── phase3-webui.sh          # Open WebUI via Podman
+│   ├── phase4-dashboard.sh      # Dashboard container + metrics exporter
+│   ├── phase5-remote.sh         # Tailscale / Caddy / Cloudflare
+│   ├── metrics-exporter.py      # Host metrics + control server (port 9091)
+│   └── status.sh                # Quick stack health check
+├── dashboard/
+│   ├── app.py                   # Dashboard web server (no dependencies)
+│   └── Dockerfile               # python:3.11-alpine, port 9090
+├── docs/
+│   └── index.html               # GitHub Pages documentation
+├── PROJECT-PLAN.md              # Full architecture + decisions log
+└── AGENTS.md                    # Rules for AI agents working on this project
 ```
 
 ---
 
 ## Documentation
 
-Full documentation is available as a GitHub Pages site:
-
-📖 **[View the docs →](https://simoneiaci.github.io/local-AI/)**
+📖 **[Full docs on GitHub Pages →](https://simoneiaci.github.io/local-AI/)**
 
 ---
 
-## Key Links
+## Key Tools
 
-| Tool            | URL                                      |
-|-----------------|------------------------------------------|
-| Ollama          | https://ollama.com                       |
-| LM Studio       | https://lmstudio.ai                     |
-| Open WebUI       | https://openwebui.com                   |
-| Continue.dev     | https://continue.dev                    |
-| AnythingLLM      | https://useanything.com                 |
-| OpenCode         | https://github.com/opencode-ai/opencode|
-| Aider            | https://aider.chat                      |
-| Tailscale        | https://tailscale.com                   |
-| macmon           | https://github.com/vladkens/macmon      |
-
----
-
-## License
-
-Personal project. Not for redistribution.
+[Ollama](https://ollama.com) · [Open WebUI](https://openwebui.com) · [Continue.dev](https://continue.dev) · [OpenCode](https://github.com/opencode-ai/opencode) · [Aider](https://aider.chat) · [Tailscale](https://tailscale.com) · [macmon](https://github.com/vladkens/macmon) · [Podman](https://podman.io)

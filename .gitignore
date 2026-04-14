@@ -1,0 +1,11 @@
+# Secrets — never commit
+.secrets
+.env
+.env.local
+*.token
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/settings.json

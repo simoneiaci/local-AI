@@ -17,7 +17,7 @@ DASHBOARD_DIR="$SCRIPT_DIR/../dashboard"
 EXPORTER="$SCRIPT_DIR/metrics-exporter.py"
 CONTAINER_NAME="local-ai-dashboard"
 IMAGE_NAME="local-ai-dashboard:latest"
-METRICS_FILE="/tmp/ai-metrics.json"
+METRICS_FILE="/private/tmp/ai-metrics.json"
 PORT=9090
 
 echo -e "\n${BOLD}╔══════════════════════════════════════╗"

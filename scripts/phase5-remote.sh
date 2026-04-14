@@ -27,16 +27,29 @@ echo "${BOLD}Remote Access Setup${RESET}"
 echo ""
 echo "  How do you want to access your AI from iPhone?"
 echo ""
-echo "  ${BOLD}1)${RESET} Tailscale   — simplest, private mesh VPN, 5 min setup"
-echo "  ${BOLD}2)${RESET} Caddy+DDNS  — uses your public home IP, full HTTPS"
-echo "  ${BOLD}3)${RESET} Cloudflare  — zero-trust tunnel, no port forwarding needed"
+echo "  ${BOLD}1)${RESET} Tailscale only    — private mesh VPN, 5 min setup"
+echo "  ${BOLD}2)${RESET} Caddy+DDNS only   — public home IP, full HTTPS"
+echo "  ${BOLD}3)${RESET} Cloudflare only   — zero-trust tunnel, no port forwarding"
+echo "  ${BOLD}4)${RESET} Tailscale + Caddy — both (recommended)"
 echo ""
-printf "Choose [1/2/3]: "; read -r METHOD
+printf "Choose [1/2/3/4]: "; read -r METHOD
+
+# Expand option 4 into running both 1 and 2
+RUN_TAILSCALE=false
+RUN_CADDY=false
+if   [[ "$METHOD" == "1" ]]; then RUN_TAILSCALE=true
+elif [[ "$METHOD" == "2" ]]; then RUN_CADDY=true
+elif [[ "$METHOD" == "3" ]]; then true  # handled below
+elif [[ "$METHOD" == "4" ]]; then RUN_TAILSCALE=true; RUN_CADDY=true
+else
+  echo "${RED}Invalid choice. Run the script again and enter 1, 2, 3, or 4.${RESET}"
+  exit 1
+fi
 
 # ─────────────────────────────────────────────
-# OPTION 1: Tailscale
+# OPTION 1 / 4: Tailscale
 # ─────────────────────────────────────────────
-if [[ "$METHOD" == "1" ]]; then
+if [[ "$RUN_TAILSCALE" == "true" ]]; then
   section "Tailscale Setup"
 
   # Ensure Ollama listens on all interfaces
@@ -97,11 +110,12 @@ if [[ "$METHOD" == "1" ]]; then
   echo "  ${BOLD}Make it a native-looking app on iPhone:${RESET}"
   echo "  Safari → Share → Add to Home Screen"
   echo "  Open WebUI runs fullscreen as a PWA — no browser toolbar."
+fi
 
 # ─────────────────────────────────────────────
-# OPTION 2: Caddy + DuckDNS
+# OPTION 2 / 4: Caddy + DuckDNS
 # ─────────────────────────────────────────────
-elif [[ "$METHOD" == "2" ]]; then
+if [[ "$RUN_CADDY" == "true" ]]; then
   section "Caddy + DuckDNS Setup"
 
   # Install Caddy
@@ -162,11 +176,12 @@ DDNS
   echo "     ${GREEN}https://${HOSTNAME}${RESET}"
   echo ""
   warn "Test from a non-home network (mobile data). WiFi gives false results due to NAT loopback."
+fi
 
 # ─────────────────────────────────────────────
 # OPTION 3: Cloudflare Tunnel
 # ─────────────────────────────────────────────
-elif [[ "$METHOD" == "3" ]]; then
+if [[ "$METHOD" == "3" ]]; then
   section "Cloudflare Tunnel Setup"
 
   if ! command -v cloudflared &>/dev/null; then
@@ -202,9 +217,6 @@ elif [[ "$METHOD" == "3" ]]; then
   info "Opening Cloudflare login now..."
   cloudflared tunnel login || true
 
-else
-  warn "Invalid choice. Run the script again and enter 1, 2, or 3."
-  exit 1
 fi
 
 echo ""

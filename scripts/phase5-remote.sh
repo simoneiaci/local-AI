@@ -31,7 +31,7 @@ echo "  ${BOLD}1)${RESET} Tailscale   — simplest, private mesh VPN, 5 min setu
 echo "  ${BOLD}2)${RESET} Caddy+DDNS  — uses your public home IP, full HTTPS"
 echo "  ${BOLD}3)${RESET} Cloudflare  — zero-trust tunnel, no port forwarding needed"
 echo ""
-read "METHOD?Choose [1/2/3]: "
+printf "Choose [1/2/3]: "; read -r METHOD
 
 # ─────────────────────────────────────────────
 # OPTION 1: Tailscale
@@ -115,8 +115,8 @@ elif [[ "$METHOD" == "2" ]]; then
 
   # Get DuckDNS subdomain
   echo ""
-  read "SUBDOMAIN?Enter your DuckDNS subdomain (e.g. 'myai' for myai.duckdns.org): "
-  read "DUCKDNS_TOKEN?Enter your DuckDNS token: "
+  printf "Enter your DuckDNS subdomain (e.g. 'myai' for myai.duckdns.org): "; read -r SUBDOMAIN
+  printf "Enter your DuckDNS token: "; read -r DUCKDNS_TOKEN
   HOSTNAME="${SUBDOMAIN}.duckdns.org"
 
   # Create Caddyfile

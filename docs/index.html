@@ -108,7 +108,37 @@ pre .str{color:var(--yellow)}
 .dash-fill{height:6px;border-radius:4px}
 .svc-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
 
-@media(max-width:700px){.card-grid{grid-template-columns:1fr}.dash-row{grid-template-columns:1fr}.hero h1{font-size:1.9rem}}
+/* ── Coding tool cards ── */
+.tool-grid{display:flex;flex-direction:column;gap:16px;margin:20px 0}
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tool-header{display:flex;align-items:center;gap:14px;padding:18px 22px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.tool-icon{font-size:1.4rem;line-height:1}
+.tool-name{font-weight:700;font-size:1rem}
+.tool-type{color:var(--muted);font-size:.8rem;margin-top:2px}
+.tool-link{margin-left:auto;color:var(--blue);font-size:.8rem;font-weight:600;border:1px solid rgba(88,166,255,.3);padding:4px 12px;border-radius:6px;white-space:nowrap}
+.tool-link:hover{background:rgba(88,166,255,.1);text-decoration:none}
+.tool-body{padding:18px 22px}
+.tool-desc{color:var(--muted);font-size:.9rem;margin-bottom:12px}
+.tool-models{font-size:.85rem;color:var(--muted);margin-top:12px}
+.tool-model-label{color:var(--muted2);margin-right:4px}
+.tool-config{font-size:.8rem;color:var(--muted2);margin-top:6px}
+
+/* Keyboard shortcuts */
+.shortcut-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px}
+.shortcut-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+.kbd-wrap{display:flex;gap:4px;margin-bottom:8px}
+kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px solid var(--muted2);border-radius:5px;padding:3px 8px;font-family:'SF Mono',Menlo,monospace;font-size:.8rem;color:var(--text);font-weight:600}
+.shortcut-desc{font-size:.8rem;color:var(--muted);line-height:1.4}
+
+/* Plan → Build flow */
+.flow-wrap{display:flex;align-items:stretch;gap:12px;margin:16px 0}
+.flow-step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;display:flex;gap:14px}
+.flow-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.3);color:var(--blue);font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.flow-title{font-weight:700;font-size:.95rem;margin-bottom:7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.flow-desc{color:var(--muted);font-size:.85rem;line-height:1.5}
+.flow-arrow{display:flex;align-items:center;color:var(--muted2);font-size:1.4rem;font-weight:300;padding:0 4px}
+
+@media(max-width:700px){.card-grid{grid-template-columns:1fr}.dash-row{grid-template-columns:1fr}.hero h1{font-size:1.9rem}.shortcut-row{grid-template-columns:1fr}.flow-wrap{flex-direction:column}.flow-arrow{transform:rotate(90deg);align-self:center}}
 </style>
 </head>
 <body>
@@ -294,39 +324,112 @@ pre .str{color:var(--yellow)}
 <!-- ── Coding ── -->
 <section class="section" id="s-coding">
   <h2>💻 Coding Tools</h2>
-  <p class="section-desc">Three tiers of AI coding assistance — from inline completions to full agentic coding sessions.</p>
+  <p class="section-desc">Three layers of AI coding assistance — inline completions, chat-driven edits, and full agentic sessions. All powered by local models.</p>
 
-  <h3>Continue.dev — VS Code Integration</h3>
-  <p>Install the <a href="https://marketplace.visualstudio.com/items?itemName=Continue.continue">Continue extension</a> from the VS Code marketplace, then:</p>
-  <div class="table-wrap">
-    <table>
-      <tr><th>Shortcut</th><th>What it does</th></tr>
-      <tr><td><code>Cmd+L</code></td><td>Open AI chat sidebar — ask questions about your code</td></tr>
-      <tr><td><code>Cmd+I</code></td><td>Inline edit — select code and describe the change</td></tr>
-      <tr><td><code>Tab</code></td><td>Accept autocomplete suggestion (smollm2:1.7b — instant)</td></tr>
-    </table>
-  </div>
-  <p>Config is at <code>~/.continue/config.json</code>. Models configured: <code>devstral</code> (coding), <code>gemma3:12b</code> (balanced), <code>mistral-small3.1:24b</code> (long context).</p>
+  <!-- Tool overview cards -->
+  <div class="tool-grid">
 
-  <h3>OpenCode — Terminal Agent</h3>
-  <pre><span class="cmd">opencode</span>              <span class="c"># full TUI coding agent using devstral</span>
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">⌨️</div>
+        <div>
+          <div class="tool-name">Continue.dev</div>
+          <div class="tool-type">VS Code / JetBrains extension</div>
+        </div>
+        <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=Continue.continue" target="_blank">Install ↗</a>
+      </div>
+      <div class="tool-body">
+        <div class="shortcut-row">
+          <div class="shortcut-item">
+            <div class="kbd-wrap"><kbd>⌘</kbd><kbd>L</kbd></div>
+            <div class="shortcut-desc">Open AI chat sidebar — ask questions about your code</div>
+          </div>
+          <div class="shortcut-item">
+            <div class="kbd-wrap"><kbd>⌘</kbd><kbd>I</kbd></div>
+            <div class="shortcut-desc">Inline edit — select code and describe the change</div>
+          </div>
+          <div class="shortcut-item">
+            <div class="kbd-wrap"><kbd>Tab</kbd></div>
+            <div class="shortcut-desc">Accept autocomplete suggestion from <code>smollm2:1.7b</code></div>
+          </div>
+        </div>
+        <div class="tool-models">
+          <span class="tool-model-label">Models:</span>
+          <code>devstral</code> · <code>gemma3:12b</code> · <code>mistral-small3.1:24b</code>
+        </div>
+        <div class="tool-config">Config: <code>~/.continue/config.json</code></div>
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">🤖</div>
+        <div>
+          <div class="tool-name">OpenCode</div>
+          <div class="tool-type">Terminal TUI coding agent</div>
+        </div>
+        <a class="tool-link" href="https://github.com/opencode-ai/opencode" target="_blank">Docs ↗</a>
+      </div>
+      <div class="tool-body">
+        <p class="tool-desc">Full agentic coding in your terminal. Reads your codebase, edits files, runs commands — powered by <code>devstral</code>.</p>
+        <pre style="margin:0"><span class="cmd">opencode</span>              <span class="c"># launch TUI agent</span>
 <span class="cmd">ai-use-coding</span>         <span class="c"># switch to devstral</span>
 <span class="cmd">ai-use-general</span>        <span class="c"># switch to mistral-small3.1:24b</span></pre>
+      </div>
+    </div>
 
-  <h3>Aider — CLI Pair Programmer</h3>
-  <pre><span class="cmd">aider-code</span>            <span class="c"># aider with devstral (fast coding)</span>
-<span class="cmd">aider-think</span>           <span class="c"># aider with phi4-reasoning (complex refactors)</span></pre>
+    <div class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">🧑‍💻</div>
+        <div>
+          <div class="tool-name">Aider</div>
+          <div class="tool-type">CLI pair programmer</div>
+        </div>
+        <a class="tool-link" href="https://aider.chat" target="_blank">Docs ↗</a>
+      </div>
+      <div class="tool-body">
+        <p class="tool-desc">Commit-aware coding assistant. Add files to context, describe changes in plain English — Aider writes and commits the code.</p>
+        <pre style="margin:0"><span class="cmd">aider-code</span>   <span class="c"># devstral — fast, great for coding</span>
+<span class="cmd">aider-think</span>  <span class="c"># phi4-reasoning — complex refactors</span></pre>
+      </div>
+    </div>
 
-  <h3>Plan → Build Pattern</h3>
-  <p>For complex tasks, use a two-model workflow:</p>
+  </div>
+
+  <!-- Plan → Build -->
+  <h3>Plan → Build Workflow</h3>
+  <p>For complex tasks, split across two models to get better results:</p>
+  <div class="flow-wrap">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-title">Plan <span class="tag tag-purple">phi4-reasoning</span></div>
+        <div class="flow-desc">Analyse the problem, identify edge cases, design the approach. Ask it to think step-by-step before writing any code.</div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-title">Build <span class="tag tag-green">devstral</span></div>
+        <div class="flow-desc">Feed the plan to devstral. It writes clean, working code fast — no need for it to reason from scratch.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-blue">💡 Keep context under ~100K tokens even for 128K-context models. Performance drops near the limit on Apple Silicon due to memory bandwidth constraints.</div>
+
+  <!-- Connect any tool -->
+  <h3>Connect Any Tool</h3>
+  <p>Any OpenAI-compatible client works. Point it at your local Ollama:</p>
   <div class="table-wrap">
     <table>
-      <tr><th>Stage</th><th>Model</th><th>Task</th></tr>
-      <tr><td>1. Plan</td><td><code>phi4-reasoning</code></td><td>Analyse problem, identify edge cases, design approach</td></tr>
-      <tr><td>2. Build</td><td><code>devstral</code></td><td>Write the actual code based on the plan</td></tr>
+      <tr><th>Setting</th><th>Value</th></tr>
+      <tr><td>API Base URL</td><td><code>http://localhost:11434/v1</code></td></tr>
+      <tr><td>API Key</td><td><code>ollama</code> (any non-empty string)</td></tr>
+      <tr><td>Model</td><td><code>devstral</code>, <code>gemma3:12b</code>, etc.</td></tr>
     </table>
   </div>
-  <div class="alert alert-blue">💡 Keep context under ~100K tokens even for 128K-context models. Performance degrades near the limit on Apple Silicon due to memory bandwidth.</div>
 </section>
 
 <!-- ── Dashboard ── -->

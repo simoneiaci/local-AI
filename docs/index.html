@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local-AI — Run LLMs on MacBook Pro M4 Pro</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-hover: #1c2333;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --green: #3fb950;
+            --yellow: #d29922;
+            --red: #f85149;
+            --purple: #bc8cff;
+            --orange: #f0883e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a1e2e 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 80px 20px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(88, 166, 255, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(188, 140, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .badge.green { border-color: var(--green); color: var(--green); }
+        .badge.blue { border-color: var(--accent); color: var(--accent); }
+        .badge.purple { border-color: var(--purple); color: var(--purple); }
+
+        /* Nav */
+        nav {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        nav .inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 14px 18px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--text);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Main content */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        h2 .emoji { margin-right: 8px; }
+
+        .section-desc {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin: 30px 0 12px;
+            color: var(--accent);
+        }
+
+        p { margin-bottom: 16px; color: var(--text); }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card .meta {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .card p { font-size: 0.95rem; color: var(--text-muted); margin: 0; }
+
+        .vram-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .vram-low { background: rgba(63,185,80,0.15); color: var(--green); }
+        .vram-mid { background: rgba(210,153,34,0.15); color: var(--yellow); }
+        .vram-high { background: rgba(240,136,62,0.15); color: var(--orange); }
+        .vram-full { background: rgba(248,81,73,0.15); color: var(--red); }
+
+        .fit-yes { color: var(--green); }
+        .fit-tight { color: var(--yellow); }
+        .fit-no { color: var(--red); }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-card);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--bg-card-hover); }
+
+        /* Code blocks */
+        pre {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            overflow-x: auto;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+
+        code {
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            color: var(--accent);
+        }
+
+        pre code { color: var(--text); }
+
+        .comment { color: var(--text-muted); }
+        .cmd { color: var(--green); }
+        .flag { color: var(--purple); }
+
+        /* Comparison cards */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .compare-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .compare-card h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .compare-card .rank {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .compare-card.recommended {
+            border-color: var(--green);
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(63,185,80,0.05) 100%);
+        }
+
+        .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+        .tag {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            background: rgba(88,166,255,0.1);
+            color: var(--accent);
+            border: 1px solid rgba(88,166,255,0.2);
+        }
+
+        .tag.green { background: rgba(63,185,80,0.1); color: var(--green); border-color: rgba(63,185,80,0.2); }
+
+        /* Architecture diagram */
+        .arch-diagram {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-muted);
+            margin: 20px 0;
+        }
+
+        /* Alert boxes */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            border-left: 4px solid;
+        }
+
+        .alert.info { background: rgba(88,166,255,0.08); border-color: var(--accent); }
+        .alert.warn { background: rgba(210,153,34,0.08); border-color: var(--yellow); }
+        .alert.danger { background: rgba(248,81,73,0.08); border-color: var(--red); }
+        .alert.success { background: rgba(63,185,80,0.08); border-color: var(--green); }
+
+        .alert strong { display: block; margin-bottom: 4px; }
+
+        /* Steps */
+        .steps { margin: 20px 0; }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .step-num {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .step-content h4 {
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .step-content p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .hero .subtitle { font-size: 1rem; }
+            .card-grid, .compare-grid { grid-template-columns: 1fr; }
+            nav a { padding: 12px 14px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+    <h1>Local-AI</h1>
+    <p class="subtitle">Run powerful LLMs locally on your MacBook Pro M4 Pro (24 GB). Coding, chat, RAG, and more — fully private, zero cloud.</p>
+    <div class="hero-badges">
+        <span class="badge green">M4 Pro 24 GB</span>
+        <span class="badge blue">Ollama + Open WebUI</span>
+        <span class="badge purple">Access from iPhone</span>
+    </div>
+</div>
+
+<!-- Navigation -->
+<nav>
+    <div class="inner">
+        <a class="active" onclick="showSection('overview')">Overview</a>
+        <a onclick="showSection('models')">Models</a>
+        <a onclick="showSection('best-for')">Best For What</a>
+        <a onclick="showSection('setup')">Setup Guide</a>
+        <a onclick="showSection('coding')">Coding Tools</a>
+        <a onclick="showSection('rag')">Chat &amp; RAG</a>
+        <a onclick="showSection('remote')">Remote Access</a>
+        <a onclick="showSection('cloud')">Cloud Models</a>
+        <a onclick="showSection('monitoring')">Monitoring</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- ==================== OVERVIEW ==================== -->
+    <div id="overview" class="section active">
+        <h2><span class="emoji">&#127968;</span> Overview</h2>
+        <p class="section-desc">A complete local AI stack for your MacBook Pro M4 Pro with 24 GB unified memory.</p>
+
+        <h3>Architecture</h3>
+        <div class="arch-diagram">
+<span style="color:var(--accent)">YOUR MACBOOK PRO M4 PRO (24 GB)</span>
+<span style="color:var(--border)">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+  <span style="color:var(--green)">RUNTIMES</span>
+  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐
+  │   <span style="color:var(--accent)">Ollama</span>    │  │  <span style="color:var(--purple)">LM Studio</span> │  │   <span style="color:var(--text-muted)">MLX (optional)</span>│
+  │  port 11434 │  │  port 1234  │  │                 │
+  └──────┬──────┘  └─────────────┘  └─────────────────┘
+         │
+         │  OpenAI-compatible API: <span style="color:var(--green)">http://localhost:11434/v1</span>
+         │
+  <span style="color:var(--green)">CONSUMERS</span>
+  ┌──────┴───────────────────────────────────────────────┐
+  │  Continue.dev · OpenCode · Aider · Cline   <span style="color:var(--text-muted)">(coding)</span> │
+  │  Open WebUI · AnythingLLM · Khoj          <span style="color:var(--text-muted)">(chat/RAG)</span>│
+  └──────────────────────────────────────────────────────┘
+
+  <span style="color:var(--green)">MONITORING</span>
+  ┌──────────────────────────────────────────────────────┐
+  │  macmon · ollama ps · Prometheus + Grafana           │
+  └──────────────────────────────────────────────────────┘
+
+  <span style="color:var(--green)">REMOTE ACCESS</span>
+  ┌──────────────────────────────────────────────────────┐
+  │  Tailscale / Caddy + HTTPS / Cloudflare Tunnel       │
+  └────────────────────────┬─────────────────────────────┘
+                           │ <span style="color:var(--purple)">Encrypted</span>
+                    ┌──────┴──────┐
+                    │   <span style="color:var(--accent)">iPhone</span>    │
+                    │  Open WebUI │
+                    │     PWA     │
+                    └─────────────┘</div>
+
+        <h3>Memory Budget</h3>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Component</th><th>RAM</th><th>Notes</th></tr>
+                <tr><td>macOS + system</td><td>~8 GB</td><td>Varies with open apps</td></tr>
+                <tr><td>LLM model (active)</td><td>3–14 GB</td><td>One large model at a time</td></tr>
+                <tr><td>Embedding model</td><td>~0.3 GB</td><td>Always loaded for RAG</td></tr>
+                <tr><td>Apps + headroom</td><td>~2 GB</td><td>Browser, IDE, etc.</td></tr>
+            </table>
+        </div>
+
+        <div class="alert warn">
+            <strong>Rule of Thumb</strong>
+            Keep total model VRAM under 14 GB to avoid swapping. Memory swapping destroys LLM performance.
+        </div>
+    </div>
+
+    <!-- ==================== MODELS ==================== -->
+    <div id="models" class="section">
+        <h2><span class="emoji">&#129302;</span> Approved Models</h2>
+        <p class="section-desc">Only organization-approved models are used. Green = fully approved, Yellow = elevated risk.</p>
+
+        <div class="alert danger">
+            <strong>Not Approved</strong>
+            Qwen and DeepSeek models are NOT on the approved list. Do not install them.
+        </div>
+
+        <h3>Gemma Family (All Green)</h3>
+        <div class="card-grid">
+            <div class="card">
+                <h4>Gemma 3 12B <span class="vram-tag vram-mid">~7 GB</span></h4>
+                <div class="meta"><code>gemma3:12b</code> &middot; <span class="fit-yes">Fits easily</span></div>
+                <p>Best Gemma for daily use. Multimodal (text + images), 88.9% IFEval. Strong summarization and instruction following.</p>
+                <div class="tag-row"><span class="tag green">Recommended</span><span class="tag">Multimodal</span></div>
+            </div>
+            <div class="card">
+                <h4>Gemma 3 4B <span class="vram-tag vram-low">~3 GB</span></h4>
+                <div class="meta"><code>gemma3:4b</code> &middot; <span class="fit-yes">Fits easily</span></div>
+                <p>Lightweight multimodal model. Good for quick Q&amp;A when you need speed or have another model loaded.</p>
+                <div class="tag-row"><span class="tag">Lightweight</span><span class="tag">Multimodal</span></div>
+            </div>
+            <div class="card">
+                <h4>Gemma 2 9B <span class="vram-tag vram-mid">~6 GB</span></h4>
+                <div class="meta"><code>gemma2:9b</code> &middot; <span class="fit-yes">Fits easily</span></div>
+                <p>Solid general-purpose, text-only. Gemma 3 12B is better in nearly every way — use that instead.</p>
+                <div class="tag-row"><span class="tag">Text-only</span></div>
+            </div>
+            <div class="card">
+                <h4>Gemma 4 26B-A4B <span class="vram-tag vram-high">~15 GB</span></h4>
+                <div class="meta"><code>gemma4:26b-a4b-it</code> &middot; <span class="fit-tight">Tight fit</span></div>
+                <p>MoE with 4B active params. Near-31B quality. Confirmed on M3 24GB: 10-20 tok/s. Close other apps first.</p>
+                <div class="tag-row"><span class="tag">MoE</span><span class="tag">High Quality</span></div>
+            </div>
+            <div class="card">
+                <h4>Gemma 4 E4B <span class="vram-tag vram-low">~3 GB</span></h4>
+                <div class="meta"><code>gemma4:e4b-it</code> &middot; <span class="fit-yes">Fits easily</span></div>
+                <p>Edge model. Fast but shallow — good for very simple tasks only.</p>
+                <div class="tag-row"><span class="tag">Edge</span></div>
+            </div>
+            <div class="card" style="border-color: var(--red);">
+                <h4>Gemma 4 31B <span class="vram-tag vram-full">~20 GB</span></h4>
+                <div class="meta"><code>gemma4:31b-it</code> &middot; <span class="fit-no">Does NOT fit</span></div>
+                <p>Too large for 24GB. Causes swapping and context buffer issues. Avoid.</p>
+                <div class="tag-row"><span class="tag" style="background:rgba(248,81,73,0.1);color:var(--red);border-color:rgba(248,81,73,0.2);">Avoid</span></div>
+            </div>
+        </div>
+
+        <h3>Other Green Models</h3>
+        <div class="card-grid">
+            <div class="card">
+                <h4>Devstral Small 1.1 <span class="vram-tag vram-high">~14 GB</span></h4>
+                <div class="meta"><code>devstral</code> &middot; Mistral AI &middot; <span class="fit-yes">Fits</span></div>
+                <p>Best approved coding model. 53.6% SWE-Bench Verified. Outperforms many cloud models on code tasks.</p>
+                <div class="tag-row"><span class="tag green">Best Coder</span><span class="tag">24B</span></div>
+            </div>
+            <div class="card">
+                <h4>Mistral Small 3.1 24B <span class="vram-tag vram-high">~14 GB</span></h4>
+                <div class="meta"><code>mistral-small3.1:24b</code> &middot; Mistral AI &middot; <span class="fit-yes">Fits</span></div>
+                <p>Best all-around model. 87.6% Arena Hard. Strong tool calling, writing, and reasoning.</p>
+                <div class="tag-row"><span class="tag green">Best Overall</span><span class="tag">24B</span></div>
+            </div>
+            <div class="card">
+                <h4>Phi 4 Reasoning <span class="vram-tag vram-mid">~9 GB</span></h4>
+                <div class="meta"><code>phi4-reasoning</code> &middot; Microsoft &middot; <span class="fit-yes">Fits easily</span></div>
+                <p>75.3% AIME 2024. Chain-of-thought reasoning for math, logic, and analysis.</p>
+                <div class="tag-row"><span class="tag green">Best Reasoning</span><span class="tag">14B</span></div>
+            </div>
+            <div class="card">
+                <h4>Granite 3.3 8B <span class="vram-tag vram-mid">~6 GB</span></h4>
+                <div class="meta"><code>granite3.3:8b</code> &middot; IBM &middot; <span class="fit-yes">Fits easily</span></div>
+                <p>128K context, RAG LoRAs, 12 languages. Great for document Q&amp;A and multilingual tasks.</p>
+                <div class="tag-row"><span class="tag green">Best for RAG</span><span class="tag">128K ctx</span></div>
+            </div>
+            <div class="card">
+                <h4>Phi 4 Mini <span class="vram-tag vram-low">~3 GB</span></h4>
+                <div class="meta"><code>phi4-mini</code> &middot; Microsoft &middot; <span class="fit-yes">Fits easily</span></div>
+                <p>Ultra-fast (~30 tok/s). Great for quick questions and brainstorming when you need speed.</p>
+                <div class="tag-row"><span class="tag">Fastest</span><span class="tag">3.8B</span></div>
+            </div>
+            <div class="card">
+                <h4>Magistral Small 2506 <span class="vram-tag vram-high">~14 GB</span></h4>
+                <div class="meta"><code>magistral:24b-small-2506</code> &middot; Mistral AI &middot; <span class="fit-yes">Fits</span></div>
+                <p>70.7% AIME 2024. Purpose-built for advanced reasoning via SFT+RL.</p>
+                <div class="tag-row"><span class="tag">Reasoning</span><span class="tag">24B</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== BEST FOR WHAT ==================== -->
+    <div id="best-for" class="section">
+        <h2><span class="emoji">&#127919;</span> What's Best for What</h2>
+        <p class="section-desc">Pick the right model for each task. Based on benchmarks and real-world testing.</p>
+
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Task</th><th>Best Model</th><th>Runner-Up</th><th>VRAM</th></tr>
+                <tr>
+                    <td><strong>Code generation / debugging</strong></td>
+                    <td><code>devstral</code></td>
+                    <td><code>granite3.3:8b</code></td>
+                    <td>14 / 6 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Creative writing / emails</strong></td>
+                    <td><code>mistral-small3.1:24b</code></td>
+                    <td><code>gemma3:12b</code></td>
+                    <td>14 / 7 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Reasoning / math / logic</strong></td>
+                    <td><code>phi4-reasoning</code></td>
+                    <td><code>magistral:24b-small-2506</code></td>
+                    <td>9 / 14 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Summarization</strong></td>
+                    <td><code>gemma3:12b</code></td>
+                    <td><code>granite3.3:8b</code></td>
+                    <td>7 / 6 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>RAG / document Q&amp;A</strong></td>
+                    <td><code>granite3.3:8b</code></td>
+                    <td><code>mistral-small3.1:24b</code></td>
+                    <td>6 / 14 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Tool / function calling</strong></td>
+                    <td><code>mistral-small3.1:24b</code></td>
+                    <td><code>granite3.3:8b</code></td>
+                    <td>14 / 6 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Multilingual</strong></td>
+                    <td><code>granite3.3:8b</code></td>
+                    <td><code>gemma3:12b</code></td>
+                    <td>6 / 7 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Multimodal (text + images)</strong></td>
+                    <td><code>gemma3:12b</code></td>
+                    <td><code>gemma3:4b</code></td>
+                    <td>7 / 3 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Quick Q&amp;A / brainstorming</strong></td>
+                    <td><code>phi4-mini</code></td>
+                    <td><code>gemma3:4b</code></td>
+                    <td>3 / 3 GB</td>
+                </tr>
+                <tr>
+                    <td><strong>Tab autocomplete in IDE</strong></td>
+                    <td><code>smollm2:1.7b</code></td>
+                    <td><code>phi4-mini-reasoning</code></td>
+                    <td>1 / 3 GB</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="alert success">
+            <strong>The "Two Model" Strategy</strong>
+            Keep <code>gemma3:12b</code> as your always-loaded daily driver (~7 GB). When you need specialized power, swap to: <code>devstral</code> (coding), <code>phi4-reasoning</code> (math), or <code>mistral-small3.1:24b</code> (everything else). Only one 14 GB model at a time.
+        </div>
+    </div>
+
+    <!-- ==================== SETUP ==================== -->
+    <div id="setup" class="section">
+        <h2><span class="emoji">&#128640;</span> Setup Guide</h2>
+        <p class="section-desc">Get your local AI stack running in about an hour.</p>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Install Ollama</h4>
+                    <p>The primary LLM runtime. Exposes an OpenAI-compatible API.</p>
+                    <pre><code><span class="cmd">brew install</span> ollama
+<span class="cmd">brew services start</span> ollama</code></pre>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Pull your first models</h4>
+                    <p>Start with the essentials — a daily driver and a coding model.</p>
+                    <pre><code><span class="comment"># Daily driver (~7 GB)</span>
+<span class="cmd">ollama pull</span> gemma3:12b
+
+<span class="comment"># Coding specialist (~14 GB)</span>
+<span class="cmd">ollama pull</span> devstral
+
+<span class="comment"># Quick chat (~3 GB)</span>
+<span class="cmd">ollama pull</span> phi4-mini
+
+<span class="comment"># Embeddings for RAG (~0.3 GB)</span>
+<span class="cmd">ollama pull</span> nomic-embed-text</code></pre>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>Configure shell aliases</h4>
+                    <p>Add to <code>~/.zshrc</code> for quick model switching:</p>
+                    <pre><code><span class="comment"># Ollama config</span>
+<span class="cmd">export</span> OLLAMA_KEEP_ALIVE=5m
+<span class="cmd">export</span> OLLAMA_MAX_LOADED_MODELS=1
+<span class="cmd">export</span> OLLAMA_NUM_GPU=99
+<span class="cmd">export</span> OLLAMA_HOST=0.0.0.0:11434
+
+<span class="comment"># Quick model switching</span>
+<span class="cmd">alias</span> ai-chat=<span class="flag">"ollama run phi4-mini"</span>
+<span class="cmd">alias</span> ai-general=<span class="flag">"ollama run gemma3:12b"</span>
+<span class="cmd">alias</span> ai-code=<span class="flag">"ollama run devstral"</span>
+<span class="cmd">alias</span> ai-reason=<span class="flag">"ollama run phi4-reasoning"</span>
+<span class="cmd">alias</span> ai-power=<span class="flag">"ollama run mistral-small3.1:24b"</span>
+<span class="cmd">alias</span> ai-status=<span class="flag">"ollama ps"</span></code></pre>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h4>Install Open WebUI</h4>
+                    <p>A ChatGPT-like interface for all your local models.</p>
+                    <pre><code><span class="comment"># Start Podman machine (macOS requirement)</span>
+<span class="cmd">podman machine start</span>
+
+<span class="cmd">podman run</span> <span class="flag">-d -p 3000:8080</span> \
+  -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  --restart=always \
+  ghcr.io/open-webui/open-webui:main</code></pre>
+                    <p>Open <a href="http://localhost:3000" style="color:var(--accent)">http://localhost:3000</a></p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <h4>Test it!</h4>
+                    <p>Chat with your first local model:</p>
+                    <pre><code><span class="cmd">ollama run</span> gemma3:12b <span class="flag">"Explain quantum computing in simple terms"</span></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CODING TOOLS ==================== -->
+    <div id="coding" class="section">
+        <h2><span class="emoji">&#128187;</span> Coding Tools</h2>
+        <p class="section-desc">Connect local models to your IDE and terminal for AI-powered coding.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h4>Continue.dev</h4>
+                <div class="meta">VS Code / JetBrains extension</div>
+                <p>Chat (Cmd+L), inline edit (Cmd+I), and tab-autocomplete. Configure with Ollama provider pointing to <code>localhost:11434</code>.</p>
+                <div class="tag-row"><span class="tag green">Recommended</span><span class="tag">GUI</span></div>
+            </div>
+            <div class="card">
+                <h4>OpenCode</h4>
+                <div class="meta">CLI coding assistant</div>
+                <p>Set <code>OPENCODE_API_BASE=http://localhost:11434/v1</code> and <code>OPENCODE_MODEL=devstral</code>. Needs tool-calling support.</p>
+                <div class="tag-row"><span class="tag">CLI</span><span class="tag">Agentic</span></div>
+            </div>
+            <div class="card">
+                <h4>Aider</h4>
+                <div class="meta">CLI pair programmer</div>
+                <p>Run with <code>aider --model ollama/devstral</code>. Great for focused code editing sessions.</p>
+                <div class="tag-row"><span class="tag">CLI</span><span class="tag">Pair Programming</span></div>
+            </div>
+            <div class="card">
+                <h4>Cline / Roo Code</h4>
+                <div class="meta">VS Code extensions</div>
+                <p>Configure OpenAI Compatible provider, Base URL <code>localhost:11434/v1</code>. Context-heavy — use 14B+ models.</p>
+                <div class="tag-row"><span class="tag">GUI</span><span class="tag">Agentic</span></div>
+            </div>
+            <div class="card">
+                <h4>Tabby</h4>
+                <div class="meta">Self-hosted code completion</div>
+                <p>Copilot alternative. Run <code>tabby serve --device metal</code> with SmolLM2 for tab-completion.</p>
+                <div class="tag-row"><span class="tag">Autocomplete</span><span class="tag">Metal GPU</span></div>
+            </div>
+        </div>
+
+        <h3>Connecting Any Tool</h3>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Setting</th><th>Value</th></tr>
+                <tr><td>API Base URL</td><td><code>http://localhost:11434/v1</code></td></tr>
+                <tr><td>API Key</td><td><code>ollama</code> (or any non-empty string)</td></tr>
+                <tr><td>Model</td><td><code>devstral</code> (for coding)</td></tr>
+            </table>
+        </div>
+
+        <h3>Workflow Pattern: Plan &rarr; Build</h3>
+        <p>Community consensus (r/opencodeCLI) is to split coding agent work into two phases. Even with the best proprietary models, a single call trying to reason deeply <em>and</em> emit correct code tends to underperform a two-step split. On a 24 GB M4 Pro with approved local models:</p>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Phase</th><th>Model</th><th>Why</th></tr>
+                <tr><td>Plan / think</td><td><code>phi4-reasoning</code></td><td>75.3% AIME — strong step-by-step reasoning</td></tr>
+                <tr><td>Build / code</td><td><code>devstral</code></td><td>53.6% SWE-Bench — best approved coder</td></tr>
+                <tr><td>Debug / review</td><td><code>mistral-small3.1:24b</code></td><td>128K context, good at tracing bugs</td></tr>
+            </table>
+        </div>
+        <pre><code><span class="comment"># Plan the approach with a reasoning model</span>
+<span class="cmd">OPENCODE_MODEL</span>=phi4-reasoning opencode <span class="flag">"Design a retry layer"</span>
+
+<span class="comment"># Switch to devstral to implement</span>
+<span class="cmd">ai-use-coding</span>   <span class="comment"># alias sets OPENCODE_MODEL=devstral</span>
+<span class="cmd">opencode</span> <span class="flag">"Now implement the plan"</span></code></pre>
+
+        <h3>Context Budget &mdash; Keep Under ~100K Tokens</h3>
+        <p>Even models advertising 128K context degrade noticeably after ~100K (hallucinations, lost references, language drift). Recommended working budgets:</p>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Model</th><th>Advertised</th><th>Working budget</th></tr>
+                <tr><td><code>gemma3:12b</code></td><td>128K</td><td>&le; 32K (sweet spot)</td></tr>
+                <tr><td><code>mistral-small3.1:24b</code></td><td>128K</td><td>&le; 100K</td></tr>
+                <tr><td><code>granite3.3:8b</code></td><td>128K</td><td>&le; 100K</td></tr>
+                <tr><td><code>devstral</code></td><td>32K</td><td>&le; 32K</td></tr>
+                <tr><td><code>phi4-reasoning</code></td><td>16K</td><td>&le; 16K (hard limit)</td></tr>
+            </table>
+        </div>
+        <p><strong>Rules of thumb:</strong> summarize-and-restart at ~20K increments, reserve ~20% of context for the output, and feed directory listings first before pulling in specific files.</p>
+    </div>
+
+    <!-- ==================== CHAT & RAG ==================== -->
+    <div id="rag" class="section">
+        <h2><span class="emoji">&#128218;</span> Chat &amp; RAG</h2>
+        <p class="section-desc">Chat with your models and build private knowledge bases from your documents.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h4>Open WebUI</h4>
+                <div class="meta">Primary chat interface</div>
+                <p>ChatGPT-like UI with built-in RAG. Upload documents, hybrid search (BM25 + semantic), model switching via dropdown, conversation history.</p>
+                <div class="tag-row"><span class="tag green">Recommended</span><span class="tag">Podman</span><span class="tag">RAG</span></div>
+            </div>
+            <div class="card">
+                <h4>AnythingLLM</h4>
+                <div class="meta">All-in-one RAG platform</div>
+                <p>Drag &amp; drop PDFs, markdown, code files. Built-in LanceDB vector store. Connect to Ollama + nomic-embed-text for embeddings.</p>
+                <div class="tag-row"><span class="tag">Desktop App</span><span class="tag">RAG</span></div>
+            </div>
+            <div class="card">
+                <h4>Khoj</h4>
+                <div class="meta">AI assistant + knowledge base</div>
+                <p>Indexes your notes and files. Works with Obsidian via plugin. Self-hosted, connects to Ollama.</p>
+                <div class="tag-row"><span class="tag">Obsidian</span><span class="tag">Self-hosted</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== REMOTE ACCESS ==================== -->
+    <div id="remote" class="section">
+        <h2><span class="emoji">&#128241;</span> Remote Access</h2>
+        <p class="section-desc">Access your local AI from your iPhone — anywhere in the world. Run the setup script: <code>bash scripts/phase5-remote.sh</code> and pick your option.</p>
+
+        <div class="alert info" style="margin-bottom:1.5rem;">
+            <strong>Recommended combo (option 4 in the script)</strong>: Tailscale for daily private access + Caddy+DuckDNS as a public-URL fallback. Both can run simultaneously.
+        </div>
+
+        <h3>Options</h3>
+        <div class="compare-grid">
+            <div class="compare-card recommended">
+                <div class="rank" style="color:var(--green)">Option A</div>
+                <h4>Tailscale (Simplest)</h4>
+                <p style="color:var(--text-muted);font-size:0.9rem;">Private mesh VPN. End-to-end WireGuard encryption. No port forwarding, no config. Install on Mac + iPhone, done.</p>
+                <div class="tag-row"><span class="tag green">Recommended</span><span class="tag">5 min setup</span><span class="tag">E2E encrypted</span></div>
+                <pre style="margin-top:12px;font-size:0.8rem;"><code><span class="comment"># 1. Download standalone .pkg (NOT App Store):</span>
+<span class="comment">#    tailscale.com/download/mac</span>
+
+<span class="comment"># 2. Connect your Mac:</span>
+<span class="cmd">tailscale up</span>
+<span class="comment"># → opens browser to sign in / create account</span>
+
+<span class="comment"># 3. Install Tailscale on iPhone (App Store)</span>
+<span class="comment">#    Sign in with same account</span>
+
+<span class="comment"># 4. Get your Mac's Tailscale IP:</span>
+<span class="cmd">tailscale ip -4</span>
+<span class="comment"># → 100.x.y.z</span>
+
+<span class="comment"># Access from iPhone:</span>
+<span class="comment"># http://100.x.y.z:3000  (Open WebUI)</span>
+<span class="comment"># http://100.x.y.z:11434 (Ollama API)</span></code></pre>
+            </div>
+            <div class="compare-card">
+                <div class="rank" style="color:var(--accent)">Option B</div>
+                <h4>Cloudflare Tunnel (Zero-Trust)</h4>
+                <p style="color:var(--text-muted);font-size:0.9rem;">No port forwarding needed. Outbound tunnel from your Mac to Cloudflare. Free tier. Automatic HTTPS.</p>
+                <div class="tag-row"><span class="tag">15 min setup</span><span class="tag">Zero-trust</span><span class="tag">Free</span></div>
+                <pre style="margin-top:12px;font-size:0.8rem;"><code><span class="cmd">brew install</span> cloudflare/warp/cloudflared
+<span class="cmd">cloudflared tunnel</span> login
+<span class="cmd">cloudflared tunnel</span> create my-ai-tunnel
+
+<span class="comment"># ~/.cloudflared/config.yml</span>
+<span class="comment"># tunnel: my-ai-tunnel</span>
+<span class="comment"># ingress:</span>
+<span class="comment">#   - hostname: myai.example.com</span>
+<span class="comment">#     service: http://localhost:3000</span>
+
+<span class="cmd">cloudflared tunnel</span> run my-ai-tunnel</code></pre>
+            </div>
+            <div class="compare-card">
+                <div class="rank" style="color:var(--purple)">Option C</div>
+                <h4>Caddy + DuckDNS (Public URL)</h4>
+                <p style="color:var(--text-muted);font-size:0.9rem;">Your own HTTPS URL (e.g. <code>myai.duckdns.org</code>). Caddy handles TLS automatically. Requires router port forwarding (80 + 443).</p>
+                <div class="tag-row"><span class="tag">20 min setup</span><span class="tag">Full control</span><span class="tag">Public URL</span></div>
+                <pre style="margin-top:12px;font-size:0.8rem;"><code><span class="comment"># 1. Register free subdomain at duckdns.org</span>
+<span class="comment">#    e.g. myai.duckdns.org → get your token</span>
+
+<span class="comment"># 2. Install Caddy:</span>
+<span class="cmd">brew install</span> caddy
+
+<span class="comment"># 3. The setup script writes this Caddyfile:</span>
+<span class="comment"># myai.duckdns.org {</span>
+<span class="comment">#     reverse_proxy localhost:3000</span>
+<span class="comment"># }</span>
+<span class="cmd">caddy run</span> --config ~/.config/local-ai/Caddyfile
+
+<span class="comment"># 4. Forward ports 80 + 443 on your router → Mac IP</span>
+<span class="comment"># 5. Script adds cron to update DuckDNS every 5 min</span>
+<span class="comment"># Access: https://myai.duckdns.org</span></code></pre>
+            </div>
+        </div>
+
+        <h3>Comparison</h3>
+        <div class="table-wrapper">
+            <table>
+                <tr><th>Aspect</th><th>Tailscale</th><th>Cloudflare Tunnel</th><th>Caddy + DDNS</th></tr>
+                <tr><td>Security</td><td><span class="fit-yes">E2E encrypted, private</span></td><td><span class="fit-yes">Zero-trust</span></td><td><span class="fit-tight">Public surface</span></td></tr>
+                <tr><td>Port forwarding</td><td>Not needed</td><td>Not needed</td><td>Port 443 required</td></tr>
+                <tr><td>Public IP needed</td><td>No</td><td>No</td><td>Yes</td></tr>
+                <tr><td>DDNS needed</td><td>No</td><td>No</td><td>Yes</td></tr>
+                <tr><td>Setup time</td><td>~5 min</td><td>~15 min</td><td>~20 min</td></tr>
+                <tr><td>Cost</td><td>Free (personal)</td><td>Free tier</td><td>Free</td></tr>
+                <tr><td>Best for</td><td>Personal, simplest</td><td>No port forwarding</td><td>Full control, public IP</td></tr>
+            </table>
+        </div>
+
+        <h3>PWA on iPhone</h3>
+        <div class="alert info">
+            <strong>Make it feel like a native app</strong>
+            Open your AI URL in Safari on iPhone &rarr; tap Share &rarr; "Add to Home Screen". Open WebUI runs as a Progressive Web App (PWA) — fullscreen, no browser toolbar. Your own ChatGPT icon on your home screen.
+        </div>
+
+        <div class="alert warn">
+            <strong>Keep your Mac awake</strong>
+            Run <code>caffeinate -s</code> (when plugged in) or set System Settings &rarr; Displays &rarr; Advanced &rarr; "Prevent automatic sleeping when the display is off". Tailscale cannot wake a sleeping Mac.
+        </div>
+    </div>
+
+    <!-- ==================== CLOUD MODELS ==================== -->
+    <div id="cloud" class="section">
+        <h2><span class="emoji">&#9925;</span> Cloud Models — GLM 5.1 &amp; MiniMax 2.7</h2>
+        <p class="section-desc">When a task exceeds what fits in 24 GB, drop into a cloud model. Both expose OpenAI-compatible APIs — every tool you already have plugs in with a base URL + model name swap.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h4>GLM 5.1</h4>
+                <div class="meta">Zhipu AI &middot; Plan mode</div>
+                <p>Strong reasoning, complex analysis, architectural planning. Keep context under ~100K for best quality.</p>
+                <div class="tag-row"><span class="tag green">Approved</span><span class="tag">Cloud</span><span class="tag">Reasoning</span></div>
+            </div>
+            <div class="card">
+                <h4>MiniMax 2.7</h4>
+                <div class="meta">MiniMax &middot; Build mode</div>
+                <p>Fast, reliable code generation. Best paired with GLM 5.1 for the plan — MiniMax executes it cheaply.</p>
+                <div class="tag-row"><span class="tag green">Approved</span><span class="tag">Cloud</span><span class="tag">Coding</span></div>
+            </div>
+        </div>
+
+        <h3>Plan &rarr; Build combo (community-validated)</h3>
+        <div class="table-wrapper"><table>
+            <tr><th>Phase</th><th>Model</th><th>Via</th></tr>
+            <tr><td>Plan / think</td><td><code>zhipuai/glm-5.1</code></td><td>OpenRouter or direct</td></tr>
+            <tr><td>Build / code</td><td><code>minimax/minimax-m2.7</code></td><td>OpenRouter or direct</td></tr>
+        </table></div>
+
+        <h3>Step 1 — Get an API key</h3>
+        <p>Easiest: <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> — one key, both models, OpenAI-compatible. Or go direct (no 5% surcharge): <a href="https://novita.ai" target="_blank">Novita</a>, <a href="https://deepinfra.com" target="_blank">Deep Infra</a>.</p>
+        <pre><code><span class="comment"># Save your key (never committed)</span>
+<span class="cmd">echo</span> <span class="flag">'OPENROUTER_API_KEY=sk-or-...'</span> >> ~/.secrets-local</code></pre>
+
+        <h3>Step 2 — Wire into OpenCode</h3>
+        <pre><code><span class="comment"># Switch to GLM 5.1 for planning</span>
+<span class="cmd">ai-use-glm</span>
+<span class="cmd">opencode</span> <span class="flag">"Design the architecture for this service"</span>
+
+<span class="comment"># Switch to MiniMax 2.7 to implement</span>
+<span class="cmd">ai-use-minimax</span>
+<span class="cmd">opencode</span> <span class="flag">"Now implement the plan"</span>
+
+<span class="comment"># Back to local devstral</span>
+<span class="cmd">ai-use-local</span></code></pre>
+
+        <h3>Step 3 — Add to Continue.dev</h3>
+        <p>Edit <code>~/.continue/config.json</code> and add these entries to the <code>"models"</code> array:</p>
+        <pre><code>{
+  <span class="flag">"title"</span>: <span class="flag">"GLM 5.1 (cloud plan)"</span>,
+  <span class="flag">"provider"</span>: <span class="flag">"openai"</span>,
+  <span class="flag">"model"</span>: <span class="flag">"zhipuai/glm-5.1"</span>,
+  <span class="flag">"apiBase"</span>: <span class="flag">"https://openrouter.ai/api/v1"</span>,
+  <span class="flag">"apiKey"</span>: <span class="flag">"sk-or-..."</span>
+},
+{
+  <span class="flag">"title"</span>: <span class="flag">"MiniMax 2.7 (cloud build)"</span>,
+  <span class="flag">"provider"</span>: <span class="flag">"openai"</span>,
+  <span class="flag">"model"</span>: <span class="flag">"minimax/minimax-m2.7"</span>,
+  <span class="flag">"apiBase"</span>: <span class="flag">"https://openrouter.ai/api/v1"</span>,
+  <span class="flag">"apiKey"</span>: <span class="flag">"sk-or-..."</span>
+}</code></pre>
+
+        <h3>Step 4 — Add to Open WebUI</h3>
+        <p>Settings &rarr; Connections &rarr; Add OpenAI-compatible connection:<br>
+        URL: <code>https://openrouter.ai/api/v1</code> &nbsp;|&nbsp; Key: your OpenRouter key<br>
+        GLM 5.1 and MiniMax 2.7 will appear in the model dropdown.</p>
+
+        <h3>Shell aliases to add to ~/.zshrc</h3>
+        <pre><code><span class="cmd">ai-use-glm()</span>     { <span class="cmd">export</span> OPENCODE_PROVIDER=openai-compatible
+                   <span class="cmd">export</span> OPENCODE_API_BASE=https://openrouter.ai/api/v1
+                   <span class="cmd">export</span> OPENCODE_MODEL=zhipuai/glm-5.1
+                   echo <span class="flag">"→ GLM 5.1 (cloud)"</span>; }
+
+<span class="cmd">ai-use-minimax()</span> { <span class="cmd">export</span> OPENCODE_PROVIDER=openai-compatible
+                   <span class="cmd">export</span> OPENCODE_API_BASE=https://openrouter.ai/api/v1
+                   <span class="cmd">export</span> OPENCODE_MODEL=minimax/minimax-m2.7
+                   echo <span class="flag">"→ MiniMax 2.7 (cloud)"</span>; }
+
+<span class="cmd">ai-use-local()</span>   { <span class="cmd">export</span> OPENCODE_PROVIDER=openai-compatible
+                   <span class="cmd">export</span> OPENCODE_API_BASE=http://localhost:11434/v1
+                   <span class="cmd">export</span> OPENCODE_MODEL=devstral
+                   echo <span class="flag">"→ devstral (local)"</span>; }</code></pre>
+
+        <h3>When to use cloud vs local</h3>
+        <div class="table-wrapper"><table>
+            <tr><th>Situation</th><th>Use</th></tr>
+            <tr><td>Daily coding, focused tasks</td><td><code>devstral</code> local</td></tr>
+            <tr><td>Large refactor across 50+ files</td><td>MiniMax 2.7 cloud</td></tr>
+            <tr><td>Architecture / complex planning</td><td>GLM 5.1 cloud</td></tr>
+            <tr><td>Sensitive / confidential data</td><td>Local always</td></tr>
+        </table></div>
+    </div>
+
+    <!-- ==================== MONITORING ==================== -->
+    <div id="monitoring" class="section">
+        <h2><span class="emoji">&#128202;</span> Monitoring</h2>
+        <p class="section-desc">Keep an eye on memory, GPU, and model performance.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h4>macmon</h4>
+                <div class="meta">Apple Silicon system monitor</div>
+                <p>Real-time CPU%, GPU%, ANE%, memory pressure, and power draw. No sudo required.</p>
+                <pre style="font-size:0.8rem;"><code><span class="cmd">brew install</span> vladkens/tap/macmon
+macmon</code></pre>
+            </div>
+            <div class="card">
+                <h4>ollama ps</h4>
+                <div class="meta">Model memory tracker</div>
+                <p>See which models are loaded and how much VRAM they're using.</p>
+                <pre style="font-size:0.8rem;"><code><span class="cmd">ollama ps</span>
+<span class="comment"># Or via API:</span>
+<span class="cmd">curl</span> http://localhost:11434/api/ps</code></pre>
+            </div>
+            <div class="card">
+                <h4>Prometheus + Grafana</h4>
+                <div class="meta">Advanced dashboards (optional)</div>
+                <p>Full metrics: loaded models, RAM usage, inference speed. Uses Ollama Metrics sidecar.</p>
+                <pre style="font-size:0.8rem;"><code><span class="cmd">git clone</span> github.com/NorskHelsenett/ollama-metrics
+<span class="cmd">podman compose up</span> -d</code></pre>
+            </div>
+        </div>
+
+        <h3>Memory Management</h3>
+        <pre><code><span class="comment"># Auto-unload models after 5 min idle</span>
+<span class="cmd">export</span> OLLAMA_KEEP_ALIVE=5m
+
+<span class="comment"># Only 1 model at a time (critical for 24 GB!)</span>
+<span class="cmd">export</span> OLLAMA_MAX_LOADED_MODELS=1
+
+<span class="comment"># Force unload all models right now</span>
+<span class="cmd">for</span> model <span class="cmd">in</span> $(ollama ps | tail -n +2 | awk '{print $1}'); <span class="cmd">do</span>
+  curl -s http://localhost:11434/api/generate -d "{\"model\":\"$model\",\"keep_alive\":0}" > /dev/null
+<span class="cmd">done</span></code></pre>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>Local-AI &middot; MacBook Pro M4 Pro (24 GB) &middot; Built by Simone</p>
+    <p style="margin-top:8px;">
+        <a href="https://ollama.com">Ollama</a> &middot;
+        <a href="https://openwebui.com">Open WebUI</a> &middot;
+        <a href="https://tailscale.com">Tailscale</a> &middot;
+        <a href="https://continue.dev">Continue.dev</a>
+    </p>
+</footer>
+
+<script>
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.target.classList.add('active');
+        window.scrollTo({ top: document.querySelector('nav').offsetTop, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>

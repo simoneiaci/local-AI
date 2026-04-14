@@ -429,6 +429,7 @@
         <a onclick="showSection('coding')">Coding Tools</a>
         <a onclick="showSection('rag')">Chat &amp; RAG</a>
         <a onclick="showSection('remote')">Remote Access</a>
+        <a onclick="showSection('cloud')">Cloud Models</a>
         <a onclick="showSection('monitoring')">Monitoring</a>
     </div>
 </nav>
@@ -931,6 +932,98 @@
             <strong>Keep your Mac awake</strong>
             Run <code>caffeinate -s</code> (when plugged in) or set System Settings &rarr; Displays &rarr; Advanced &rarr; "Prevent automatic sleeping when the display is off". Tailscale cannot wake a sleeping Mac.
         </div>
+    </div>
+
+    <!-- ==================== CLOUD MODELS ==================== -->
+    <div id="cloud" class="section">
+        <h2><span class="emoji">&#9925;</span> Cloud Models — GLM 5.1 &amp; MiniMax 2.7</h2>
+        <p class="section-desc">When a task exceeds what fits in 24 GB, drop into a cloud model. Both expose OpenAI-compatible APIs — every tool you already have plugs in with a base URL + model name swap.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h4>GLM 5.1</h4>
+                <div class="meta">Zhipu AI &middot; Plan mode</div>
+                <p>Strong reasoning, complex analysis, architectural planning. Keep context under ~100K for best quality.</p>
+                <div class="tag-row"><span class="tag green">Approved</span><span class="tag">Cloud</span><span class="tag">Reasoning</span></div>
+            </div>
+            <div class="card">
+                <h4>MiniMax 2.7</h4>
+                <div class="meta">MiniMax &middot; Build mode</div>
+                <p>Fast, reliable code generation. Best paired with GLM 5.1 for the plan — MiniMax executes it cheaply.</p>
+                <div class="tag-row"><span class="tag green">Approved</span><span class="tag">Cloud</span><span class="tag">Coding</span></div>
+            </div>
+        </div>
+
+        <h3>Plan &rarr; Build combo (community-validated)</h3>
+        <div class="table-wrapper"><table>
+            <tr><th>Phase</th><th>Model</th><th>Via</th></tr>
+            <tr><td>Plan / think</td><td><code>zhipuai/glm-5.1</code></td><td>OpenRouter or direct</td></tr>
+            <tr><td>Build / code</td><td><code>minimax/minimax-m2.7</code></td><td>OpenRouter or direct</td></tr>
+        </table></div>
+
+        <h3>Step 1 — Get an API key</h3>
+        <p>Easiest: <a href="https://openrouter.ai" target="_blank">openrouter.ai</a> — one key, both models, OpenAI-compatible. Or go direct (no 5% surcharge): <a href="https://novita.ai" target="_blank">Novita</a>, <a href="https://deepinfra.com" target="_blank">Deep Infra</a>.</p>
+        <pre><code><span class="comment"># Save your key (never committed)</span>
+<span class="cmd">echo</span> <span class="flag">'OPENROUTER_API_KEY=sk-or-...'</span> >> ~/.secrets-local</code></pre>
+
+        <h3>Step 2 — Wire into OpenCode</h3>
+        <pre><code><span class="comment"># Switch to GLM 5.1 for planning</span>
+<span class="cmd">ai-use-glm</span>
+<span class="cmd">opencode</span> <span class="flag">"Design the architecture for this service"</span>
+
+<span class="comment"># Switch to MiniMax 2.7 to implement</span>
+<span class="cmd">ai-use-minimax</span>
+<span class="cmd">opencode</span> <span class="flag">"Now implement the plan"</span>
+
+<span class="comment"># Back to local devstral</span>
+<span class="cmd">ai-use-local</span></code></pre>
+
+        <h3>Step 3 — Add to Continue.dev</h3>
+        <p>Edit <code>~/.continue/config.json</code> and add these entries to the <code>"models"</code> array:</p>
+        <pre><code>{
+  <span class="flag">"title"</span>: <span class="flag">"GLM 5.1 (cloud plan)"</span>,
+  <span class="flag">"provider"</span>: <span class="flag">"openai"</span>,
+  <span class="flag">"model"</span>: <span class="flag">"zhipuai/glm-5.1"</span>,
+  <span class="flag">"apiBase"</span>: <span class="flag">"https://openrouter.ai/api/v1"</span>,
+  <span class="flag">"apiKey"</span>: <span class="flag">"sk-or-..."</span>
+},
+{
+  <span class="flag">"title"</span>: <span class="flag">"MiniMax 2.7 (cloud build)"</span>,
+  <span class="flag">"provider"</span>: <span class="flag">"openai"</span>,
+  <span class="flag">"model"</span>: <span class="flag">"minimax/minimax-m2.7"</span>,
+  <span class="flag">"apiBase"</span>: <span class="flag">"https://openrouter.ai/api/v1"</span>,
+  <span class="flag">"apiKey"</span>: <span class="flag">"sk-or-..."</span>
+}</code></pre>
+
+        <h3>Step 4 — Add to Open WebUI</h3>
+        <p>Settings &rarr; Connections &rarr; Add OpenAI-compatible connection:<br>
+        URL: <code>https://openrouter.ai/api/v1</code> &nbsp;|&nbsp; Key: your OpenRouter key<br>
+        GLM 5.1 and MiniMax 2.7 will appear in the model dropdown.</p>
+
+        <h3>Shell aliases to add to ~/.zshrc</h3>
+        <pre><code><span class="cmd">ai-use-glm()</span>     { <span class="cmd">export</span> OPENCODE_PROVIDER=openai-compatible
+                   <span class="cmd">export</span> OPENCODE_API_BASE=https://openrouter.ai/api/v1
+                   <span class="cmd">export</span> OPENCODE_MODEL=zhipuai/glm-5.1
+                   echo <span class="flag">"→ GLM 5.1 (cloud)"</span>; }
+
+<span class="cmd">ai-use-minimax()</span> { <span class="cmd">export</span> OPENCODE_PROVIDER=openai-compatible
+                   <span class="cmd">export</span> OPENCODE_API_BASE=https://openrouter.ai/api/v1
+                   <span class="cmd">export</span> OPENCODE_MODEL=minimax/minimax-m2.7
+                   echo <span class="flag">"→ MiniMax 2.7 (cloud)"</span>; }
+
+<span class="cmd">ai-use-local()</span>   { <span class="cmd">export</span> OPENCODE_PROVIDER=openai-compatible
+                   <span class="cmd">export</span> OPENCODE_API_BASE=http://localhost:11434/v1
+                   <span class="cmd">export</span> OPENCODE_MODEL=devstral
+                   echo <span class="flag">"→ devstral (local)"</span>; }</code></pre>
+
+        <h3>When to use cloud vs local</h3>
+        <div class="table-wrapper"><table>
+            <tr><th>Situation</th><th>Use</th></tr>
+            <tr><td>Daily coding, focused tasks</td><td><code>devstral</code> local</td></tr>
+            <tr><td>Large refactor across 50+ files</td><td>MiniMax 2.7 cloud</td></tr>
+            <tr><td>Architecture / complex planning</td><td>GLM 5.1 cloud</td></tr>
+            <tr><td>Sensitive / confidential data</td><td>Local always</td></tr>
+        </table></div>
     </div>
 
     <!-- ==================== MONITORING ==================== -->

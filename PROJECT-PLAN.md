@@ -650,7 +650,118 @@ caddy run --config Caddyfile
 
 ---
 
-## 9. Quick Reference: Connecting Any Tool to Local Models
+## 9. Cloud Escape Hatch — GLM 5.1 & MiniMax 2.7
+
+When a task exceeds what fits in 24 GB (huge codebases, long reasoning chains, multi-agent pipelines), you can drop into a cloud model. Both GLM 5.1 and MiniMax 2.7 expose **OpenAI-compatible APIs**, so every tool you already have plugs in with a base URL + model name swap.
+
+### 9a. Why these two (community consensus, r/opencodeCLI)
+
+| Model             | Good for                                           | Caveat                                      |
+|-------------------|----------------------------------------------------|---------------------------------------------|
+| **GLM 5.1**       | Planning, complex reasoning, long-range analysis   | Degrades after ~100K context; needs focus   |
+| **MiniMax 2.7**   | Build mode: fast, cheap, reliable code generation  | Less capable on deep reasoning              |
+| **Combo pattern** | GLM 5.1 → plan, MiniMax 2.7 → implement           | Best cost/quality ratio for heavy workloads |
+
+### 9b. Getting API access (cheapest routes)
+
+**Option 1 — OpenRouter (simplest, one API key)**
+
+Both models available. 5% surcharge but zero setup friction.
+
+1. Sign up at [openrouter.ai](https://openrouter.ai)
+2. Generate an API key
+3. Add to `.secrets`:
+```
+OPENROUTER_API_KEY=sk-or-...
+```
+Models: `zhipuai/glm-5.1` and `minimax/minimax-m2.7`
+
+**Option 2 — Direct providers (cheaper, no surcharge)**
+
+Recommended by power users (Novita, Atlas Cloud, Deep Infra all carry these models):
+- [novita.ai](https://novita.ai) — competitive pricing, good uptime
+- [deepinfra.com](https://deepinfra.com) — inference-focused, GLM/MiniMax available
+- [atlascloud.ai](https://atlascloud.ai) — low latency
+
+### 9c. Connecting to your existing tools
+
+All tools use the same pattern — swap `OPENAI_BASE_URL` and model name.
+
+**OpenCode (terminal agent):**
+```bash
+# Plan with GLM 5.1 (cloud)
+OPENCODE_PROVIDER=openai-compatible \
+OPENCODE_API_BASE=https://openrouter.ai/api/v1 \
+OPENCODE_API_KEY=$(grep OPENROUTER_API_KEY ~/.secrets-local | cut -d= -f2) \
+OPENCODE_MODEL=zhipuai/glm-5.1 \
+opencode "Design the architecture for this service"
+
+# Build with MiniMax 2.7 (cloud)
+OPENCODE_MODEL=minimax/minimax-m2.7 opencode "Now implement it"
+```
+
+**Continue.dev** — add cloud providers to `~/.continue/config.json`:
+```json
+{
+  "title": "GLM 5.1 (cloud - plan mode)",
+  "provider": "openai",
+  "model": "zhipuai/glm-5.1",
+  "apiBase": "https://openrouter.ai/api/v1",
+  "apiKey": "sk-or-..."
+},
+{
+  "title": "MiniMax 2.7 (cloud - build mode)",
+  "provider": "openai",
+  "model": "minimax/minimax-m2.7",
+  "apiBase": "https://openrouter.ai/api/v1",
+  "apiKey": "sk-or-..."
+}
+```
+
+**Aider:**
+```bash
+aider --model openrouter/zhipuai/glm-5.1 --input-history-file .aider.history
+```
+
+**Open WebUI** — add a new connection:
+Settings → Connections → Add OpenAI-compatible connection:
+- URL: `https://openrouter.ai/api/v1`
+- Key: your OpenRouter key
+- Available models will include GLM 5.1 and MiniMax 2.7
+
+### 9d. Shell aliases (add to ~/.zshrc after getting your key)
+
+```bash
+# Cloud model switchers
+ai-use-glm()      { export OPENCODE_PROVIDER=openai-compatible
+                    export OPENCODE_API_BASE=https://openrouter.ai/api/v1
+                    export OPENCODE_MODEL=zhipuai/glm-5.1
+                    echo "→ GLM 5.1 (cloud)"; }
+
+ai-use-minimax()  { export OPENCODE_PROVIDER=openai-compatible
+                    export OPENCODE_API_BASE=https://openrouter.ai/api/v1
+                    export OPENCODE_MODEL=minimax/minimax-m2.7
+                    echo "→ MiniMax 2.7 (cloud)"; }
+
+ai-use-local()    { export OPENCODE_PROVIDER=openai-compatible
+                    export OPENCODE_API_BASE=http://localhost:11434/v1
+                    export OPENCODE_MODEL=devstral
+                    echo "→ devstral (local)"; }
+```
+
+### 9e. When to use cloud vs local
+
+| Situation                                     | Use                        |
+|-----------------------------------------------|----------------------------|
+| Daily coding, focused tasks, private data      | Local (devstral / gemma3)  |
+| Large refactor across 50+ files               | MiniMax 2.7 (build)        |
+| Architectural planning, complex debugging     | GLM 5.1 (plan)             |
+| Long-running agent with many tool calls       | GLM 5.1 plan → MiniMax build |
+| Sensitive/confidential data you keep private  | Local always               |
+
+---
+
+## 10. Quick Reference: Connecting Any Tool to Local Models
 
 Any tool that supports the **OpenAI API** can use your local models. Just set:
 
@@ -673,7 +784,7 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 
 ---
 
-## 10. Recommended Setup Order
+## 11. Recommended Setup Order
 
 | Step | Action                                         | Time   |
 |------|------------------------------------------------|--------|
@@ -695,7 +806,7 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 
 ---
 
-## 11. Model Switching Cheat Sheet
+## 12. Model Switching Cheat Sheet
 
 ```
 SITUATION                          → MODEL TO USE                           RISK    VRAM
@@ -714,7 +825,7 @@ Advanced reasoning                 → magistral:24b-small-2506 (Mistral)     Gr
 
 ---
 
-## 12. Key Links & Resources
+## 13. Key Links & Resources
 
 - **Ollama:** https://ollama.com
 - **LM Studio:** https://lmstudio.ai

@@ -17,7 +17,7 @@ DASHBOARD_DIR="$SCRIPT_DIR/../dashboard"
 EXPORTER="$SCRIPT_DIR/metrics-exporter.py"
 CONTAINER_NAME="local-ai-dashboard"
 IMAGE_NAME="local-ai-dashboard:latest"
-METRICS_FILE="/private/tmp/ai-metrics.json"
+METRICS_DIR="/private/tmp"
 PORT=9090
 
 echo -e "\n${BOLD}╔══════════════════════════════════════╗"
@@ -35,6 +35,8 @@ sleep 1
 nohup python3 "$EXPORTER" > /tmp/ai-metrics-exporter.log 2>&1 &
 EXPORTER_PID=$!
 
+METRICS_FILE="/tmp/ai-metrics.json"
+
 # Wait for first write
 for i in $(seq 1 10); do
   sleep 1
@@ -44,7 +46,7 @@ done
 if [[ -f "$METRICS_FILE" ]]; then
   log "Metrics exporter running (PID $EXPORTER_PID) → $METRICS_FILE"
 else
-  warn "Metrics file not yet written — creating placeholder so podman bind-mount succeeds"
+  warn "Metrics file not yet written — creating placeholder"
   echo '{}' > "$METRICS_FILE"
 fi
 
@@ -71,7 +73,7 @@ podman run -d \
   --name "$CONTAINER_NAME" \
   -p "${PORT}:9090" \
   -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
-  -v "${METRICS_FILE}:/metrics/host.json:ro" \
+  -v "${METRICS_DIR}:/hostmetrics:ro" \
   --restart=always \
   "$IMAGE_NAME"
 

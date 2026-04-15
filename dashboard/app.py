@@ -10,7 +10,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 OLLAMA   = os.getenv('OLLAMA_BASE_URL', 'http://host.containers.internal:11434')
 CONTROL  = os.getenv('CONTROL_URL', 'http://host.containers.internal:9091')
 CONTROL_TOKEN = os.getenv('CONTROL_TOKEN', '')
-METRICS  = '/hostmetrics/ai-metrics.json'
+METRICS  = '/hosttmp/ai-metrics.json'
 PORT     = int(os.getenv('PORT', 9090))
 
 # Load model hints from config.json (next to app.py)
@@ -309,10 +309,10 @@ function renderSystem(host){
 
 function renderServices(svc){
   const items=[
+    {key:'podman',    label:'Podman VM', sub:'Container runtime',      url:null,                     stop:'podman_stop',  start:'podman_start'},
     {key:'ollama',    label:'Ollama',    sub:'API · port 11434',       url:'http://localhost:11434', stop:'ollama_stop',  start:'ollama_start'},
     {key:'open_webui',label:'Open WebUI',sub:'Chat UI · port 3000',    url:'http://localhost:3000',  stop:'webui_stop',   start:'webui_start'},
     {key:'pipelines', label:'Pipelines', sub:'Middleware · port 9099', url:'http://localhost:9099',  stop:'pipelines_stop', start:'pipelines_start'},
-    {key:'podman',    label:'Podman VM', sub:'Container runtime',      url:null,                     stop:'podman_stop',  start:'podman_start'},
     {key:'tailscale', label:'Tailscale', sub:svc.tailscale_ip||'VPN · not connected', url:null, stop:'tailscale_down', start:'tailscale_up', startLabel:'Connect'},
   ];
   return `<div class="card-title">Services</div>`+items.map(i=>{

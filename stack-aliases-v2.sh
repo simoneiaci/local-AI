@@ -11,6 +11,13 @@ ai-stack-start() {
   echo '→ Starting Pipelines...'
   /opt/homebrew/bin/podman start open-webui-pipelines 2>/dev/null || true
   echo '→ Starting dashboard...'
+  /opt/homebrew/bin/podman inspect local-ai-dashboard > /dev/null 2>&1 || \
+    /opt/homebrew/bin/podman run -d --name local-ai-dashboard \
+      -p 9090:9090 \
+      -e CONTROL_TOKEN=$(grep CONTROL_TOKEN ~/Documents/AI/Local-AI/.secrets | cut -d= -f2) \
+      -e CONTROL_URL=http://host.containers.internal:9091 \
+      -v /private/tmp:/hosttmp:ro \
+      localhost/local-ai-dashboard
   /opt/homebrew/bin/podman start local-ai-dashboard 2>/dev/null || true
   pkill -f "metrics-exporter.py" 2>/dev/null; sleep 1
   nohup python3 ~/Documents/AI/Local-AI/scripts/metrics-exporter.py > /tmp/ai-metrics-exporter.log 2>&1 &

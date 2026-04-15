@@ -139,7 +139,34 @@ OLLAMA_BIN  = '/opt/homebrew/bin/ollama'
 PODMAN_BIN  = '/opt/homebrew/bin/podman'
 TS_BIN      = '/usr/local/bin/tailscale'
 
+_LOG = open('/tmp/ai-stack.log', 'a')
+
+def _stack_start():
+    """Start Ollama + Podman machine + WebUI + Pipelines (no exporter restart)."""
+    subprocess.Popen(
+        ['zsh', '-c',
+         'pgrep -x ollama > /dev/null || '
+         f'nohup {OLLAMA_BIN} serve > /tmp/ollama.log 2>&1 & '
+         f'{PODMAN_BIN} machine start 2>/dev/null; sleep 4; '
+         f'{PODMAN_BIN} start open-webui 2>/dev/null; '
+         f'{PODMAN_BIN} start open-webui-pipelines 2>/dev/null'],
+        stdout=_LOG, stderr=subprocess.STDOUT)
+
+def _stack_stop():
+    """Unload models, stop WebUI + Pipelines + Ollama. Dashboard stays up."""
+    subprocess.Popen(
+        ['zsh', '-c',
+         f'for m in $({OLLAMA_BIN} ps 2>/dev/null | tail -n +2 | awk \'{{print $1}}\'); do '
+         f'  curl -s http://localhost:11434/api/generate '
+         f'  -d \'{{"model":"\'$m\'","keep_alive":0}}\' > /dev/null; done; '
+         f'{PODMAN_BIN} stop open-webui-pipelines 2>/dev/null; '
+         f'{PODMAN_BIN} stop open-webui 2>/dev/null; '
+         f'pkill -x ollama 2>/dev/null'],
+        stdout=_LOG, stderr=subprocess.STDOUT)
+
 ACTIONS = {
+    'stack_start':       _stack_start,
+    'stack_stop':        _stack_stop,
     'ollama_stop':       lambda: subprocess.Popen(['pkill', '-x', 'ollama']),
     'ollama_start':      lambda: subprocess.Popen([OLLAMA_BIN, 'serve'],
                              stdout=open('/tmp/ollama.log','a'), stderr=subprocess.STDOUT),

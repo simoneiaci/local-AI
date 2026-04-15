@@ -92,6 +92,12 @@ HTML = """<!DOCTYPE html>
   .logo-text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:.01em}
   .header-link{display:flex;align-items:center;gap:5px;color:var(--muted);text-decoration:none;font-size:.78rem;font-family:'SF Mono',Menlo,Consolas,monospace;border:1px solid var(--border);border-radius:6px;padding:4px 10px;transition:color .15s,border-color .15s}
   .header-link:hover{color:var(--text);border-color:rgba(255,255,255,.14)}
+  .stack-btn{border:none;border-radius:8px;padding:7px 16px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.01em}
+  .stack-btn.start{background:var(--green-soft);color:var(--green);border:1px solid rgba(45,202,114,.3)}
+  .stack-btn.start:hover{background:rgba(45,202,114,.18);transform:translateY(-1px)}
+  .stack-btn.stop{background:var(--red-soft);color:var(--red);border:1px solid rgba(240,107,107,.3)}
+  .stack-btn.stop:hover{background:rgba(240,107,107,.18);transform:translateY(-1px)}
+  .stack-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
   .ts-wrap{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.78rem;font-family:'SF Mono',Menlo,Consolas,monospace}
   .ring{display:inline-block;width:8px;height:8px;border:1.5px solid var(--muted2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -180,7 +186,10 @@ HTML = """<!DOCTYPE html>
       Docs
     </a>
   </div>
-  <div class="ts-wrap"><span class="ring"></span><span id="ts">connecting…</span></div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <button id="stack-btn" class="stack-btn start" onclick="stackToggle()" disabled>⚡ Start Stack</button>
+    <div class="ts-wrap"><span class="ring"></span><span id="ts">connecting…</span></div>
+  </div>
 </header>
 <div class="page">
   <div class="top-row">
@@ -192,6 +201,37 @@ HTML = """<!DOCTYPE html>
 <div class="toast" id="toast"></div>
 
 <script>
+let _stackIsUp = false;
+
+async function stackToggle(){
+  const btn = document.getElementById('stack-btn');
+  btn.disabled = true;
+  if(_stackIsUp){
+    btn.textContent = '■ Stopping…';
+    await control('stack_stop', 'Stopping stack');
+  } else {
+    btn.textContent = '⚡ Starting…';
+    await control('stack_start', 'Starting stack');
+  }
+  // re-enable after a few seconds to allow services to settle
+  setTimeout(() => { btn.disabled = false; }, 8000);
+}
+
+function updateStackBtn(ollamaStatus){
+  const btn = document.getElementById('stack-btn');
+  _stackIsUp = ollamaStatus === 'up';
+  if(!btn.disabled){
+    if(_stackIsUp){
+      btn.className = 'stack-btn stop';
+      btn.textContent = '■ Stop Stack';
+    } else {
+      btn.className = 'stack-btn start';
+      btn.textContent = '⚡ Start Stack';
+    }
+  }
+  btn.disabled = false;
+}
+
 // Control actions go through the dashboard proxy — token stays server-side
 async function control(action,label){
   try{
@@ -341,6 +381,7 @@ async function refresh(){
     document.getElementById('card-system').innerHTML=renderSystem(host);
     document.getElementById('card-services').innerHTML=renderServices(svc);
     document.getElementById('card-models').innerHTML=renderModels(d.ps,d.tags);
+    updateStackBtn(svc.ollama);
     document.getElementById('ts').textContent='updated '+new Date().toLocaleTimeString();
   }catch(e){
     document.getElementById('ts').textContent='error – retrying…';

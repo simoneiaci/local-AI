@@ -211,3 +211,182 @@ alias ai-reason="ollama run phi4-reasoning"        # ~9 GB, chain-of-thought
 alias ai-power="ollama run mistral-small3.1:24b"   # ~14 GB, best overall
 alias ai-status="ollama ps"
 ```
+
+---
+
+## Dashboard, Docs & Stack Infrastructure — Agent Guide
+
+> This section is written for any AI agent (including less capable ones) that will continue
+> evolving the infrastructure in this repo. Read it fully before making changes.
+
+### Repo Layout
+
+```
+Local-AI/
+├── AGENTS.md                 ← this file
+├── README.md                 ← human-facing overview
+├── PROJECT-PLAN.md           ← architectural plan, hardware constraints
+├── CLAUDE.md                 ← symlink/twin of AGENTS.md for Claude Code
+├── stack-aliases-v2.sh       ← shell functions: ai-stack-start / -stop / -off
+├── scripts/
+│   └── metrics-exporter.py   ← runs on HOST Mac (not in container), writes
+│                               /tmp/ai-metrics.json every 3s + control server :9091
+├── dashboard/
+│   ├── app.py                ← Flask-ish stdlib HTTP server, runs in Podman on :9090
+│   ├── Dockerfile            ← python:3.11-alpine image
+│   └── config.json           ← dashboard config
+└── docs/
+    └── index.html            ← GitHub Pages site (single-file HTML + inline CSS/JS)
+```
+
+### Stack Lifecycle Commands
+
+Three shell functions defined in `stack-aliases-v2.sh` (sourced from `~/.zshrc`):
+
+- **`ai-stack-start`** — starts Ollama, Podman machine, Open WebUI, Pipelines,
+  dashboard container (creating it on first run with the correct bind mount),
+  and the metrics-exporter (killing any old instance first). Opens
+  http://localhost:3000.
+- **`ai-stack-stop`** — unloads models, stops Pipelines + WebUI + Ollama.
+  **Intentionally leaves the dashboard container and metrics-exporter running**
+  so the user can still see system stats and restart services from the dashboard.
+- **`ai-stack-off`** — full shutdown: everything `ai-stack-stop` does PLUS
+  kills metrics-exporter, stops dashboard container, stops Podman machine.
+
+### The `.secrets` File
+
+Located at `~/Documents/AI/Local-AI/.secrets` (never commit — in `.gitignore`).
+Format: `KEY=value` lines. Currently holds:
+
+```
+CONTROL_TOKEN=<random-hex>
+```
+
+Used by the dashboard proxy → metrics-exporter control server for bearer auth.
+The token is injected into the dashboard container via `-e CONTROL_TOKEN=...`
+at `ai-stack-start` time and read by `metrics-exporter.py` from the same file.
+
+### Dashboard Architecture (CRITICAL)
+
+```
+Browser  ──HTTP──▶  dashboard container :9090  ──HTTP+Bearer──▶  metrics-exporter :9091 (host)
+                   (app.py, Podman)                            (metrics-exporter.py, runs on Mac)
+                         │                                            │
+                         └─── reads /hosttmp/ai-metrics.json ◀────────┘ writes /tmp/ai-metrics.json
+                              (bind mount of /private/tmp)
+```
+
+Key points:
+- The **dashboard never holds the token** — the browser calls `/control` on :9090
+  and `app.py` server-side adds the `Authorization: Bearer <token>` header.
+- The exporter is the **only thing allowed to shell out** on the host (Ollama,
+  Podman, Tailscale). The container can only do HTTP round-trips to :9091.
+- Metrics flow is **file-based**, not HTTP: exporter writes JSON atomically
+  (`.tmp` + `os.replace`) to `/tmp/ai-metrics.json`; dashboard reads it from
+  `/hosttmp/ai-metrics.json` (the bind-mounted view).
+
+### Rebuilding the Dashboard Image
+
+```bash
+cd ~/Documents/AI/Local-AI/dashboard
+podman rm -f local-ai-dashboard 2>/dev/null
+podman rmi localhost/local-ai-dashboard 2>/dev/null
+podman build -t localhost/local-ai-dashboard .
+# Then re-run ai-stack-start to recreate the container with correct env + mounts
+```
+
+Any change to `app.py`, `config.json`, or `Dockerfile` requires a rebuild.
+**The container does not hot-reload.**
+
+### Known Gotchas (each one cost real debugging time)
+
+1. **Podman virtiofs single-file bind mounts are broken on macOS.**
+   `-v /private/tmp/ai-metrics.json:/metrics/host.json:ro` silently fails to
+   surface the file inside the container. **Always mount the parent directory**:
+   `-v /private/tmp:/hosttmp:ro`. Source path must be `/private/tmp` not `/tmp`
+   (macOS symlinks `/tmp` → `/private/tmp` and Podman rejects the symlink).
+
+2. **`BaseHTTPRequestHandler` header ordering matters.**
+   `send_response()` **must** come before any `send_header()` calls, and
+   `end_headers()` must come last. Getting this wrong produces cryptic errors
+   like "Access-Control-Allow-Origin: got extra header" 502s.
+
+3. **`osascript do shell script` runs `/bin/sh`, not zsh.**
+   If a shell one-liner uses zsh features (process substitution, `**` globs),
+   wrap it: `zsh -c '<command>'`. Same applies to `subprocess.Popen(['zsh','-c', …])`
+   in `metrics-exporter.py` — the control server uses this.
+
+4. **`ai-stack-start` kills and restarts the metrics-exporter.**
+   Therefore the exporter's control server **cannot invoke `ai-stack-start`**
+   (it would kill itself mid-request). The `_stack_start` / `_stack_stop`
+   functions in `metrics-exporter.py` inline the equivalent commands directly
+   via `subprocess.Popen(['zsh','-c', ...])` to avoid this.
+
+5. **GitHub Pages (`docs/index.html`) — do NOT use `display:none` + JS tab
+   switching for sections.** The user asked for smooth-scroll nav. Current
+   implementation: all sections always visible, nav uses `href="#s-..."`,
+   `html { scroll-behavior: smooth }`, `.section { scroll-margin-top: 54px }`,
+   and an `IntersectionObserver` highlights the active link.
+
+6. **Fonts: use the system font stack only.** The user rejected Syne, Plus
+   Jakarta Sans, Oxanium, and Nunito Sans. Current stack:
+   `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`.
+   **Do not add Google Fonts `<link>` tags.**
+
+7. **Stale `.git/index.lock`** sometimes lingers after interrupted commits.
+   If `git add` hangs or errors, `rm -f .git/index.lock` and retry.
+
+8. **The dashboard's "start/stop whole stack" toggle button** in the header
+   changes color based on the Ollama status (green = Start, red = Stop). It
+   calls the `stack_start` / `stack_stop` actions on the control server — not
+   the shell aliases — for the reason in gotcha #4.
+
+### Metrics Exporter Cheat Sheet
+
+Lives at `scripts/metrics-exporter.py`, started by `ai-stack-start`:
+
+- Runs on the **host**, not in a container (needs `top`, `vm_stat`, `du`, `tailscale`, `podman`).
+- Writes `/tmp/ai-metrics.json` every 3s with `cpu_pct`, `ram`, `disk`, `services`.
+- HTTP control server on :9091, accepts `POST /control` with
+  `{"action": "<name>"}` and `Authorization: Bearer <CONTROL_TOKEN>`.
+- Supported actions: `stack_start`, `stack_stop`, `ollama_start/stop`,
+  `webui_start/stop`, `pipelines_start/stop`, `podman_start/stop`,
+  `tailscale_up/down`. Extend `ACTIONS` dict to add new ones.
+- Logs to `/tmp/ai-stack.log` (subprocess output) and `/tmp/ai-metrics-exporter.log` (stdout).
+
+### GitHub Pages Site (`docs/index.html`)
+
+- Single-file HTML; inline `<style>` and `<script>`.
+- Hosted at https://simone-iaci.github.io/local-ai/ (or user's equivalent).
+- Structure: top nav + stacked `<section id="s-...">` blocks, one per topic.
+- Deploy: commit to `main`, push — GitHub Pages auto-rebuilds within ~1 min.
+
+### Git Workflow
+
+- Default branch: `main`. Remote: `origin` on GitHub.
+- Always `git pull --rebase` before pushing to avoid merge commits.
+- Commit messages: `<type>: <short summary>`, types: `feat`, `fix`, `docs`, `refactor`, `chore`.
+- Never force-push to `main`. Never commit `.secrets` or any file containing tokens.
+
+### End-to-End Smoke Test
+
+After any infrastructure change:
+
+1. `ai-stack-off` (clean slate)
+2. `ai-stack-start` — watch for errors; browser opens http://localhost:3000
+3. Open http://localhost:9090 — dashboard must show live CPU/RAM/disk and
+   all four services (Podman, Ollama, Open WebUI, Pipelines) as "up".
+4. Click the header Stack toggle — it should turn red and services should go down.
+5. Click again — services should come back up; metrics keep updating throughout.
+6. `ai-stack-stop` from terminal — dashboard stays up, shows services as down,
+   start buttons still functional.
+7. `ai-stack-off` — everything down cleanly.
+
+### How to Think About the User
+
+- Simone wants things that **just work** and look good. Prefer polish over features.
+- Prefers **minimal fonts, system stack, no Google Fonts**.
+- Prefers **direct answers and working code** over long explanations.
+- When he says "commit and push", do it — no extra prompts.
+- When he reports a bug, reproduce the cause before patching; don't guess.
+

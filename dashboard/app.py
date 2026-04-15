@@ -30,11 +30,20 @@ def fetch_json(url):
         return {}
 
 def host_metrics():
-    try:
-        with open(METRICS) as f:
-            return json.load(f)
-    except Exception:
-        return {}
+    """Read metrics JSON with a short retry to handle virtiofs cache races."""
+    import time as _t
+    for attempt in range(3):
+        try:
+            with open(METRICS) as f:
+                data = json.load(f)
+            # Accept only if at least one real field is present
+            if data and any(k in data for k in ('cpu_pct', 'ram', 'services')):
+                return data
+        except Exception:
+            pass
+        if attempt < 2:
+            _t.sleep(0.08)
+    return {}
 
 def api_data():
     ps   = fetch_json(f'{OLLAMA}/api/ps')
@@ -202,34 +211,33 @@ HTML = """<!DOCTYPE html>
 
 <script>
 let _stackIsUp = false;
+let _cooldownUntil = 0;   // timestamp — button locked until then
 
 async function stackToggle(){
   const btn = document.getElementById('stack-btn');
+  _cooldownUntil = Date.now() + 22000; // 22s — plenty for start/stop to propagate
   btn.disabled = true;
   if(_stackIsUp){
     btn.textContent = '■ Stopping…';
-    await control('stack_stop', 'Stopping stack');
+    control('stack_stop', 'Stopping AI services');
   } else {
     btn.textContent = '⚡ Starting…';
-    await control('stack_start', 'Starting stack');
+    control('stack_start', 'Starting AI services');
   }
-  // re-enable after a few seconds to allow services to settle
-  setTimeout(() => { btn.disabled = false; }, 8000);
 }
 
 function updateStackBtn(ollamaStatus){
   const btn = document.getElementById('stack-btn');
   _stackIsUp = ollamaStatus === 'up';
-  if(!btn.disabled){
-    if(_stackIsUp){
-      btn.className = 'stack-btn stop';
-      btn.textContent = '■ Stop Stack';
-    } else {
-      btn.className = 'stack-btn start';
-      btn.textContent = '⚡ Start Stack';
-    }
-  }
+  if(Date.now() < _cooldownUntil) return; // keep the "…" state; don't flap
   btn.disabled = false;
+  if(_stackIsUp){
+    btn.className = 'stack-btn stop';
+    btn.textContent = '■ Stop Stack';
+  } else {
+    btn.className = 'stack-btn start';
+    btn.textContent = '⚡ Start Stack';
+  }
 }
 
 // Control actions go through the dashboard proxy — token stays server-side
@@ -373,22 +381,36 @@ function renderModels(ps,tags){
   <div class="model-grid">${cards}</div>`;
 }
 
+// Last-known-good values — prevents a single bad poll from blanking the whole UI
+let _lastHost = null;
+let _lastSvc  = null;
+let _lastModels = {ps:{}, tags:{}};
+
 async function refresh(){
   try{
     const r=await fetch('/api/data');
     const d=await r.json();
     const host=d.host||{}, svc=host.services||{};
-    document.getElementById('card-system').innerHTML=renderSystem(host);
-    document.getElementById('card-services').innerHTML=renderServices(svc);
-    document.getElementById('card-models').innerHTML=renderModels(d.ps,d.tags);
-    updateStackBtn(svc.ollama);
+
+    // Only promote to "last good" when the data is meaningfully populated
+    if(host.cpu_pct != null || (host.ram && host.ram.used_gb != null)) _lastHost=host;
+    if(Object.keys(svc).length > 0) _lastSvc=svc;
+    if((d.ps && d.ps.models) || (d.tags && d.tags.models)) _lastModels={ps:d.ps||{},tags:d.tags||{}};
+
+    const dispHost = _lastHost || host;
+    const dispSvc  = _lastSvc  || svc;
+
+    document.getElementById('card-system').innerHTML=renderSystem(dispHost);
+    document.getElementById('card-services').innerHTML=renderServices(dispSvc);
+    document.getElementById('card-models').innerHTML=renderModels(_lastModels.ps,_lastModels.tags);
+    updateStackBtn(dispSvc.ollama);
     document.getElementById('ts').textContent='updated '+new Date().toLocaleTimeString();
   }catch(e){
     document.getElementById('ts').textContent='error – retrying…';
   }
 }
 refresh();
-setInterval(refresh,5000);
+setInterval(refresh,4000);
 </script>
 </body>
 </html>"""

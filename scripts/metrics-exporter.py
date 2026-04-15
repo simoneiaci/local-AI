@@ -6,6 +6,7 @@ Also runs a control server on port 9091 so the dashboard can start/stop services
 No external dependencies — uses only stdlib + macOS built-ins.
 """
 import subprocess, json, re, time, shutil, os, threading
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
@@ -124,13 +125,24 @@ def services():
 
     return status
 
+_collector_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix='collector')
+
 def collect():
+    """Run all four collectors in parallel so a single slow probe doesn't stall the rest."""
+    fut_cpu  = _collector_pool.submit(cpu_pct)
+    fut_ram  = _collector_pool.submit(ram_stats)
+    fut_disk = _collector_pool.submit(disk_stats)
+    fut_svc  = _collector_pool.submit(services)
+    wait([fut_cpu, fut_ram, fut_disk, fut_svc], timeout=10, return_when=ALL_COMPLETED)
+    def safe(fut):
+        try:    return fut.result(timeout=0)
+        except: return None
     return {
         'ts':       time.time(),
-        'cpu_pct':  cpu_pct(),
-        'ram':      ram_stats(),
-        'disk':     disk_stats(),
-        'services': services(),
+        'cpu_pct':  safe(fut_cpu),
+        'ram':      safe(fut_ram),
+        'disk':     safe(fut_disk),
+        'services': safe(fut_svc),
     }
 
 # ── Control server (port 9091) ────────────────────────────────────────────────

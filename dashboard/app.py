@@ -69,7 +69,7 @@ HTML = """<!DOCTYPE html>
 <title>Local-AI Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@600;700;800&family=Nunito+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:#07090e; --bg2:#0a0c15;
@@ -85,14 +85,14 @@ HTML = """<!DOCTYPE html>
     --amber:#e8943a; --amber-soft:rgba(232,148,58,.1);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',-apple-system,sans-serif;font-size:15px;min-height:100vh}
-  h1,h2,h3,h4,h5{font-family:'Oxanium',sans-serif;letter-spacing:-.01em}
+  body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',-apple-system,sans-serif;font-size:15px;min-height:100vh}
+  h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;letter-spacing:-.01em}
 
   header{background:rgba(7,9,14,.9);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
   .header-left{display:flex;align-items:center;gap:16px}
   .logo{display:flex;align-items:center;gap:10px}
   .logo-bolt{color:var(--amber);font-size:1.1rem}
-  .logo-text{font-family:'Oxanium',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:.01em}
+  .logo-text{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:.01em}
   .header-link{display:flex;align-items:center;gap:5px;color:var(--muted);text-decoration:none;font-size:.78rem;font-family:'JetBrains Mono',monospace;border:1px solid var(--border);border-radius:6px;padding:4px 10px;transition:color .15s,border-color .15s}
   .header-link:hover{color:var(--text);border-color:rgba(255,255,255,.14)}
   .ts-wrap{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.78rem;font-family:'JetBrains Mono',monospace}
@@ -113,7 +113,7 @@ HTML = """<!DOCTYPE html>
   .stat-block:last-child{margin-bottom:0}
   .stat-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
   .stat-label{color:var(--muted);font-size:.88rem}
-  .stat-value{font-weight:700;font-size:1.05rem;font-family:'Oxanium',sans-serif}
+  .stat-value{font-weight:700;font-size:1.05rem;font-family:'Syne',sans-serif}
   .stat-sub{color:var(--muted2);font-size:.73rem;margin-top:4px;font-family:'JetBrains Mono',monospace}
   .bar-wrap{background:rgba(255,255,255,.06);border-radius:6px;height:5px;overflow:hidden}
   .bar{height:5px;border-radius:6px;transition:width .6s cubic-bezier(.4,0,.2,1)}
@@ -121,7 +121,7 @@ HTML = """<!DOCTYPE html>
   .metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
   .mini-stat{background:var(--surface2);border-radius:10px;padding:12px 14px}
   .mini-label{font-family:'JetBrains Mono',monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted2);margin-bottom:5px}
-  .mini-value{font-size:1rem;font-weight:700;font-family:'Oxanium',sans-serif}
+  .mini-value{font-size:1rem;font-weight:700;font-family:'Syne',sans-serif}
 
   /* Services */
   .svc-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:10px;margin-bottom:8px;background:var(--surface2);border:1px solid transparent;transition:border-color .2s}
@@ -132,13 +132,13 @@ HTML = """<!DOCTYPE html>
   .dot.up{background:var(--green);box-shadow:0 0 8px rgba(45,202,114,.55)}
   .dot.down{background:var(--red);box-shadow:0 0 6px rgba(240,107,107,.4)}
   .dot.unknown{background:var(--muted2)}
-  .svc-name{font-family:'Oxanium',sans-serif;font-weight:600;font-size:.88rem;color:var(--text)}
+  .svc-name{font-family:'Syne',sans-serif;font-weight:600;font-size:.88rem;color:var(--text)}
   .svc-detail{color:var(--muted2);font-size:.72rem;margin-top:2px;font-family:'JetBrains Mono',monospace}
   .svc-actions{display:flex;align-items:center;gap:6px}
-  .btn{border:none;border-radius:6px;padding:4px 12px;font-size:.72rem;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:'Nunito Sans',sans-serif}
+  .btn{border:none;border-radius:6px;padding:4px 12px;font-size:.72rem;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:'Plus Jakarta Sans',sans-serif}
   .btn:hover{opacity:.8} .btn:active{opacity:.55}
   .btn:disabled{opacity:.3;cursor:not-allowed}
-  .btn-open{background:var(--blue-soft);color:var(--blue);border:1px solid rgba(138,170,255,.25);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:600;font-family:'Nunito Sans',sans-serif}
+  .btn-open{background:var(--blue-soft);color:var(--blue);border:1px solid rgba(138,170,255,.25);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif}
   .btn-open:hover{background:rgba(138,170,255,.18)}
   .btn-stop{background:var(--red-soft);color:var(--red);border:1px solid rgba(240,107,107,.25)}
   .btn-start{background:var(--green-soft);color:var(--green);border:1px solid rgba(45,202,114,.25)}
@@ -151,7 +151,7 @@ HTML = """<!DOCTYPE html>
   .model-card:hover{border-color:rgba(255,255,255,.12)}
   .model-card.active{border-color:rgba(45,202,114,.35);background:rgba(45,202,114,.04)}
   .model-card.active:hover{border-color:rgba(45,202,114,.5)}
-  .model-name{font-family:'Oxanium',sans-serif;font-weight:700;font-size:.88rem;word-break:break-all;margin-bottom:7px;color:var(--text)}
+  .model-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;word-break:break-all;margin-bottom:7px;color:var(--text)}
   .model-meta{display:flex;align-items:center;justify-content:space-between}
   .model-size{color:var(--muted2);font-size:.75rem;font-family:'JetBrains Mono',monospace}
   .badge{font-size:.65rem;padding:2px 8px;border-radius:10px;font-weight:700;font-family:'JetBrains Mono',monospace}

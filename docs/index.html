@@ -4,164 +4,241 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Local-AI — Private LLMs on MacBook Pro M4 Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
-  --text:#e6edf3; --muted:#8b949e; --muted2:#6e7681;
-  --green:#3fb950; --yellow:#d29922; --red:#f85149;
-  --blue:#58a6ff; --purple:#bc8cff; --orange:#f0883e;
+  --bg: #07090e;
+  --bg2: #0a0c15;
+  --surface: rgba(255,255,255,0.025);
+  --surface2: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.07);
+  --border-hi: rgba(74,116,244,0.3);
+  --text: #dce4ff;
+  --muted: #6a7799;
+  --muted2: #38435e;
+  --accent: #4a74f4;
+  --accent-soft: rgba(74,116,244,0.1);
+  --amber: #e8943a;
+  --amber-soft: rgba(232,148,58,0.1);
+  --green: #2dca72;
+  --green-soft: rgba(45,202,114,0.1);
+  --red: #f06b6b;
+  --red-soft: rgba(240,107,107,0.1);
+  --yellow: #d4a843;
+  --yellow-soft: rgba(212,168,67,0.1);
+  --purple: #9b7fe8;
+  --r: 10px;
+  --rl: 14px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;overflow-x:hidden}
-a{color:var(--blue);text-decoration:none}
+body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-0.02em}
+code,pre,kbd{font-family:'JetBrains Mono','SF Mono',monospace}
+a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 
 /* ── Hero ── */
-.hero{background:linear-gradient(160deg,#0d1117 0%,#161b22 60%,#1a1e2e 100%);border-bottom:1px solid var(--border);padding:72px 24px 56px;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:-50%;background:radial-gradient(circle at 30% 50%,rgba(88,166,255,.04) 0%,transparent 50%),radial-gradient(circle at 70% 50%,rgba(188,140,255,.04) 0%,transparent 50%);pointer-events:none}
-.hero-inner{position:relative;max-width:820px;margin:0 auto}
-.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1.1;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
-.hero .sub{font-size:1.15rem;color:var(--muted);max-width:580px;margin:0 auto 28px}
-.hero-badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
-.hbadge{padding:5px 14px;border-radius:20px;font-size:.8rem;font-weight:600;border:1px solid var(--border);background:var(--surface)}
-.hbadge.g{border-color:var(--green);color:var(--green)}
-.hbadge.b{border-color:var(--blue);color:var(--blue)}
-.hbadge.p{border-color:var(--purple);color:var(--purple)}
-.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn-primary{background:var(--blue);color:#0d1117;padding:10px 22px;border-radius:8px;font-weight:700;font-size:.9rem}
-.btn-primary:hover{background:#79c0ff;text-decoration:none}
-.btn-secondary{border:1px solid var(--border);color:var(--text);padding:10px 22px;border-radius:8px;font-weight:600;font-size:.9rem}
-.btn-secondary:hover{border-color:var(--blue);color:var(--blue);text-decoration:none}
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:80px 24px 120px}
+.hero-bg{position:absolute;inset:0;background:var(--bg)}
+.orb{position:absolute;border-radius:50%;pointer-events:none}
+.orb1{width:700px;height:700px;background:radial-gradient(circle,rgba(74,116,244,.1) 0%,transparent 65%);top:-160px;left:-160px;animation:orb1 14s ease-in-out infinite}
+.orb2{width:600px;height:600px;background:radial-gradient(circle,rgba(232,148,58,.07) 0%,transparent 65%);bottom:-100px;right:-100px;animation:orb2 17s ease-in-out infinite}
+.orb3{width:500px;height:500px;background:radial-gradient(circle,rgba(155,127,232,.07) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);animation:orb3 20s ease-in-out infinite}
+@keyframes orb1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(80px,50px) scale(1.08)}66%{transform:translate(-30px,80px) scale(.94)}}
+@keyframes orb2{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-70px,-50px) scale(1.12)}70%{transform:translate(40px,-20px) scale(.92)}}
+@keyframes orb3{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-46%,-54%) scale(1.18);opacity:1}}
+.hero-grain{position:absolute;inset:0;opacity:.022;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px;pointer-events:none}
+.hero-content{position:relative;z-index:2;max-width:760px;margin:0 auto}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:500;color:var(--amber);letter-spacing:.18em;text-transform:uppercase;margin-bottom:28px;padding:6px 18px;border:1px solid rgba(232,148,58,.22);border-radius:100px;background:rgba(232,148,58,.06)}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);animation:blink 2.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(3rem,8vw,5.5rem);line-height:1;letter-spacing:-.045em;color:var(--text);margin-bottom:22px}
+.bolt{color:var(--amber);display:inline-block}
+.hero-sub{font-size:clamp(.95rem,2vw,1.15rem);color:var(--muted);max-width:520px;margin:0 auto 40px;line-height:1.75}
+.hw-strip{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:44px}
+.hw-chip{padding:8px 18px;font-size:.77rem;font-family:'JetBrains Mono',monospace;color:var(--muted);border-right:1px solid var(--border)}
+.hw-chip:last-child{border-right:none}
+.hw-chip.hi{color:var(--text);background:rgba(255,255,255,.025)}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;border-radius:8px;font-weight:600;font-size:.88rem;cursor:pointer;border:none;transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif;text-decoration:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#5a82f8;box-shadow:0 4px 24px rgba(74,116,244,.35);transform:translateY(-1px);text-decoration:none;color:#fff}
+.btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border);backdrop-filter:blur(8px)}
+.btn-ghost:hover{border-color:rgba(255,255,255,.15);text-decoration:none;transform:translateY(-1px);color:var(--text)}
+.scroll-hint{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase}
+.scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,var(--muted2),transparent);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3;transform:scaleY(1)}50%{opacity:1;transform:scaleY(.75)}}
 
 /* ── Nav ── */
-nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;overflow-x:auto}
-.nav-inner{max-width:1100px;margin:0 auto;display:flex;white-space:nowrap}
-nav a{color:var(--muted);padding:14px 18px;font-size:.88rem;font-weight:500;border-bottom:2px solid transparent;display:inline-block;cursor:pointer;transition:all .15s}
-nav a:hover,nav a.active{color:var(--text);border-bottom-color:var(--blue);text-decoration:none}
+nav{position:sticky;top:0;z-index:100;background:rgba(7,9,14,.88);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.nav-inner::-webkit-scrollbar{display:none}
+nav a{flex-shrink:0;color:var(--muted);padding:14px 18px;font-size:.83rem;font-weight:500;border-bottom:2px solid transparent;display:inline-block;cursor:pointer;transition:color .18s,border-color .18s;letter-spacing:.01em;white-space:nowrap}
+nav a:hover{color:var(--text);text-decoration:none}
+nav a.active{color:var(--text);border-bottom-color:var(--accent)}
 
 /* ── Layout ── */
-.container{max-width:1100px;margin:0 auto;padding:40px 24px}
-.section{display:none;animation:fadeIn .25s ease}
-.section.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.container{max-width:900px;margin:0 auto;padding:56px 28px 96px}
+.section{display:none}
+.section.active{display:block;animation:sIn .32s cubic-bezier(.4,0,.2,1)}
+@keyframes sIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── Typography ── */
-h2{font-size:1.7rem;margin-bottom:6px}
-.section-desc{color:var(--muted);margin-bottom:32px;font-size:1rem}
-h3{font-size:1.15rem;color:var(--blue);margin:32px 0 12px}
-h3:first-of-type{margin-top:0}
-p{margin-bottom:14px;color:var(--text)}
+/* ── Section header ── */
+.s-label{display:block;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+.section h2{font-size:1.95rem;font-weight:800;color:var(--text);margin-bottom:10px;letter-spacing:-.03em}
+.section-desc{color:var(--muted);font-size:.97rem;margin-bottom:44px;line-height:1.75;max-width:640px}
+.section h3{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:44px 0 18px;display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace}
+.section h3::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* ── Cards ── */
-.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:20px 0}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;transition:border-color .2s,transform .2s}
-.card:hover{border-color:var(--blue);transform:translateY(-2px)}
-.card-icon{font-size:1.5rem;margin-bottom:10px}
-.card h4{font-size:1rem;margin-bottom:6px}
-.card p{font-size:.9rem;color:var(--muted);margin:0}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;margin:20px 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:22px;position:relative;overflow:hidden;transition:border-color .25s,transform .25s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(74,116,244,.5),transparent);opacity:0;transition:opacity .25s}
+.card:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+.card:hover::before{opacity:1}
+.card-icon{font-size:1.4rem;margin-bottom:14px;display:block}
+.card h4{font-size:.92rem;font-weight:700;margin-bottom:8px;color:var(--text)}
+.card p{font-size:.865rem;color:var(--muted);line-height:1.65;margin:0}
 
 /* ── Tables ── */
-.table-wrap{overflow-x:auto;margin:20px 0;border:1px solid var(--border);border-radius:12px}
-table{width:100%;border-collapse:collapse;font-size:.88rem}
-th{background:var(--surface);padding:11px 16px;text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border)}
-td{padding:11px 16px;border-bottom:1px solid var(--border)}
+.table-wrap{border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin:16px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.858rem;min-width:360px}
+th{background:rgba(255,255,255,.02);padding:10px 16px;text-align:left;font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+td{padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--surface2)}
-code{background:var(--surface2);padding:2px 7px;border-radius:5px;font-family:'SF Mono',Menlo,monospace;font-size:.85em;color:var(--blue)}
+tr:hover td{background:rgba(255,255,255,.02)}
 
-/* ── Code blocks ── */
-pre{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;margin:16px 0;font-family:'SF Mono',Menlo,monospace;font-size:.85rem;line-height:1.6}
-pre .c{color:var(--muted2)}
-pre .cmd{color:var(--green)}
-pre .kw{color:var(--purple)}
-pre .str{color:var(--yellow)}
+/* ── Code ── */
+code{font-family:'JetBrains Mono',monospace;font-size:.82em;color:#8aaeff;background:rgba(74,116,244,.1);padding:2px 6px;border-radius:4px;border:1px solid rgba(74,116,244,.15)}
+.code-block{margin:16px 0;border-radius:var(--rl);overflow:hidden;border:1px solid var(--border)}
+.code-bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border)}
+.cd{width:10px;height:10px;border-radius:50%}
+.cd-r{background:#ff5f57} .cd-y{background:#febc2e} .cd-g{background:#28c840}
+pre{background:rgba(0,0,0,.42);padding:18px 20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:.81rem;line-height:1.75;margin:0}
+.step-body pre, section > pre{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;overflow-x:auto;margin:10px 0;font-size:.79rem;line-height:1.75}
+pre .c{color:var(--muted2)} pre .cmd{color:var(--green)} pre .kw{color:var(--purple)} pre .str{color:var(--yellow)}
 
 /* ── Steps ── */
-.steps{counter-reset:step}
-.step{display:flex;gap:16px;margin-bottom:28px}
-.step-num{width:32px;height:32px;min-width:32px;border-radius:50%;background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.3);color:var(--blue);font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:center;margin-top:2px}
-.step-body h4{font-size:1rem;margin-bottom:6px}
-.step-body p{font-size:.9rem;color:var(--muted);margin:0}
+.steps{display:flex;flex-direction:column}
+.step{display:flex;gap:20px;position:relative}
+.step:not(:last-child)::before{content:'';position:absolute;left:15px;top:34px;bottom:-8px;width:1px;background:linear-gradient(to bottom,rgba(74,116,244,.25),transparent)}
+.step-num{width:32px;height:32px;min-width:32px;border-radius:50%;border:1px solid var(--border-hi);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.76rem;display:flex;align-items:center;justify-content:center;background:var(--accent-soft);flex-shrink:0;margin-top:2px;position:relative;z-index:1}
+.step-body{padding-bottom:28px;flex:1}
+.step-body h4{font-size:.92rem;font-weight:700;margin-bottom:6px;color:var(--text)}
+.step-body p{font-size:.865rem;color:var(--muted);line-height:1.65;margin-bottom:8px}
 
-/* ── Badges ── */
-.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.75rem;font-weight:700}
-.tag-green{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
-.tag-yellow{background:rgba(210,153,34,.15);color:var(--yellow);border:1px solid rgba(210,153,34,.3)}
-.tag-blue{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
-.tag-orange{background:rgba(240,136,62,.15);color:var(--orange);border:1px solid rgba(240,136,62,.3)}
-.tag-red{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}
-.tag-purple{background:rgba(188,140,255,.12);color:var(--purple);border:1px solid rgba(188,140,255,.3)}
+/* ── Alerts ── */
+.alert{border-radius:var(--r);padding:14px 18px;margin:20px 0;font-size:.865rem;line-height:1.65;border:1px solid}
+.alert-blue{background:var(--accent-soft);border-color:rgba(74,116,244,.2);color:#9ab5ff}
+.alert-green{background:var(--green-soft);border-color:rgba(45,202,114,.2);color:#5edfa0}
+.alert-yellow{background:var(--yellow-soft);border-color:rgba(212,168,67,.2);color:var(--yellow)}
 
-/* ── Alert ── */
-.alert{border-radius:8px;padding:14px 16px;margin:20px 0;font-size:.9rem}
-.alert-yellow{background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);color:var(--yellow)}
-.alert-blue{background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);color:var(--blue)}
-.alert-green{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.25);color:var(--green)}
+/* ── Tags ── */
+.tag{display:inline-block;padding:2px 9px;border-radius:100px;font-size:.71rem;font-weight:600;font-family:'JetBrains Mono',monospace}
+.tag-green{background:var(--green-soft);color:var(--green);border:1px solid rgba(45,202,114,.25)}
+.tag-yellow{background:var(--yellow-soft);color:var(--yellow);border:1px solid rgba(212,168,67,.25)}
+.tag-orange{background:var(--amber-soft);color:var(--amber);border:1px solid rgba(232,148,58,.25)}
+.tag-blue{background:var(--accent-soft);color:#8aaeff;border:1px solid rgba(74,116,244,.25)}
+.tag-red{background:var(--red-soft);color:var(--red);border:1px solid rgba(240,107,107,.25)}
+.tag-purple{background:rgba(155,127,232,.1);color:var(--purple);border:1px solid rgba(155,127,232,.25)}
+
+/* ── Tool cards ── */
+.tool-grid{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:border-color .2s}
+.tool-card:hover{border-color:var(--border-hi)}
+.tool-header{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015)}
+.tool-icon{font-size:1.3rem;line-height:1}
+.tool-name{font-weight:700;font-size:.95rem;font-family:'Syne',sans-serif;color:var(--text)}
+.tool-type{color:var(--muted);font-size:.77rem;margin-top:2px}
+.tool-link{margin-left:auto;color:var(--accent);font-size:.78rem;font-weight:600;border:1px solid var(--border-hi);padding:5px 12px;border-radius:6px;white-space:nowrap;transition:background .15s}
+.tool-link:hover{background:var(--accent-soft);text-decoration:none}
+.tool-body{padding:18px 20px}
+.tool-desc{color:var(--muted);font-size:.865rem;margin-bottom:14px;line-height:1.65}
+.tool-models{font-size:.8rem;color:var(--muted);margin-top:12px}
+.tool-model-label{color:var(--muted2);margin-right:4px}
+.tool-config{font-size:.77rem;color:var(--muted2);margin-top:5px}
+
+/* ── Shortcuts ── */
+.shortcut-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}
+.shortcut-item{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.kbd-wrap{display:flex;gap:4px;margin-bottom:8px}
+kbd{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-bottom:2px solid rgba(255,255,255,.06);border-radius:5px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--text)}
+.shortcut-desc{font-size:.77rem;color:var(--muted);line-height:1.5}
+
+/* ── Flow ── */
+.flow-wrap{display:flex;align-items:stretch;gap:12px;margin:16px 0}
+.flow-step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px;display:flex;gap:14px}
+.flow-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--border-hi);color:var(--accent);font-weight:700;font-size:.8rem;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.flow-title{font-weight:700;font-size:.93rem;margin-bottom:7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:'Syne',sans-serif}
+.flow-desc{color:var(--muted);font-size:.84rem;line-height:1.55}
+.flow-arrow{display:flex;align-items:center;color:var(--muted2);font-size:1.1rem;padding:0 2px}
 
 /* ── Dashboard preview ── */
-.dash-preview{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin:20px 0}
-.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-.dash-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px}
-.dash-card h5{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted2);margin-bottom:12px}
-.dash-stat{display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:6px}
-.dash-bar{background:var(--border);height:6px;border-radius:4px;margin-bottom:10px}
-.dash-fill{height:6px;border-radius:4px}
-.svc-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
+.dash-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin:20px 0}
+.dash-preview-lbl{font-family:'JetBrains Mono',monospace;font-size:.66rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted2);margin-bottom:16px}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.dash-card{background:rgba(0,0,0,.32);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.dash-card h5{font-family:'JetBrains Mono',monospace;font-size:.64rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted2);margin-bottom:14px;font-weight:500}
+.dash-stat{display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:5px}
+.dash-bar{background:rgba(255,255,255,.06);height:4px;border-radius:3px;margin-bottom:10px;overflow:hidden}
+.dash-fill{height:4px;border-radius:3px}
+.svc-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px}
 
-/* ── Coding tool cards ── */
-.tool-grid{display:flex;flex-direction:column;gap:16px;margin:20px 0}
-.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.tool-header{display:flex;align-items:center;gap:14px;padding:18px 22px;border-bottom:1px solid var(--border);background:var(--surface2)}
-.tool-icon{font-size:1.4rem;line-height:1}
-.tool-name{font-weight:700;font-size:1rem}
-.tool-type{color:var(--muted);font-size:.8rem;margin-top:2px}
-.tool-link{margin-left:auto;color:var(--blue);font-size:.8rem;font-weight:600;border:1px solid rgba(88,166,255,.3);padding:4px 12px;border-radius:6px;white-space:nowrap}
-.tool-link:hover{background:rgba(88,166,255,.1);text-decoration:none}
-.tool-body{padding:18px 22px}
-.tool-desc{color:var(--muted);font-size:.9rem;margin-bottom:12px}
-.tool-models{font-size:.85rem;color:var(--muted);margin-top:12px}
-.tool-model-label{color:var(--muted2);margin-right:4px}
-.tool-config{font-size:.8rem;color:var(--muted2);margin-top:6px}
+/* ── Footer ── */
+footer{border-top:1px solid var(--border);padding:32px 28px;text-align:center;font-size:.82rem;color:var(--muted2);font-family:'JetBrains Mono',monospace}
+footer a{color:var(--muted);transition:color .15s}
+footer a:hover{color:var(--text);text-decoration:none}
 
-/* Keyboard shortcuts */
-.shortcut-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:4px}
-.shortcut-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
-.kbd-wrap{display:flex;gap:4px;margin-bottom:8px}
-kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px solid var(--muted2);border-radius:5px;padding:3px 8px;font-family:'SF Mono',Menlo,monospace;font-size:.8rem;color:var(--text);font-weight:600}
-.shortcut-desc{font-size:.8rem;color:var(--muted);line-height:1.4}
-
-/* Plan → Build flow */
-.flow-wrap{display:flex;align-items:stretch;gap:12px;margin:16px 0}
-.flow-step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;display:flex;gap:14px}
-.flow-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.3);color:var(--blue);font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center;margin-top:2px}
-.flow-title{font-weight:700;font-size:.95rem;margin-bottom:7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.flow-desc{color:var(--muted);font-size:.85rem;line-height:1.5}
-.flow-arrow{display:flex;align-items:center;color:var(--muted2);font-size:1.4rem;font-weight:300;padding:0 4px}
-
-@media(max-width:700px){.card-grid{grid-template-columns:1fr}.dash-row{grid-template-columns:1fr}.hero h1{font-size:1.9rem}.shortcut-row{grid-template-columns:1fr}.flow-wrap{flex-direction:column}.flow-arrow{transform:rotate(90deg);align-self:center}}
+/* ── Responsive ── */
+@media(max-width:700px){
+  .card-grid{grid-template-columns:1fr}
+  .dash-row{grid-template-columns:1fr}
+  .shortcut-row{grid-template-columns:1fr}
+  .flow-wrap{flex-direction:column}
+  .flow-arrow{transform:rotate(90deg);align-self:center}
+  .container{padding:40px 18px 72px}
+  .hw-strip{flex-wrap:wrap;border-radius:8px}
+  .hw-chip{border-right:none;border-bottom:1px solid var(--border);flex:1 0 50%;text-align:center}
+  .hw-chip:nth-child(odd){border-right:1px solid var(--border)}
+  .hw-chip:last-child{border-bottom:none}
+}
 </style>
 </head>
 <body>
 
-<!-- Hero -->
+<!-- ── Hero ── -->
 <div class="hero">
-  <div class="hero-inner">
-    <h1>⚡ Local-AI</h1>
-    <p class="sub">Private LLMs on MacBook Pro M4 Pro — for coding, chat, RAG, and productivity. No cloud. No API costs.</p>
-    <div class="hero-badges">
-      <span class="hbadge g">🔒 100% Private</span>
-      <span class="hbadge b">🚀 Metal GPU Acceleration</span>
-      <span class="hbadge p">📱 iPhone Access via Tailscale</span>
-      <span class="hbadge g">💻 M4 Pro · 24 GB RAM</span>
+  <div class="hero-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="hero-grain"></div>
+  <div class="hero-content">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>MacBook Pro M4 Pro · Private · Local · Zero Cloud</div>
+    <h1><span class="bolt">⚡</span>Local-AI</h1>
+    <p class="hero-sub">A complete self-hosted AI stack. Chat, code, reason, retrieve — entirely on your machine. No API costs, no data leaving your desk.</p>
+    <div class="hw-strip">
+      <div class="hw-chip hi">M4 Pro</div>
+      <div class="hw-chip hi">24 GB RAM</div>
+      <div class="hw-chip">Metal GPU</div>
+      <div class="hw-chip">Neural Engine</div>
+      <div class="hw-chip">Ollama · Podman</div>
     </div>
-    <div class="hero-btns">
-      <a class="btn-primary" href="https://github.com/simoneiaci/local-AI">View on GitHub</a>
-      <a class="btn-secondary" href="#" onclick="show('setup');return false">Setup Guide</a>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="https://github.com/simoneiaci/local-AI" target="_blank">View on GitHub ↗</a>
+      <a class="btn btn-ghost" href="#" onclick="show('setup');return false">Setup Guide</a>
     </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    scroll
   </div>
 </div>
 
-<!-- Nav -->
+<!-- ── Nav ── -->
 <nav>
   <div class="nav-inner">
     <a class="active" onclick="show('overview')">Overview</a>
@@ -180,17 +257,18 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
 
 <!-- ── Overview ── -->
 <section class="section active" id="s-overview">
-  <h2>🧠 What Is This?</h2>
-  <p class="section-desc">A complete, self-hosted AI stack running entirely on your Mac. Chat, code, reason, and retrieve — all locally.</p>
+  <span class="s-label">What is this</span>
+  <h2>The full stack, running privately on your Mac.</h2>
+  <p class="section-desc">Chat, code, reason, and retrieve — all locally. No subscriptions, no rate limits, no data leaving your machine.</p>
 
   <div class="card-grid">
-    <div class="card"><div class="card-icon">🦙</div><h4>Ollama</h4><p>Runs LLMs locally with Metal GPU acceleration. OpenAI-compatible API at <code>localhost:11434</code>.</p></div>
-    <div class="card"><div class="card-icon">💬</div><h4>Open WebUI</h4><p>ChatGPT-like interface running in Podman. Supports multi-model chat, documents, image input.</p></div>
-    <div class="card"><div class="card-icon">🛠️</div><h4>Coding Tools</h4><p>Continue.dev in VS Code + OpenCode + Aider. All powered by local models — no cloud needed.</p></div>
-    <div class="card"><div class="card-icon">📊</div><h4>Live Dashboard</h4><p>System stats, loaded models, and service controls at <code>localhost:9090</code>. Start/stop services with one click.</p></div>
-    <div class="card"><div class="card-icon">📱</div><h4>iPhone Access</h4><p>Tailscale gives your phone a private encrypted connection to your Mac — from anywhere in the world.</p></div>
-    <div class="card"><div class="card-icon">🔍</div><h4>Web Search</h4><p>Brave Search integration in Open WebUI. Models can search the internet and cite sources — triggered per message.</p></div>
-    <div class="card"><div class="card-icon">🔒</div><h4>Zero Cloud</h4><p>Your prompts, documents, and code never leave your machine. No subscriptions, no rate limits.</p></div>
+    <div class="card"><span class="card-icon">🦙</span><h4>Ollama</h4><p>Runs LLMs locally with Metal GPU acceleration. OpenAI-compatible API at <code>localhost:11434</code>.</p></div>
+    <div class="card"><span class="card-icon">💬</span><h4>Open WebUI</h4><p>ChatGPT-like interface in Podman. Multi-model chat, documents, image input, memory, web search.</p></div>
+    <div class="card"><span class="card-icon">🛠️</span><h4>Coding Tools</h4><p>Continue.dev in VS Code + OpenCode + Aider. All powered by local models — no cloud needed.</p></div>
+    <div class="card"><span class="card-icon">📊</span><h4>Live Dashboard</h4><p>System stats, loaded models, and service controls at <code>localhost:9090</code>. Start/stop with one click.</p></div>
+    <div class="card"><span class="card-icon">📱</span><h4>iPhone Access</h4><p>Tailscale gives your phone a private encrypted connection to your Mac — from anywhere in the world.</p></div>
+    <div class="card"><span class="card-icon">🔍</span><h4>Private Web Search</h4><p>Self-hosted SearXNG on port 8080. Models can search the internet — all requests stay on your machine.</p></div>
+    <div class="card"><span class="card-icon">🔒</span><h4>Zero Cloud</h4><p>Your prompts, documents, and code never leave your machine. No subscriptions, no rate limits, ever.</p></div>
   </div>
 
   <h3>Hardware</h3>
@@ -199,37 +277,43 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
       <tr><th>Spec</th><th>Value</th></tr>
       <tr><td>Machine</td><td>MacBook Pro M4 Pro</td></tr>
       <tr><td>Unified Memory</td><td>24 GB</td></tr>
-      <tr><td>Available for models</td><td>~14–16 GB (after macOS)</td></tr>
+      <tr><td>Available for models</td><td>~14–16 GB (after macOS overhead)</td></tr>
       <tr><td>GPU</td><td>Apple Silicon · Metal · Neural Engine</td></tr>
-      <tr><td>Storage</td><td>~50 GB for the full model stack</td></tr>
+      <tr><td>Storage for models</td><td>~40 GB for the full stack</td></tr>
     </table>
   </div>
 
-  <h3>Stack at a Glance</h3>
-  <pre>┌────────────────────────────────────────────────────────────┐
-│               MacBook Pro M4 Pro  (24 GB RAM)              │
-│                                                            │
-│  Ollama (:11434) ──► Open WebUI (:3000)  [Podman]         │
-│       │                                                    │
-│       ├──► Continue.dev  (VS Code: Cmd+L, Cmd+I)          │
-│       ├──► OpenCode / Aider              (terminal)        │
-│       └──► Dashboard (:9090)            [Podman]           │
-│                                                            │
-│  Tailscale / Caddy ──────────────────► iPhone (anywhere)  │
-└────────────────────────────────────────────────────────────┘</pre>
+  <h3>Architecture</h3>
+  <div class="code-block">
+    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
+    <pre>┌──────────────────────────────────────────────────────────────┐
+│               MacBook Pro M4 Pro  (24 GB RAM)                │
+│                                                              │
+│  Ollama (:11434) ──► Open WebUI (:3000)        [Podman]     │
+│       │           ──► Pipelines (:9099)        [Podman]     │
+│       │                                                      │
+│       ├──► Continue.dev  (VS Code: ⌘L, ⌘I)                 │
+│       ├──► OpenCode / Aider              (terminal)          │
+│       └──► Dashboard (:9090)            [Podman]             │
+│                                                              │
+│  SearXNG (:8080) ──► Open WebUI web search   [Podman]       │
+│  Tailscale / Caddy ──────────────────────► iPhone (anywhere)│
+└──────────────────────────────────────────────────────────────┘</pre>
+  </div>
 </section>
 
 <!-- ── Setup ── -->
 <section class="section" id="s-setup">
-  <h2>⚙️ Setup</h2>
-  <p class="section-desc">Five scripts take you from zero to a fully running local AI stack. Run them in order.</p>
+  <span class="s-label">Getting started</span>
+  <h2>Five phases, fully automated.</h2>
+  <p class="section-desc">Five scripts take you from zero to a fully running local AI stack. Run them in order from the repo root.</p>
 
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-body">
         <h4>Phase 1 — Ollama + Core Models</h4>
-        <p>Installs Ollama, pulls the base model stack, sets shell aliases and environment variables.</p>
+        <p>Installs Ollama, pulls the base model stack, configures shell aliases and environment variables in <code>~/.zshrc</code>.</p>
         <pre><span class="cmd">bash</span> scripts/phase1-setup.sh</pre>
       </div>
     </div>
@@ -237,15 +321,15 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
       <div class="step-num">2</div>
       <div class="step-body">
         <h4>Phase 2 — Coding Tools</h4>
-        <p>Configures Continue.dev for VS Code, installs OpenCode and Aider, pulls <code>devstral</code> and <code>smollm2:1.7b</code> for autocomplete.</p>
+        <p>Configures Continue.dev for VS Code, installs OpenCode and Aider, pulls <code>devstral</code> and <code>smollm2:1.7b</code> for tab autocomplete.</p>
         <pre><span class="cmd">bash</span> scripts/phase2-coding-tools.sh</pre>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-body">
-        <h4>Phase 3 — Open WebUI</h4>
-        <p>Starts a Podman container with the full Open WebUI interface connected to your local Ollama.</p>
+        <h4>Phase 3 — Open WebUI + Pipelines</h4>
+        <p>Starts Podman containers for Open WebUI (port 3000) and Pipelines middleware (port 9099).</p>
         <pre><span class="cmd">bash</span> scripts/phase3-webui.sh
 <span class="c"># Then open: http://localhost:3000</span></pre>
       </div>
@@ -254,7 +338,7 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
       <div class="step-num">4</div>
       <div class="step-body">
         <h4>Phase 4 — Dashboard</h4>
-        <p>Starts the metrics exporter (host process) and a Podman container serving the live system dashboard.</p>
+        <p>Starts the metrics exporter (host process) and a Podman container serving the live system dashboard at port 9090.</p>
         <pre><span class="cmd">bash</span> scripts/phase4-dashboard.sh
 <span class="c"># Then open: http://localhost:9090</span></pre>
       </div>
@@ -263,45 +347,42 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
       <div class="step-num">5</div>
       <div class="step-body">
         <h4>Phase 5 — Remote Access</h4>
-        <p>Choose Tailscale (private VPN), Caddy + DuckDNS (public HTTPS), Cloudflare Tunnel, or all of them.</p>
+        <p>Choose Tailscale (private VPN), Caddy + DuckDNS (public HTTPS), Cloudflare Tunnel, or a combination.</p>
         <pre><span class="cmd">bash</span> scripts/phase5-remote.sh
-<span class="c"># Choose: 1=Tailscale  2=Caddy  3=Cloudflare  4=Both</span></pre>
+<span class="c"># 1=Tailscale  2=Caddy  3=Cloudflare  4=Both</span></pre>
       </div>
     </div>
   </div>
 
-  <div class="alert alert-green">
-    After Phase 1, source your <code>~/.zshrc</code> once, then use <code>ai-stack-start</code> / <code>ai-stack-stop</code> to run everything with one command.
-  </div>
+  <div class="alert alert-green">After Phase 1, source your <code>~/.zshrc</code> once — then use <code>ai-stack-start</code> and <code>ai-stack-stop</code> to manage the whole stack with a single command.</div>
 </section>
 
 <!-- ── Models ── -->
 <section class="section" id="s-models">
-  <h2>🤖 Model Stack</h2>
-  <p class="section-desc">All models run locally via Ollama. Only one 14 GB model fits in RAM at a time — swap as needed.</p>
+  <span class="s-label">Model stack</span>
+  <h2>Right model for every task.</h2>
+  <p class="section-desc">All models run locally via Ollama. Only one large model fits in RAM at a time — <code>smollm2:1.7b</code> and <code>nomic-embed-text</code> stay loaded alongside any other.</p>
 
-  <div class="alert alert-yellow">⚠️ With 24 GB unified memory, about 14–16 GB is available for models. <code>smollm2:1.7b</code> can stay loaded alongside any other model.</div>
+  <div class="alert alert-yellow">⚠️ With 24 GB unified memory, ~14–16 GB is available for models after macOS overhead. Swap models as needed — unloading takes a second.</div>
 
   <h3>Current Stack</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
       <tr><td>Daily driver</td><td><code>gemma3:12b</code></td><td><span class="tag tag-yellow">7 GB</span></td><td>Chat, summarisation, multimodal (images)</td></tr>
-      <tr><td>Coding</td><td><code>devstral</code></td><td><span class="tag tag-orange">14 GB</span></td><td>Code gen, refactor, debugging, agents</td></tr>
-      <tr><td>Italian · Tax · Reasoning</td><td><code>qwen3:14b</code></td><td><span class="tag tag-yellow">9.3 GB</span></td><td>Italian docs, 730/CU/F24, reasoning, thinking mode (<code>/think</code>)</td></tr>
-      <tr><td>Power model</td><td><code>mistral-small3.1:24b</code></td><td><span class="tag tag-orange">14 GB</span></td><td>Long context, tool use, best all-round</td></tr>
-      <tr><td>Tab autocomplete</td><td><code>smollm2:1.7b</code></td><td><span class="tag tag-green">1 GB</span></td><td>VS Code inline completions (always loaded)</td></tr>
+      <tr><td>Coding</td><td><code>devstral</code></td><td><span class="tag tag-orange">14 GB</span></td><td>Code gen, refactor, debugging, terminal agents</td></tr>
+      <tr><td>Italian · Tax · Reasoning</td><td><code>qwen3:14b</code></td><td><span class="tag tag-yellow">9.3 GB</span></td><td>Italian docs, 730/CU/F24, reasoning, <code>/think</code> mode</td></tr>
+      <tr><td>Tab autocomplete</td><td><code>smollm2:1.7b</code></td><td><span class="tag tag-green">1 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
       <tr><td>Embeddings</td><td><code>nomic-embed-text</code></td><td><span class="tag tag-green">0.3 GB</span></td><td>RAG pipelines, semantic search</td></tr>
     </table>
   </div>
 
-  <div class="alert alert-blue">💡 <strong>qwen3:14b</strong> replaced <code>phi4-reasoning</code> and <code>granite3.3:8b</code> — it handles Italian language, tax documents, and reasoning in a single model. Use <code>/think</code> prefix to enable deep step-by-step reasoning mode.</div>
+  <div class="alert alert-blue">💡 <strong>qwen3:14b</strong> covers Italian language, tax documents, and step-by-step reasoning in a single model. Type <code>/think</code> before your prompt to engage deep reasoning mode.</div>
 
   <h3>Custom Modelfiles</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Name</th><th>Based on</th><th>Purpose</th></tr>
-      <tr><td><code>tax-assistant</code></td><td><code>qwen3:14b</code></td><td>Italian tax expert — 730, CU, F24, detrazioni IRPEF, bonus edilizi</td></tr>
       <tr><td><code>swift-mentor</code></td><td><code>devstral</code></td><td>iOS/macOS Swift 6 expert — SwiftUI, UIKit, async/await, TCA</td></tr>
     </table>
   </div>
@@ -311,22 +392,21 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
     <table>
       <tr><th>Task</th><th>Best model</th><th>Why</th></tr>
       <tr><td>Code generation</td><td><code>devstral</code></td><td>Trained specifically for coding tasks</td></tr>
-      <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> / <code>devstral</code></td><td>Custom persona pre-loaded with Swift 6 context</td></tr>
-      <tr><td>Tax / Italian documents</td><td><code>tax-assistant</code> / <code>qwen3:14b</code></td><td>Best Italian language + reasoning, knows 730/F24/CU</td></tr>
-      <tr><td>Complex reasoning</td><td><code>qwen3:14b</code></td><td>Hybrid thinking mode — type <code>/think</code> before your prompt</td></tr>
-      <tr><td>Long documents / RAG</td><td><code>mistral-small3.1:24b</code></td><td>128K context, accurate structured output</td></tr>
+      <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> / <code>devstral</code></td><td>Custom persona pre-loaded with Swift 6 + TCA context</td></tr>
+      <tr><td>Tax / Italian documents</td><td><code>qwen3:14b</code></td><td>Best Italian language + reasoning, knows 730/F24/CU</td></tr>
+      <tr><td>Complex reasoning</td><td><code>qwen3:14b</code></td><td>Hybrid thinking mode — prefix with <code>/think</code></td></tr>
       <tr><td>Image analysis</td><td><code>gemma3:12b</code></td><td>Multimodal, fast, high accuracy</td></tr>
       <tr><td>Quick chat</td><td><code>gemma3:12b</code></td><td>Fast, 7 GB, always available</td></tr>
-      <tr><td>Embeddings / RAG pipeline</td><td><code>nomic-embed-text</code></td><td>Required by Open WebUI knowledge base</td></tr>
+      <tr><td>Embeddings / RAG</td><td><code>nomic-embed-text</code></td><td>Required by Open WebUI knowledge base</td></tr>
     </table>
   </div>
 
-  <h3>What Fits in 24 GB? (Gemma Reference)</h3>
+  <h3>What fits in 24 GB?</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Model</th><th>VRAM</th><th>Fits?</th><th>Notes</th></tr>
       <tr><td>Gemma 3 4B</td><td>3 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Lightweight, multimodal</td></tr>
-      <tr><td>Gemma 3 12B</td><td>7 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Best Gemma overall — recommended daily driver</td></tr>
+      <tr><td>Gemma 3 12B</td><td>7 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Recommended daily driver</td></tr>
       <tr><td>Gemma 4 26B-A4B</td><td>~15 GB</td><td><span class="tag tag-yellow">⚠ Tight</span></td><td>MoE — fits but pushes the limit</td></tr>
       <tr><td>Gemma 3 27B</td><td>16 GB</td><td><span class="tag tag-red">✗ No</span></td><td>Marginal, expect swapping</td></tr>
       <tr><td>Gemma 4 31B</td><td>20 GB</td><td><span class="tag tag-red">✗ No</span></td><td>Too large for 24 GB</td></tr>
@@ -336,40 +416,24 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
 
 <!-- ── Coding ── -->
 <section class="section" id="s-coding">
-  <h2>💻 Coding Tools</h2>
-  <p class="section-desc">Three layers of AI coding assistance — inline completions, chat-driven edits, and full agentic sessions. All powered by local models.</p>
+  <span class="s-label">Developer tools</span>
+  <h2>Three layers of AI coding assistance.</h2>
+  <p class="section-desc">Inline completions, chat-driven edits, and full agentic terminal sessions — all powered by local models, no cloud required.</p>
 
-  <!-- Tool overview cards -->
   <div class="tool-grid">
-
     <div class="tool-card">
       <div class="tool-header">
         <div class="tool-icon">⌨️</div>
-        <div>
-          <div class="tool-name">Continue.dev</div>
-          <div class="tool-type">VS Code / JetBrains extension</div>
-        </div>
+        <div><div class="tool-name">Continue.dev</div><div class="tool-type">VS Code / JetBrains extension</div></div>
         <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=Continue.continue" target="_blank">Install ↗</a>
       </div>
       <div class="tool-body">
         <div class="shortcut-row">
-          <div class="shortcut-item">
-            <div class="kbd-wrap"><kbd>⌘</kbd><kbd>L</kbd></div>
-            <div class="shortcut-desc">Open AI chat sidebar — ask questions about your code</div>
-          </div>
-          <div class="shortcut-item">
-            <div class="kbd-wrap"><kbd>⌘</kbd><kbd>I</kbd></div>
-            <div class="shortcut-desc">Inline edit — select code and describe the change</div>
-          </div>
-          <div class="shortcut-item">
-            <div class="kbd-wrap"><kbd>Tab</kbd></div>
-            <div class="shortcut-desc">Accept autocomplete suggestion from <code>smollm2:1.7b</code></div>
-          </div>
+          <div class="shortcut-item"><div class="kbd-wrap"><kbd>⌘</kbd><kbd>L</kbd></div><div class="shortcut-desc">Open AI chat sidebar — ask questions about your code</div></div>
+          <div class="shortcut-item"><div class="kbd-wrap"><kbd>⌘</kbd><kbd>I</kbd></div><div class="shortcut-desc">Inline edit — select code and describe the change</div></div>
+          <div class="shortcut-item"><div class="kbd-wrap"><kbd>Tab</kbd></div><div class="shortcut-desc">Accept autocomplete from <code>smollm2:1.7b</code></div></div>
         </div>
-        <div class="tool-models">
-          <span class="tool-model-label">Models:</span>
-          <code>devstral</code> · <code>gemma3:12b</code> · <code>mistral-small3.1:24b</code>
-        </div>
+        <div class="tool-models"><span class="tool-model-label">Models:</span><code>devstral</code> · <code>gemma3:12b</code> · <code>qwen3:14b</code></div>
         <div class="tool-config">Config: <code>~/.continue/config.json</code></div>
       </div>
     </div>
@@ -377,168 +441,170 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
     <div class="tool-card">
       <div class="tool-header">
         <div class="tool-icon">🤖</div>
-        <div>
-          <div class="tool-name">OpenCode</div>
-          <div class="tool-type">Terminal TUI coding agent</div>
-        </div>
+        <div><div class="tool-name">OpenCode</div><div class="tool-type">Terminal TUI coding agent</div></div>
         <a class="tool-link" href="https://github.com/opencode-ai/opencode" target="_blank">Docs ↗</a>
       </div>
       <div class="tool-body">
         <p class="tool-desc">Full agentic coding in your terminal. Reads your codebase, edits files, runs commands — powered by <code>devstral</code>.</p>
         <pre style="margin:0"><span class="cmd">opencode</span>              <span class="c"># launch TUI agent</span>
 <span class="cmd">ai-use-coding</span>         <span class="c"># switch to devstral</span>
-<span class="cmd">ai-use-general</span>        <span class="c"># switch to mistral-small3.1:24b</span></pre>
+<span class="cmd">ai-use-general</span>        <span class="c"># switch to gemma3:12b</span></pre>
       </div>
     </div>
 
     <div class="tool-card">
       <div class="tool-header">
         <div class="tool-icon">🧑‍💻</div>
-        <div>
-          <div class="tool-name">Aider</div>
-          <div class="tool-type">CLI pair programmer</div>
-        </div>
+        <div><div class="tool-name">Aider</div><div class="tool-type">CLI pair programmer</div></div>
         <a class="tool-link" href="https://aider.chat" target="_blank">Docs ↗</a>
       </div>
       <div class="tool-body">
         <p class="tool-desc">Commit-aware coding assistant. Add files to context, describe changes in plain English — Aider writes and commits the code.</p>
         <pre style="margin:0"><span class="cmd">aider-code</span>   <span class="c"># devstral — fast, great for coding</span>
-<span class="cmd">aider-think</span>  <span class="c"># phi4-reasoning — complex refactors</span></pre>
+<span class="cmd">aider-think</span>  <span class="c"># qwen3:14b — complex refactors</span></pre>
       </div>
     </div>
-
   </div>
 
-  <!-- Plan → Build -->
   <h3>Plan → Build Workflow</h3>
-  <p>For complex tasks, split across two models to get better results:</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">For complex tasks, split reasoning and implementation across two models:</p>
   <div class="flow-wrap">
     <div class="flow-step">
       <div class="flow-num">1</div>
-      <div class="flow-content">
-        <div class="flow-title">Plan <span class="tag tag-purple">phi4-reasoning</span></div>
-        <div class="flow-desc">Analyse the problem, identify edge cases, design the approach. Ask it to think step-by-step before writing any code.</div>
+      <div>
+        <div class="flow-title">Plan <span class="tag tag-yellow">qwen3:14b /think</span></div>
+        <div class="flow-desc">Analyse the problem, identify edge cases, design the approach step-by-step before writing any code.</div>
       </div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step">
       <div class="flow-num">2</div>
-      <div class="flow-content">
+      <div>
         <div class="flow-title">Build <span class="tag tag-green">devstral</span></div>
-        <div class="flow-desc">Feed the plan to devstral. It writes clean, working code fast — no need for it to reason from scratch.</div>
+        <div class="flow-desc">Feed the plan to devstral. It writes clean, working code fast — no need to reason from scratch.</div>
       </div>
     </div>
   </div>
 
-  <div class="alert alert-blue">💡 Keep context under ~100K tokens even for 128K-context models. Performance drops near the limit on Apple Silicon due to memory bandwidth constraints.</div>
+  <div class="alert alert-blue">💡 Keep context under ~100K tokens even for large-context models. Performance degrades near the limit on Apple Silicon due to memory bandwidth constraints.</div>
 
-  <!-- Connect any tool -->
   <h3>Connect Any Tool</h3>
-  <p>Any OpenAI-compatible client works. Point it at your local Ollama:</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">Any OpenAI-compatible client works — point it at your local Ollama:</p>
   <div class="table-wrap">
     <table>
       <tr><th>Setting</th><th>Value</th></tr>
       <tr><td>API Base URL</td><td><code>http://localhost:11434/v1</code></td></tr>
       <tr><td>API Key</td><td><code>ollama</code> (any non-empty string)</td></tr>
-      <tr><td>Model</td><td><code>devstral</code>, <code>gemma3:12b</code>, etc.</td></tr>
+      <tr><td>Model</td><td><code>devstral</code>, <code>gemma3:12b</code>, <code>qwen3:14b</code>, …</td></tr>
     </table>
   </div>
 </section>
 
 <!-- ── Dashboard ── -->
 <section class="section" id="s-dashboard">
-  <h2>📊 Dashboard</h2>
+  <span class="s-label">System monitor</span>
+  <h2>Live control at a glance.</h2>
   <p class="section-desc">A lightweight Podman container at <code>http://localhost:9090</code>. Auto-refreshes every 5 seconds. Start/stop services directly from the UI.</p>
 
   <div class="dash-preview">
-    <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted2);margin-bottom:16px">Live preview (static)</div>
+    <div class="dash-preview-lbl">Live preview (static mockup)</div>
     <div class="dash-row">
       <div class="dash-card">
         <h5>System</h5>
         <div class="dash-stat"><span style="color:var(--muted)">CPU Usage</span><span style="color:var(--yellow);font-weight:700">62%</span></div>
         <div class="dash-bar"><div class="dash-fill" style="width:62%;background:var(--yellow)"></div></div>
-        <div class="dash-stat" style="margin-top:8px"><span style="color:var(--muted)">RAM</span><span style="font-weight:700">19.7 <span style="color:var(--muted);font-weight:400;font-size:.85em">/ 24.0 GB</span></span></div>
+        <div class="dash-stat" style="margin-top:6px"><span style="color:var(--muted)">RAM</span><span style="font-weight:700">19.7 <span style="color:var(--muted);font-weight:400;font-size:.85em">/ 24.0 GB</span></span></div>
         <div class="dash-bar"><div class="dash-fill" style="width:82%;background:var(--yellow)"></div></div>
-        <div class="dash-stat" style="margin-top:8px"><span style="color:var(--muted)">Disk free</span><span style="color:var(--red);font-weight:700">16 GB</span></div>
-        <div class="dash-bar"><div class="dash-fill" style="width:97%;background:var(--red)"></div></div>
+        <div class="dash-stat" style="margin-top:6px"><span style="color:var(--muted)">Disk free</span><span style="color:var(--green);font-weight:700">24 GB</span></div>
+        <div class="dash-bar"><div class="dash-fill" style="width:76%;background:var(--accent)"></div></div>
       </div>
       <div class="dash-card">
         <h5>Services</h5>
-        <div style="font-size:.88rem;display:flex;flex-direction:column;gap:10px">
-          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(63,185,80,.6)"></span>Ollama <span style="color:var(--muted);font-size:.75em">API · port 11434</span></div>
-          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(63,185,80,.6)"></span>Open WebUI <span style="color:var(--muted);font-size:.75em">Chat · port 3000</span></div>
-          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(63,185,80,.6)"></span>Podman VM <span style="color:var(--muted);font-size:.75em">Container runtime</span></div>
-          <div><span class="svc-dot" style="background:var(--red)"></span>Tailscale <span style="color:var(--muted);font-size:.75em">VPN · not connected</span></div>
+        <div style="font-size:.86rem;display:flex;flex-direction:column;gap:10px">
+          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Ollama <span style="color:var(--muted);font-size:.74em">API · port 11434</span></div>
+          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Open WebUI <span style="color:var(--muted);font-size:.74em">Chat · port 3000</span></div>
+          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Pipelines <span style="color:var(--muted);font-size:.74em">Middleware · port 9099</span></div>
+          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Podman VM <span style="color:var(--muted);font-size:.74em">Container runtime</span></div>
+          <div><span class="svc-dot" style="background:var(--red)"></span>Tailscale <span style="color:var(--muted);font-size:.74em">VPN · not connected</span></div>
         </div>
       </div>
     </div>
     <div class="dash-card">
-      <h5>Models — 1 loaded · 6 available</h5>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:8px;font-size:.85rem">
-        <div style="background:rgba(63,185,80,.05);border:1px solid rgba(63,185,80,.3);border-radius:6px;padding:8px 12px"><strong>smollm2:1.7b</strong><br><span style="color:var(--muted2)">1.7 GB · </span><span class="tag tag-green" style="font-size:.65rem">● loaded</span></div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>gemma3:12b</strong><br><span style="color:var(--muted2)">7.6 GB · </span><span class="tag tag-blue" style="font-size:.65rem">idle</span></div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>devstral:latest</strong><br><span style="color:var(--muted2)">13.3 GB · </span><span class="tag tag-blue" style="font-size:.65rem">idle</span></div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>mistral-small3.1:24b</strong><br><span style="color:var(--muted2)">14 GB · </span><span class="tag tag-blue" style="font-size:.65rem">idle</span></div>
+      <h5>Models — 1 loaded · 5 available</h5>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px;font-size:.83rem">
+        <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>smollm2:1.7b</strong><br><span style="color:var(--muted2)">1.1 GB · </span><span class="tag tag-green" style="font-size:.64rem">● loaded</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>gemma3:12b</strong><br><span style="color:var(--muted2)">7.6 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>devstral</strong><br><span style="color:var(--muted2)">13.3 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>qwen3:14b</strong><br><span style="color:var(--muted2)">9.3 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
       </div>
     </div>
   </div>
 
   <h3>Architecture</h3>
-  <p>Two processes work together:</p>
   <div class="table-wrap">
     <table>
-      <tr><th>Component</th><th>Where</th><th>Does</th></tr>
-      <tr><td><code>metrics-exporter.py</code></td><td>Mac host</td><td>Writes <code>/tmp/ai-metrics.json</code> every 3s. Also runs control server on port 9091.</td></tr>
-      <tr><td><code>local-ai-dashboard</code></td><td>Podman container</td><td>Serves the web UI on port 9090. Reads metrics via bind-mount, calls Ollama API directly.</td></tr>
+      <tr><th>Component</th><th>Where</th><th>Role</th></tr>
+      <tr><td><code>metrics-exporter.py</code></td><td>Mac host</td><td>Writes <code>/tmp/ai-metrics.json</code> every 3 s. Runs control server on port 9091 with token auth.</td></tr>
+      <tr><td><code>local-ai-dashboard</code></td><td>Podman container</td><td>Serves the web UI on port 9090. Reads metrics via bind-mount, proxies control actions server-side.</td></tr>
     </table>
   </div>
 
   <h3>Control API</h3>
-  <p>The dashboard's start/stop buttons call the host control server:</p>
-  <pre><span class="cmd">POST</span> http://localhost:9091/control
-<span class="str">{"action": "ollama_stop"}    </span><span class="c"># or: ollama_start</span>
-<span class="str">{"action": "webui_stop"}     </span><span class="c"># or: webui_start</span>
-<span class="str">{"action": "podman_stop"}    </span><span class="c"># or: podman_start</span>
-<span class="str">{"action": "tailscale_down"} </span><span class="c"># or: tailscale_up</span></pre>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">The dashboard proxies start/stop buttons to the host control server on port 9091 (Bearer token protected):</p>
+  <div class="code-block">
+    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
+    <pre><span class="cmd">POST</span> http://localhost:9091/control
+<span class="kw">Authorization:</span> Bearer &lt;CONTROL_TOKEN&gt;
+
+<span class="str">{"action": "ollama_stop"}     </span><span class="c"># or: ollama_start</span>
+<span class="str">{"action": "webui_stop"}      </span><span class="c"># or: webui_start</span>
+<span class="str">{"action": "pipelines_stop"}  </span><span class="c"># or: pipelines_start</span>
+<span class="str">{"action": "podman_stop"}     </span><span class="c"># or: podman_start</span>
+<span class="str">{"action": "tailscale_down"}  </span><span class="c"># or: tailscale_up</span></pre>
+  </div>
 
   <h3>Useful Commands</h3>
-  <pre><span class="cmd">podman logs local-ai-dashboard</span>       <span class="c"># container logs</span>
-<span class="cmd">podman stop local-ai-dashboard</span>        <span class="c"># stop dashboard</span>
-<span class="cmd">pkill -f metrics-exporter.py</span>         <span class="c"># stop host exporter</span>
-<span class="cmd">cat /tmp/ai-metrics-exporter.log</span>     <span class="c"># exporter debug log</span></pre>
+  <div class="code-block">
+    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
+    <pre><span class="cmd">podman logs local-ai-dashboard</span>      <span class="c"># container logs</span>
+<span class="cmd">podman stop local-ai-dashboard</span>       <span class="c"># stop dashboard</span>
+<span class="cmd">pkill -f metrics-exporter.py</span>        <span class="c"># stop host exporter</span>
+<span class="cmd">cat /tmp/ai-metrics-exporter.log</span>    <span class="c"># exporter debug log</span></pre>
+  </div>
 </section>
 
 <!-- ── Web Search ── -->
 <section class="section" id="s-websearch">
-  <h2>🔍 Web Search</h2>
-  <p class="section-desc">Give your local models live internet access — search results are fetched and summarised privately, right inside Open WebUI.</p>
+  <span class="s-label">Private web search</span>
+  <h2>Live internet access, fully local.</h2>
+  <p class="section-desc">Give your local models live internet access. Search results are fetched and summarised privately, right inside Open WebUI — nothing leaves your Mac.</p>
+
+  <div class="alert alert-green">✓ Web search is active. Engine: <strong>SearXNG</strong> — self-hosted on port 8080, zero external requests, unlimited searches.</div>
 
   <h3>How It Works</h3>
-  <p>Open WebUI has built-in web search. When enabled, a 🌐 button appears in every chat. Toggle it before sending a message and the model will search the web, read the top results, and cite its sources — all without leaving your Mac.</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">Open WebUI has built-in web search. When enabled, a 🌐 button appears in every chat. Toggle it before sending a message — the model searches the web, reads the top results, and cites its sources, all without leaving your Mac.</p>
 
-  <div class="alert alert-green">✓ Web search is configured and ready. Engine: <strong>Brave Search</strong> — higher quality results than DuckDuckGo, with no tracking.</div>
-
-  <h3>Enable in Open WebUI</h3>
+  <h3>Using Search in Open WebUI</h3>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-body">
-        <h4>Open Admin Panel</h4>
-        <p>Go to <a href="http://localhost:3000" target="_blank">localhost:3000</a> → click your avatar (top right) → <strong>Admin Panel</strong> → <strong>Settings</strong> → <strong>Web Search</strong></p>
+        <h4>Open a chat</h4>
+        <p>Go to <a href="http://localhost:3000" target="_blank">localhost:3000</a> and open any conversation.</p>
       </div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-body">
-        <h4>Configure</h4>
-        <p>Enable Web Search → Search Engine: <strong>Brave</strong> → paste your API key → Save.</p>
+        <h4>Enable web search</h4>
+        <p>Click the <strong>🌐</strong> icon in the message bar before sending your prompt.</p>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-body">
-        <h4>Use it</h4>
-        <p>In any chat, click the <strong>🌐</strong> icon in the message bar before sending. The model will search and cite sources inline.</p>
+        <h4>Ask your question</h4>
+        <p>The model searches SearXNG, reads the top results, and cites sources inline. All traffic stays on your Mac.</p>
       </div>
     </div>
   </div>
@@ -547,23 +613,25 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
   <div class="table-wrap">
     <table>
       <tr><th>Engine</th><th>Quality</th><th>Privacy</th><th>Cost</th><th>Setup</th></tr>
-      <tr><td><strong>Brave</strong> ✓ <span class="tag tag-green">configured</span></td><td>⭐⭐⭐⭐⭐</td><td>No tracking</td><td>Free (2,000 req/mo)</td><td>API key</td></tr>
+      <tr><td><strong>SearXNG</strong> <span class="tag tag-green">✓ active</span></td><td>⭐⭐⭐⭐</td><td>100% local</td><td>Free, unlimited</td><td>Podman container</td></tr>
+      <tr><td>Brave Search</td><td>⭐⭐⭐⭐⭐</td><td>No tracking</td><td>Free (2,000 req/mo)</td><td>API key</td></tr>
       <tr><td>DuckDuckGo</td><td>⭐⭐⭐</td><td>No tracking</td><td>Free, unlimited</td><td>None</td></tr>
-      <tr><td>SearXNG (self-hosted)</td><td>⭐⭐⭐⭐</td><td>100% local</td><td>Free, unlimited</td><td>Podman container</td></tr>
       <tr><td>Google / Bing</td><td>⭐⭐⭐⭐⭐</td><td>Tracked</td><td>Paid API</td><td>API key</td></tr>
     </table>
   </div>
 
-  <h3>Upgrade: Self-Hosted SearXNG (optional)</h3>
-  <p>For unlimited searches with zero external calls, run SearXNG locally:</p>
-  <pre><span class="cmd">podman run</span> -d --name searxng \
-  -p 8080:8080 \
-  --restart=always \
-  docker.io/searxng/searxng</pre>
-  <p>Then in Open WebUI → Web Search → Engine: <strong>SearXNG</strong> → URL: <code>http://host.containers.internal:8080</code></p>
-  <p>Add it to the stack aliases so it starts automatically:</p>
-  <pre><span class="c"># In ai-stack-start:</span>
-/opt/homebrew/bin/podman start searxng 2>/dev/null || true</pre>
+  <h3>SearXNG Configuration</h3>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">SearXNG is running as a Podman container and configured in Open WebUI:</p>
+  <div class="code-block">
+    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
+    <pre><span class="c"># Container already running:</span>
+<span class="cmd">podman ps | grep searxng</span>
+
+<span class="c"># Open WebUI → Admin → Settings → Web Search:</span>
+<span class="c"># Engine: SearXNG</span>
+<span class="c"># URL: http://host.containers.internal:8080</span>
+<span class="c"># Language: it-IT</span></pre>
+  </div>
 
   <h3>Good Prompts for Web Search</h3>
   <div class="table-wrap">
@@ -575,107 +643,72 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
       <tr><td>Documentation</td><td>"Swift concurrency best practices 2025"</td></tr>
     </table>
   </div>
-
-  <div class="alert alert-blue">💡 The API key is stored locally in <code>.secrets</code> (gitignored) and entered manually in Open WebUI. It is never committed to the repository.</div>
 </section>
 
-<!-- ── Open WebUI Features ── -->
+<!-- ── Open WebUI ── -->
 <section class="section" id="s-webui">
-  <h2>🌐 Open WebUI Features</h2>
-  <p class="section-desc">Open WebUI has powerful features beyond basic chat. Here's how to enable each one. All settings are under <strong>Admin Panel</strong> (click your avatar → Admin Panel).</p>
+  <span class="s-label">Open WebUI</span>
+  <h2>Beyond basic chat.</h2>
+  <p class="section-desc">Open WebUI has powerful features built in. All settings live in <strong>Admin Panel</strong> — click your avatar → Admin Panel → Settings.</p>
 
-  <div class="alert alert-green">✓ Pipelines container is already running at <code>localhost:9099</code> — started by <code>phase3-webui.sh</code> or <code>ai-stack-start</code>.</div>
+  <div class="alert alert-green">✓ Pipelines container is running at <code>localhost:9099</code> — started automatically by <code>ai-stack-start</code>.</div>
 
-  <!-- ── 1. RAG / Knowledge Base ── -->
   <h3>1 · RAG / Knowledge Base</h3>
-  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Upload documents (PDFs, Word files, receipts, Swift docs) and let the model answer questions from them using semantic search — far more accurate than keyword matching.</p>
-
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Upload documents — PDFs, Word files, receipts, Swift docs — and let the model answer questions from them using semantic search. Far more accurate than keyword matching.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <div class="step-body">
-        <h4>Set the embedding model</h4>
-        <p>Admin Panel → Settings → Documents. Set <strong>Embedding Model</strong> to <code>nomic-embed-text</code> (already pulled). Save.</p>
-      </div>
+      <div class="step-body"><h4>Set the embedding model</h4><p>Admin Panel → Settings → Documents. Set <strong>Embedding Model</strong> to <code>nomic-embed-text</code> (already pulled). Save.</p></div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body">
-        <h4>Create a Knowledge collection</h4>
-        <p>Workspace → Knowledge → New Knowledge. Name it (e.g. "Tax Docs 2025"). Upload PDFs — 730 forms, CU, F24, ricevute.</p>
-      </div>
+      <div class="step-body"><h4>Create a Knowledge collection</h4><p>Workspace → Knowledge → New Knowledge. Name it (e.g. "Tax Docs 2025"). Upload PDFs — 730 forms, CU, F24, ricevute.</p></div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
-      <div class="step-body">
-        <h4>Use in chat</h4>
-        <p>In a new chat, click <strong>+</strong> → select your Knowledge collection. Or use the 📎 button to attach a single file directly to the message. Then ask: "Quali spese mediche posso detrarre nel 730/2025?"</p>
-      </div>
+      <div class="step-body"><h4>Use in chat</h4><p>Click <strong>+</strong> in a new chat → select your Knowledge collection. Or use 📎 to attach a single file directly. Then ask: "Quali spese mediche posso detrarre nel 730/2025?"</p></div>
     </div>
   </div>
+  <div class="alert alert-blue">💡 Best model for Italian tax RAG: <code>qwen3:14b</code>. For long documents (128K+ context): <code>gemma3:12b</code> or <code>devstral</code>.</div>
 
-  <div class="alert alert-blue">💡 Best models for RAG: <code>tax-assistant</code> / <code>qwen3:14b</code> for Italian tax docs · <code>mistral-small3.1:24b</code> for long documents requiring 128K context.</div>
-
-  <!-- ── 2. Memory ── -->
   <h3>2 · Memory</h3>
-  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your tax situation — building a personal context that persists between sessions.</p>
-
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your tax situation — building a personal context that persists between sessions.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <div class="step-body">
-        <h4>Enable Memory</h4>
-        <p>Admin Panel → Settings → Personalization. Toggle <strong>Memory</strong> on. Save.</p>
-      </div>
+      <div class="step-body"><h4>Enable Memory</h4><p>Admin Panel → Settings → Personalization. Toggle <strong>Memory</strong> on. Save.</p></div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body">
-        <h4>Seed your memory (optional)</h4>
-        <p>Go to your profile → Memory. Add facts manually: "I'm an iOS developer using Swift 6 and TCA" or "I live in Italy and file 730/redditi with a partita IVA".</p>
-      </div>
+      <div class="step-body"><h4>Seed your memory (optional)</h4><p>Profile → Memory. Add facts manually: "I'm an iOS developer using Swift 6 and TCA" or "I live in Italy and file 730/redditi with a partita IVA".</p></div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
-      <div class="step-body">
-        <h4>Let the model build it automatically</h4>
-        <p>During conversations, the model will extract and save relevant facts. You can review and edit them any time in your profile → Memory.</p>
-      </div>
+      <div class="step-body"><h4>Let it build automatically</h4><p>During conversations the model extracts and saves relevant facts. Review and edit any time in Profile → Memory.</p></div>
     </div>
   </div>
 
-  <!-- ── 3. Code Execution / Artifacts ── -->
   <h3>3 · Code Execution (Artifacts)</h3>
-  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Models can write Python or JavaScript and actually run it inline, showing output. Ideal for tax calculations, data processing, or verifying code snippets.</p>
-
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Models can write Python or JavaScript and run it inline, showing output. Ideal for tax calculations, data processing, or verifying code snippets.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <div class="step-body">
-        <h4>Enable Code Interpreter</h4>
-        <p>Admin Panel → Settings → Interface. Toggle <strong>Code Interpreter</strong> (or "Artifacts") on. Save.</p>
-      </div>
+      <div class="step-body"><h4>Enable Code Interpreter</h4><p>Admin Panel → Settings → Interface. Toggle <strong>Code Interpreter</strong> (or "Artifacts") on. Save.</p></div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body">
-        <h4>Ask the model to run code</h4>
-        <p>Just ask naturally: "Calculate my IRPEF for €45,000 gross income" or "Write and run a Python script to parse this CSV". The model writes the code, a Run button appears, and you see the output inline.</p>
-      </div>
+      <div class="step-body"><h4>Ask the model to run code</h4><p>Ask naturally: "Calculate my IRPEF for €45,000 gross income" or "Write and run a Python script to parse this CSV". A Run button appears — tap to execute and see output inline.</p></div>
     </div>
   </div>
+  <div class="alert alert-yellow">⚠️ Code runs inside the Open WebUI Podman container — sandboxed and safe.</div>
 
-  <div class="alert alert-yellow">⚠️ Code runs inside the Open WebUI Podman container — sandboxed and safe. Output is shown inline in the chat.</div>
-
-  <!-- ── 4. Pipelines ── -->
   <h3>4 · Pipelines</h3>
-  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Custom Python middleware that intercepts every message. Use it to auto-translate Italian documents, post-process model output, add rate limiting, or inject context automatically.</p>
-
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Custom Python middleware that intercepts every message. Use it to auto-translate Italian documents, post-process model output, add rate limiting, or inject context automatically.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-body">
-        <h4>Verify the Pipelines container is running</h4>
+        <h4>Verify the Pipelines container</h4>
         <pre><span class="cmd">podman ps | grep pipelines</span>
 <span class="c"># Should show open-webui-pipelines on port 9099</span></pre>
       </div>
@@ -683,8 +716,8 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-body">
-        <h4>Connect Open WebUI to Pipelines</h4>
-        <p>Admin Panel → Settings → Connections. Under <strong>OpenAI API</strong> connections, add a new entry:</p>
+        <h4>Connection settings</h4>
+        <p>Admin Panel → Settings → Connections → OpenAI API → add:</p>
         <div class="table-wrap" style="margin:10px 0">
           <table>
             <tr><th>Field</th><th>Value</th></tr>
@@ -692,74 +725,43 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-bottom:2px 
             <tr><td>API Key</td><td><code>0p3n-w3bu!</code></td></tr>
           </table>
         </div>
-        <p>Click <strong>Verify</strong> — you should see a green checkmark. Save.</p>
+        <p>Click <strong>Verify</strong> — green checkmark confirms it's connected.</p>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
-      <div class="step-body">
-        <h4>Install a pipeline</h4>
-        <p>Admin Panel → Pipelines → Install from GitHub URL or upload a <code>.py</code> file. Browse examples at <a href="https://github.com/open-webui/pipelines/tree/main/examples" target="_blank">github.com/open-webui/pipelines</a>.</p>
-      </div>
+      <div class="step-body"><h4>Install a pipeline</h4><p>Admin Panel → Pipelines → Install from GitHub URL or upload a <code>.py</code> file. Browse examples at <a href="https://github.com/open-webui/pipelines/tree/main/examples" target="_blank">github.com/open-webui/pipelines</a>.</p></div>
     </div>
   </div>
 
-  <!-- ── 5. Image Input ── -->
   <h3>5 · Image Input (Vision)</h3>
-  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Already works — just select <code>gemma3:12b</code> and attach an image. Useful for reading receipts, screenshots of Xcode errors, diagrams, or scanned documents.</p>
-
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <h4>Select a vision model</h4>
-        <p>In the chat model selector, choose <code>gemma3:12b</code> (multimodal). <code>mistral-small3.1:24b</code> also supports vision.</p>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <h4>Attach an image</h4>
-        <p>Click the 📎 paperclip in the chat input → select an image. Then type your question: "What does this Xcode error mean?" or "Transcribe this receipt and list the deductible expenses."</p>
-      </div>
-    </div>
-  </div>
-
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Already works — select <code>gemma3:12b</code> and attach an image. Useful for reading receipts, Xcode error screenshots, diagrams, or scanned documents.</p>
   <div class="table-wrap">
     <table>
       <tr><th>Use case</th><th>Prompt example</th></tr>
       <tr><td>Xcode error</td><td>Attach screenshot → "What's wrong and how do I fix this?"</td></tr>
-      <tr><td>Receipt scan</td><td>Attach photo → "List all items and their amounts. Which are tax-deductible?"</td></tr>
+      <tr><td>Receipt scan</td><td>Attach photo → "List all items and amounts. Which are tax-deductible?"</td></tr>
       <tr><td>UI sketch</td><td>Attach wireframe → "Write SwiftUI code for this layout"</td></tr>
       <tr><td>Bank statement</td><td>Attach PDF screenshot → "Summarise all transactions above €500"</td></tr>
     </table>
   </div>
 
-  <!-- ── 6. Custom Modelfiles / Personas ── -->
   <h3>6 · Custom Modelfiles (Personas)</h3>
-  <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">Custom models pre-loaded with expert system prompts. Already created: <code>tax-assistant</code> and <code>swift-mentor</code>.</p>
-
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Custom models pre-loaded with expert system prompts. <code>swift-mentor</code> is already created.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <div class="step-body">
-        <h4>Access your custom models</h4>
-        <p>In Open WebUI, open the model selector — <code>tax-assistant</code> and <code>swift-mentor</code> appear alongside the base models.</p>
-      </div>
+      <div class="step-body"><h4>Access custom models</h4><p>In Open WebUI, open the model selector — <code>swift-mentor</code> appears alongside base models.</p></div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body">
-        <h4>Create a new persona</h4>
-        <p>Workspace → Models → Create Model. Choose a base model, write a System Prompt, and save. It appears immediately in the chat selector.</p>
-      </div>
+      <div class="step-body"><h4>Create a new persona</h4><p>Workspace → Models → Create Model. Choose a base model, write a System Prompt, save. Appears immediately in the chat selector.</p></div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-body">
-        <h4>Or create via Ollama CLI</h4>
-        <pre><span class="c"># Create a Modelfile</span>
-<span class="cmd">cat</span> &gt; ~/my-assistant.modelfile &lt;&lt;'EOF'
+        <h4>Or via Ollama CLI</h4>
+        <pre><span class="cmd">cat</span> &gt; ~/my-assistant.modelfile &lt;&lt;'EOF'
 FROM qwen3:14b
 SYSTEM """You are a helpful assistant..."""
 EOF
@@ -767,46 +769,19 @@ EOF
       </div>
     </div>
   </div>
-
-  <div class="table-wrap">
-    <table>
-      <tr><th>Model</th><th>Based on</th><th>System prompt focus</th></tr>
-      <tr><td><code>tax-assistant</code></td><td><code>qwen3:14b</code></td><td>Italian tax law — 730, CU, F24, detrazioni IRPEF, bonus edilizi, partita IVA</td></tr>
-      <tr><td><code>swift-mentor</code></td><td><code>devstral</code></td><td>iOS/macOS development — Swift 6, SwiftUI, UIKit, async/await, The Composable Architecture</td></tr>
-    </table>
-  </div>
-
-  <!-- ── Future features ── -->
-  <h3>Coming Soon</h3>
-  <div class="card-grid">
-    <div class="card">
-      <div class="card-icon">🎤</div>
-      <h4>Whisper STT</h4>
-      <p>Voice input — speak to the model instead of typing. Requires the <code>whisper</code> model and microphone permission in Open WebUI settings.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">⚔️</div>
-      <h4>Arena Mode</h4>
-      <p>Compare two models side-by-side on the same prompt. Enable in Admin Panel → Settings → Interface. Great for choosing the best model for a task.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔍</div>
-      <h4>SearXNG (Self-hosted Search)</h4>
-      <p>Replace Brave Search with your own SearXNG instance for fully private web search. Run a SearXNG Podman container and point Open WebUI to <code>localhost:8080</code>.</p>
-    </div>
-  </div>
 </section>
 
 <!-- ── Remote Access ── -->
 <section class="section" id="s-remote">
-  <h2>📱 Remote Access</h2>
+  <span class="s-label">Remote access</span>
+  <h2>Your AI, anywhere.</h2>
   <p class="section-desc">Access Open WebUI from your iPhone or any device, from anywhere in the world.</p>
 
   <h3>Method Comparison</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Method</th><th>Security</th><th>Setup</th><th>Best for</th></tr>
-      <tr><td><strong>Tailscale</strong></td><td><span class="tag tag-green">End-to-end E2EE</span></td><td>5 min</td><td>Personal use — simplest &amp; safest. Recommended.</td></tr>
+      <tr><td><strong>Tailscale</strong></td><td><span class="tag tag-green">E2E encrypted</span></td><td>5 min</td><td>Personal use — simplest &amp; safest. Recommended.</td></tr>
       <tr><td><strong>Cloudflare Tunnel</strong></td><td><span class="tag tag-blue">Zero-trust</span></td><td>15 min</td><td>No port forwarding, free, needs a domain</td></tr>
       <tr><td><strong>Caddy + DuckDNS</strong></td><td><span class="tag tag-yellow">HTTPS/TLS</span></td><td>20 min</td><td>Full control, public URL, requires port forwarding</td></tr>
     </table>
@@ -814,33 +789,40 @@ EOF
 
   <h3>Option 1: Tailscale (Recommended)</h3>
   <div class="steps">
-    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Install Tailscale on Mac</h4><p>Download the standalone <code>.pkg</code> (not App Store) from <a href="https://tailscale.com/download/mac">tailscale.com/download/mac</a> and sign in.</p></div></div>
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Install on Mac</h4><p>Download the standalone <code>.pkg</code> (not App Store) from <a href="https://tailscale.com/download/mac" target="_blank">tailscale.com/download/mac</a> and sign in.</p></div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Connect</h4><pre><span class="cmd">tailscale up</span></pre></div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Install Tailscale on iPhone</h4><p>App Store → Tailscale → sign in with the same account. Your Mac now has a stable private IP visible in the dashboard.</p></div></div>
-    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Access from iPhone</h4><p>Open Safari → <code>http://&lt;tailscale-ip&gt;:3000</code> → Share → <strong>Add to Home Screen</strong> for a native-looking PWA.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Install on iPhone</h4><p>App Store → Tailscale → sign in with the same account. Your Mac gets a stable private IP visible in the dashboard.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Access from iPhone</h4><p>Safari → <code>http://&lt;tailscale-ip&gt;:3000</code> → Share → <strong>Add to Home Screen</strong> for a native-looking PWA.</p></div></div>
   </div>
 
-  <div class="alert alert-yellow">⚠️ Keep your Mac awake while using it remotely: <code>caffeinate -s &amp;</code> (plugged in only), or System Settings → Displays → Advanced → Prevent automatic sleeping.</div>
+  <div class="alert alert-yellow">⚠️ Keep your Mac awake while using it remotely: <code>caffeinate -s &amp;</code> (plugged in), or System Settings → Displays → Advanced → Prevent automatic sleeping.</div>
 
   <h3>Option 2: Cloudflare Tunnel</h3>
-  <pre><span class="cmd">brew install cloudflare/warp/cloudflared</span>
+  <div class="code-block">
+    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
+    <pre><span class="cmd">brew install cloudflare/warp/cloudflared</span>
 <span class="cmd">cloudflared tunnel login</span>
 <span class="cmd">cloudflared tunnel create my-ai-tunnel</span>
 <span class="c"># Configure ~/.cloudflared/config.yml, then:</span>
 <span class="cmd">cloudflared tunnel run my-ai-tunnel</span></pre>
+  </div>
 
-  <h3>Run the setup script</h3>
-  <pre><span class="cmd">bash</span> scripts/phase5-remote.sh
+  <h3>Run the Setup Script</h3>
+  <div class="code-block">
+    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
+    <pre><span class="cmd">bash</span> scripts/phase5-remote.sh
 <span class="c"># 1 = Tailscale only</span>
 <span class="c"># 2 = Caddy + DuckDNS only</span>
 <span class="c"># 3 = Cloudflare Tunnel only</span>
 <span class="c"># 4 = Tailscale + Caddy (both)</span></pre>
+  </div>
 </section>
 
 <!-- ── Commands ── -->
 <section class="section" id="s-commands">
-  <h2>⚡ Commands &amp; Aliases</h2>
-  <p class="section-desc">All shell aliases added to <code>~/.zshrc</code> by the setup scripts.</p>
+  <span class="s-label">Shell reference</span>
+  <h2>Commands &amp; aliases.</h2>
+  <p class="section-desc">All shell aliases are added to <code>~/.zshrc</code> by the setup scripts and sourced from <code>~/Documents/AI/stack-aliases-v2.sh</code>.</p>
 
   <h3>Stack Management</h3>
   <div class="table-wrap">
@@ -860,21 +842,24 @@ EOF
     <table>
       <tr><th>Command</th><th>Switches to</th></tr>
       <tr><td><code>ai-use-coding</code></td><td><code>devstral</code> (OpenCode + Aider)</td></tr>
-      <tr><td><code>ai-use-general</code></td><td><code>mistral-small3.1:24b</code></td></tr>
+      <tr><td><code>ai-use-general</code></td><td><code>gemma3:12b</code></td></tr>
     </table>
   </div>
 
   <h3>Ollama Direct</h3>
-  <pre><span class="cmd">ollama run gemma3:12b</span>         <span class="c"># quick chat in terminal</span>
+  <div class="code-block">
+    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
+    <pre><span class="cmd">ollama run gemma3:12b</span>         <span class="c"># quick chat in terminal</span>
 <span class="cmd">ollama run devstral</span>           <span class="c"># coding session</span>
 <span class="cmd">ollama ps</span>                     <span class="c"># loaded models + VRAM</span>
 <span class="cmd">ollama list</span>                   <span class="c"># all available models</span>
-<span class="cmd">ollama pull mistral-small3.1:24b</span>   <span class="c"># pull a model</span>
+<span class="cmd">ollama pull qwen3:14b</span>         <span class="c"># pull a model</span>
 <span class="c"># Unload model immediately (free RAM):</span>
 <span class="cmd">curl</span> http://localhost:11434/api/generate \
   -d <span class="str">'{"model":"devstral","keep_alive":0}'</span></pre>
+  </div>
 
-  <h3>Environment Variables (<code>~/.zshrc</code>)</h3>
+  <h3>Environment Variables</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Variable</th><th>Value</th><th>Why</th></tr>
@@ -888,12 +873,22 @@ EOF
 
 </div><!-- /container -->
 
+<footer>
+  <a href="https://github.com/simoneiaci/local-AI" target="_blank">simoneiaci/local-AI</a>
+  &nbsp;·&nbsp;
+  <a href="https://ollama.com" target="_blank">Ollama</a>
+  &nbsp;·&nbsp;
+  <a href="https://openwebui.com" target="_blank">Open WebUI</a>
+  &nbsp;·&nbsp;
+  <a href="https://continue.dev" target="_blank">Continue.dev</a>
+</footer>
+
 <script>
 function show(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('s-' + id).classList.add('active');
-  event.target.classList.add('active');
+  if (event && event.target) event.target.classList.add('active');
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 </script>

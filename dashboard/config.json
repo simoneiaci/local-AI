@@ -1,0 +1,10 @@
+{
+  "model_hints": {
+    "qwen3:14b":        "🇮🇹 Italian · tax docs · reasoning · thinking mode (/think)",
+    "devstral":         "💻 Coding · code gen · refactors · terminal agent",
+    "gemma3:12b":       "💬 Daily chat · multimodal · vision · balanced",
+    "smollm2:1.7b":     "⚡ Tab autocomplete · tiny · always loaded",
+    "nomic-embed-text": "🔍 Embeddings · RAG pipelines · semantic search",
+    "swift-mentor":     "🍎 iOS/macOS · Swift 6 · SwiftUI · TCA"
+  }
+}

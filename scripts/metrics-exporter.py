@@ -7,6 +7,24 @@ No external dependencies — uses only stdlib + macOS built-ins.
 """
 import subprocess, json, re, time, shutil, os, threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from pathlib import Path
+
+# ── Token auth ────────────────────────────────────────────────────────────────
+def _load_secrets() -> dict:
+    secrets_path = Path(__file__).parent.parent / '.secrets'
+    result = {}
+    try:
+        for line in secrets_path.read_text().splitlines():
+            line = line.strip()
+            if '=' in line and not line.startswith('#'):
+                k, _, v = line.partition('=')
+                result[k.strip()] = v.strip()
+    except Exception:
+        pass
+    return result
+
+_SECRETS = _load_secrets()
+CONTROL_TOKEN = os.getenv('CONTROL_TOKEN') or _SECRETS.get('CONTROL_TOKEN', '')
 
 # ── Metric collectors ─────────────────────────────────────────────────────────
 
@@ -72,9 +90,13 @@ def services():
     import urllib.request
     status = {}
 
-    for key, url in [('ollama', 'http://localhost:11434'),
-                     ('open_webui', 'http://localhost:3000'),
-                     ('pipelines', 'http://localhost:9099')]:
+    # Use specific health endpoints rather than bare TCP connects
+    health_urls = [
+        ('ollama',     'http://localhost:11434/api/tags'),
+        ('open_webui', 'http://localhost:3000'),
+        ('pipelines',  'http://localhost:9099'),
+    ]
+    for key, url in health_urls:
         try:
             urllib.request.urlopen(url, timeout=2)
             status[key] = 'up'
@@ -131,15 +153,31 @@ ACTIONS = {
     'tailscale_down':    lambda: subprocess.Popen([TS_BIN, 'down']),
 }
 
+def _authorized(handler) -> bool:
+    """Return True if the request carries a valid Bearer token (or no token is configured)."""
+    if not CONTROL_TOKEN:
+        return True  # token auth disabled — no token configured
+    auth = handler.headers.get('Authorization', '')
+    return auth == f'Bearer {CONTROL_TOKEN}'
+
 class ControlHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
-        self._cors()
         self.send_response(204)
+        self._cors()
         self.end_headers()
 
     def do_POST(self):
         if self.path != '/control':
             self.send_response(404); self.end_headers(); return
+        if not _authorized(self):
+            resp = json.dumps({'ok': False, 'error': 'unauthorized'}).encode()
+            self.send_response(401)
+            self._cors()
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(resp))
+            self.end_headers()
+            self.wfile.write(resp)
+            return
         try:
             length = int(self.headers.get('Content-Length', 0))
             body   = json.loads(self.rfile.read(length))
@@ -151,8 +189,8 @@ class ControlHandler(BaseHTTPRequestHandler):
                 resp = json.dumps({'ok': False, 'error': f'unknown action: {action}'}).encode()
         except Exception as e:
             resp = json.dumps({'ok': False, 'error': str(e)}).encode()
-        self._cors()
         self.send_response(200)
+        self._cors()
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', len(resp))
         self.end_headers()
@@ -161,7 +199,7 @@ class ControlHandler(BaseHTTPRequestHandler):
     def _cors(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
     def log_message(self, *_): pass
 
@@ -170,7 +208,8 @@ class ReusableHTTPServer(HTTPServer):
 
 def run_control_server():
     server = ReusableHTTPServer(('', 9091), ControlHandler)
-    print('Control server -> http://localhost:9091/control', flush=True)
+    auth_status = 'token auth enabled' if CONTROL_TOKEN else 'NO TOKEN — auth disabled'
+    print(f'Control server -> http://localhost:9091/control ({auth_status})', flush=True)
     server.serve_forever()
 
 # ── Main loop ─────────────────────────────────────────────────────────────────

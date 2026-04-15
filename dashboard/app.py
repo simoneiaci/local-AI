@@ -4,13 +4,23 @@ Local-AI Dashboard — lightweight container web server.
 Reads /hostmetrics/ai-metrics.json + queries Ollama API.
 No external dependencies.
 """
-import json, os, urllib.request
+import json, os, urllib.request, urllib.error
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 OLLAMA   = os.getenv('OLLAMA_BASE_URL', 'http://host.containers.internal:11434')
 CONTROL  = os.getenv('CONTROL_URL', 'http://host.containers.internal:9091')
+CONTROL_TOKEN = os.getenv('CONTROL_TOKEN', '')
 METRICS  = '/hostmetrics/ai-metrics.json'
 PORT     = int(os.getenv('PORT', 9090))
+
+# Load model hints from config.json (next to app.py)
+_config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+try:
+    with open(_config_path) as _f:
+        _config = json.load(_f)
+    MODEL_HINTS = _config.get('model_hints', {})
+except Exception:
+    MODEL_HINTS = {}
 
 def fetch_json(url):
     try:
@@ -31,6 +41,25 @@ def api_data():
     tags = fetch_json(f'{OLLAMA}/api/tags')
     host = host_metrics()
     return {'ps': ps, 'tags': tags, 'host': host}
+
+def proxy_control(body_bytes: bytes) -> tuple[int, bytes]:
+    """Forward a control action to the host control server with Bearer auth."""
+    req = urllib.request.Request(
+        f'{CONTROL}/control',
+        data=body_bytes,
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {CONTROL_TOKEN}',
+        },
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=5) as r:
+            return r.status, r.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read()
+    except Exception as e:
+        return 502, json.dumps({'ok': False, 'error': str(e)}).encode()
 
 HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -144,7 +173,21 @@ HTML = """<!DOCTYPE html>
 <div class="toast" id="toast"></div>
 
 <script>
-const CONTROL = 'CONTROL_PLACEHOLDER';
+// Control actions go through the dashboard proxy — token stays server-side
+async function control(action,label){
+  try{
+    const r=await fetch('/proxy/control',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action})
+    });
+    const d=await r.json();
+    if(d.ok) toast(`${label}…`,'var(--green)');
+    else toast(`Error: ${d.error}`,'var(--red)');
+  }catch(e){
+    toast('Control server unreachable','var(--red)');
+  }
+}
 
 function pct2c(p){return p>85?'red':p>65?'yellow':'green'}
 function bar(p){
@@ -174,22 +217,6 @@ function toast(msg,color='var(--text)'){
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
-}
-
-// Control API
-async function control(action,label){
-  try{
-    const r=await fetch(CONTROL+'/control',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action})
-    });
-    const d=await r.json();
-    if(d.ok) toast(`${label}…`,'var(--green)');
-    else toast(`Error: ${d.error}`,'var(--red)');
-  }catch(e){
-    toast('Control server unreachable','var(--red)');
-  }
 }
 
 function renderSystem(host){
@@ -245,14 +272,7 @@ function renderServices(svc){
   }).join('');
 }
 
-const MODEL_HINTS = {
-  'qwen3:14b':        '🇮🇹 Italian · tax docs · reasoning · thinking mode (/think)',
-  'devstral':         '💻 Coding · code gen · refactors · terminal agent',
-  'gemma3:12b':       '💬 Daily chat · multimodal · vision · balanced',
-  'smollm2:1.7b':     '⚡ Tab autocomplete · tiny · always loaded',
-  'nomic-embed-text': '🔍 Embeddings · RAG pipelines · semantic search',
-  'swift-mentor':     '🍎 iOS/macOS · Swift 6 · SwiftUI · TCA',
-};
+const MODEL_HINTS = MODEL_HINTS_PLACEHOLDER;
 function modelHint(name){
   if(MODEL_HINTS[name]) return MODEL_HINTS[name];
   // fuzzy match on prefix
@@ -313,9 +333,8 @@ setInterval(refresh,5000);
 </body>
 </html>"""
 
-# Inject control URL at serve time
 def build_html():
-    return HTML.replace('CONTROL_PLACEHOLDER', CONTROL)
+    return HTML.replace('MODEL_HINTS_PLACEHOLDER', json.dumps(MODEL_HINTS, ensure_ascii=False))
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -324,6 +343,15 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, 'text/html', body)
         elif self.path == '/api/data':
             self._send(200, 'application/json', json.dumps(api_data()).encode())
+        else:
+            self._send(404, 'text/plain', b'Not found')
+
+    def do_POST(self):
+        if self.path == '/proxy/control':
+            length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(length)
+            status, resp = proxy_control(body)
+            self._send(status, 'application/json', resp)
         else:
             self._send(404, 'text/plain', b'Not found')
 

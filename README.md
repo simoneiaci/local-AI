@@ -75,13 +75,11 @@ ai-monitor        # live GPU/CPU/RAM via macmon
 |------|-------|------|-------|
 | Daily driver | `gemma3:12b` | 7 GB | Best all-round, multimodal |
 | Coding | `devstral` | 14 GB | Top coding model by Mistral |
-| Reasoning / math | `phi4-reasoning` | 9 GB | Step-by-step thinking |
-| Power model | `mistral-small3.1:24b` | 14 GB | Best overall, long context |
-| RAG / documents | `granite3.3:8b` | 5 GB | IBM, excellent for Q&A |
+| Italian · Tax · Reasoning | `qwen3:14b` | 9.3 GB | Italian docs, 730/F24, reasoning + `/think` mode |
 | Tab autocomplete | `smollm2:1.7b` | 1 GB | Instant, always loaded |
 | Embeddings | `nomic-embed-text` | 0.3 GB | For RAG pipelines |
 
-> ⚠️ Only one 14 GB model fits in RAM at a time. `smollm2:1.7b` can co-exist with any of them.
+> ⚠️ Only one large model fits in RAM at a time. `smollm2:1.7b` and `nomic-embed-text` can always stay loaded alongside any model.
 
 ---
 

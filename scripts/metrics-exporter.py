@@ -73,7 +73,8 @@ def services():
     status = {}
 
     for key, url in [('ollama', 'http://localhost:11434'),
-                     ('open_webui', 'http://localhost:3000')]:
+                     ('open_webui', 'http://localhost:3000'),
+                     ('pipelines', 'http://localhost:9099')]:
         try:
             urllib.request.urlopen(url, timeout=2)
             status[key] = 'up'
@@ -117,15 +118,17 @@ PODMAN_BIN  = '/opt/homebrew/bin/podman'
 TS_BIN      = '/usr/local/bin/tailscale'
 
 ACTIONS = {
-    'ollama_stop':    lambda: subprocess.Popen(['pkill', '-x', 'ollama']),
-    'ollama_start':   lambda: subprocess.Popen([OLLAMA_BIN, 'serve'],
-                          stdout=open('/tmp/ollama.log','a'), stderr=subprocess.STDOUT),
-    'webui_stop':     lambda: subprocess.Popen([PODMAN_BIN, 'stop', 'open-webui']),
-    'webui_start':    lambda: subprocess.Popen([PODMAN_BIN, 'start', 'open-webui']),
-    'podman_stop':    lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'stop']),
-    'podman_start':   lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'start']),
-    'tailscale_up':   lambda: subprocess.Popen([TS_BIN, 'up']),
-    'tailscale_down': lambda: subprocess.Popen([TS_BIN, 'down']),
+    'ollama_stop':       lambda: subprocess.Popen(['pkill', '-x', 'ollama']),
+    'ollama_start':      lambda: subprocess.Popen([OLLAMA_BIN, 'serve'],
+                             stdout=open('/tmp/ollama.log','a'), stderr=subprocess.STDOUT),
+    'webui_stop':        lambda: subprocess.Popen([PODMAN_BIN, 'stop', 'open-webui']),
+    'webui_start':       lambda: subprocess.Popen([PODMAN_BIN, 'start', 'open-webui']),
+    'pipelines_stop':    lambda: subprocess.Popen([PODMAN_BIN, 'stop', 'open-webui-pipelines']),
+    'pipelines_start':   lambda: subprocess.Popen([PODMAN_BIN, 'start', 'open-webui-pipelines']),
+    'podman_stop':       lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'stop']),
+    'podman_start':      lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'start']),
+    'tailscale_up':      lambda: subprocess.Popen([TS_BIN, 'up']),
+    'tailscale_down':    lambda: subprocess.Popen([TS_BIN, 'down']),
 }
 
 class ControlHandler(BaseHTTPRequestHandler):

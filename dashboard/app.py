@@ -225,6 +225,7 @@ function renderServices(svc){
   const items=[
     {key:'ollama',    label:'Ollama',    sub:'API · port 11434',       url:'http://localhost:11434', stop:'ollama_stop',  start:'ollama_start'},
     {key:'open_webui',label:'Open WebUI',sub:'Chat UI · port 3000',    url:'http://localhost:3000',  stop:'webui_stop',   start:'webui_start'},
+    {key:'pipelines', label:'Pipelines', sub:'Middleware · port 9099', url:'http://localhost:9099',  stop:'pipelines_stop', start:'pipelines_start'},
     {key:'podman',    label:'Podman VM', sub:'Container runtime',      url:null,                     stop:'podman_stop',  start:'podman_start'},
     {key:'tailscale', label:'Tailscale', sub:svc.tailscale_ip||'VPN · not connected', url:null, stop:'tailscale_down', start:'tailscale_up', startLabel:'Connect'},
   ];
@@ -245,16 +246,12 @@ function renderServices(svc){
 }
 
 const MODEL_HINTS = {
-  'qwen3:14b':              '🇮🇹 Italian · tax docs · reasoning · thinking mode',
-  'devstral':               '💻 Coding · code gen · refactors · terminal agent',
-  'mistral-small3.1:24b':   '🏆 Best overall · long context · versatile',
-  'gemma3:12b':             '💬 Daily chat · multimodal · vision · balanced',
-  'granite3.3:8b':          '📄 RAG · Q&A · document analysis · fast',
-  'phi4-reasoning':         '🔢 Step-by-step · math · complex reasoning',
-  'smollm2:1.7b':           '⚡ Tab autocomplete · tiny · always loaded',
-  'nomic-embed-text':       '🔍 Embeddings · RAG pipelines · semantic search',
-  'tax-assistant':          '📋 Italian tax assistant · 730 · F24 · detrazioni',
-  'swift-mentor':           '🍎 iOS/macOS · Swift 6 · SwiftUI · TCA',
+  'qwen3:14b':        '🇮🇹 Italian · tax docs · reasoning · thinking mode (/think)',
+  'devstral':         '💻 Coding · code gen · refactors · terminal agent',
+  'gemma3:12b':       '💬 Daily chat · multimodal · vision · balanced',
+  'smollm2:1.7b':     '⚡ Tab autocomplete · tiny · always loaded',
+  'nomic-embed-text': '🔍 Embeddings · RAG pipelines · semantic search',
+  'swift-mentor':     '🍎 iOS/macOS · Swift 6 · SwiftUI · TCA',
 };
 function modelHint(name){
   if(MODEL_HINTS[name]) return MODEL_HINTS[name];

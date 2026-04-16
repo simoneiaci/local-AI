@@ -367,7 +367,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <table>
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
       <tr><td>Daily driver</td><td><code>gemma3:12b</code></td><td><span class="tag tag-yellow">7 GB</span></td><td>Chat, summarisation, multimodal (images)</td></tr>
-      <tr><td>Coding</td><td><code>devstral</code></td><td><span class="tag tag-orange">14 GB</span></td><td>Code gen, refactor, debugging, terminal agents</td></tr>
+      <tr><td>Coding</td><td><code>gemma3:12b</code></td><td><span class="tag tag-yellow">7 GB</span></td><td>Code gen, refactor, debugging — also the daily driver</td></tr>
       <tr><td>Italian · Tax · Reasoning</td><td><code>qwen3:14b</code></td><td><span class="tag tag-yellow">9.3 GB</span></td><td>Italian docs, 730/CU/F24, reasoning, <code>/think</code> mode</td></tr>
       <tr><td>Tab autocomplete</td><td><code>smollm2:1.7b</code></td><td><span class="tag tag-green">1 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
       <tr><td>Embeddings</td><td><code>nomic-embed-text</code></td><td><span class="tag tag-green">0.3 GB</span></td><td>RAG pipelines, semantic search</td></tr>
@@ -388,8 +388,8 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="table-wrap">
     <table>
       <tr><th>Task</th><th>Best model</th><th>Why</th></tr>
-      <tr><td>Code generation</td><td><code>devstral</code></td><td>Trained specifically for coding tasks</td></tr>
-      <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> / <code>devstral</code></td><td>Custom persona pre-loaded with Swift 6 + TCA context</td></tr>
+      <tr><td>Code generation</td><td><code>gemma3:12b</code></td><td>Strong coder, multimodal, already loaded as daily driver</td></tr>
+      <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> / <code>gemma3:12b</code></td><td>Custom persona pre-loaded with Swift 6 + TCA context</td></tr>
       <tr><td>Tax / Italian documents</td><td><code>qwen3:14b</code></td><td>Best Italian language + reasoning, knows 730/F24/CU</td></tr>
       <tr><td>Complex reasoning</td><td><code>qwen3:14b</code></td><td>Hybrid thinking mode — prefix with <code>/think</code></td></tr>
       <tr><td>Image analysis</td><td><code>gemma3:12b</code></td><td>Multimodal, fast, high accuracy</td></tr>

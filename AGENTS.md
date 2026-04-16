@@ -54,7 +54,7 @@ When suggesting or selecting models, use the task guide below:
 |------------------------------|------------------------------|------------------------|---------|
 | Quick Q&A / brainstorm       | `phi4-mini` (3 GB)           | `gemma3:4b` (3 GB)    | Light   |
 | General writing / emails     | `mistral-small3.1:24b`       | `gemma3:12b`           | 14 / 7  |
-| Code generation / debugging  | `devstral` (24B)       | `granite3.3:8b`        | 14 / 6  |
+| Code generation / debugging  | `gemma3:12b`           | `granite3.3:8b`        | 7 / 6   |
 | Reasoning / math / logic     | `phi4-reasoning` (14B)       | `magistral:24b-small-2506` | 9 / 14 |
 | Summarization                | `gemma3:12b`                 | `granite3.3:8b`        | 7 / 6   |
 | RAG / document Q&A           | `granite3.3:8b` (128K ctx)   | `mistral-small3.1:24b` | 6 / 14  |
@@ -104,7 +104,7 @@ When suggesting or selecting models, use the task guide below:
 ### OpenCode
 - Set `OPENCODE_API_BASE=http://localhost:11434/v1`
 - Requires models with tool-calling support and 64K+ context
-- Recommended model: `devstral` or `mistral-small3.1:24b`
+- Recommended model: `gemma3:12b` or `mistral-small3.1:24b`
 
 ### Open WebUI
 - Runs in Podman on port 3000
@@ -129,7 +129,7 @@ When writing scripts, configs, or automation for this project:
 4. **Homebrew** is the primary package manager. Prefer `brew install` where possible.
 5. **Config files** belong in `~/.config/local-ai/` or within this project directory.
 6. All API interactions should default to the **OpenAI-compatible format** for maximum tool compatibility.
-7. **Plan-then-build**: for non-trivial coding tasks, first use `phi4-reasoning` to outline the approach, then switch to `devstral` to implement it. Do not attempt to reason deeply and emit code in the same call with a 24B model on 24 GB RAM.
+7. **Plan-then-build**: for non-trivial coding tasks, first use `phi4-reasoning` to outline the approach, then switch to `gemma3:12b` to implement it.
 8. **Context budget**: keep prompt + context under ~100K tokens even for 128K-context models (`gemma3:12b`, `mistral-small3.1:24b`, `granite3.3:8b`). Quality degrades measurably above that threshold. If approaching the limit, summarize and restart the session with the summary as the new seed.
 
 ---
@@ -183,7 +183,7 @@ done
 | "out of memory" error | Model + system exceed 24 GB | Unload other models, close apps, use smaller quant |
 | Tool can't connect to Ollama | Ollama not running | `ollama serve` or `brew services start ollama` |
 | Podman can't reach Ollama | Network isolation | Use `host.containers.internal:11434` — Podman's hostname for the Mac host |
-| Poor code quality from model | Model too small or wrong type | Switch to `devstral` for coding tasks |
+| Poor code quality from model | Model too small or wrong type | Switch to `gemma3:12b` for coding tasks |
 | Continue.dev autocomplete laggy | Autocomplete model too large | Use `smollm2:1.7b` for autocomplete only |
 
 ---
@@ -201,12 +201,12 @@ export OLLAMA_HOST=0.0.0.0:11434     # Allow Podman containers to connect
 
 # OpenCode
 export OPENCODE_API_BASE=http://localhost:11434/v1
-export OPENCODE_MODEL=devstral
+export OPENCODE_MODEL=gemma3:12b
 
 # Convenience aliases (all Green-approved models)
 alias ai-chat="ollama run phi4-mini"              # ~3 GB, ultra-fast
 alias ai-general="ollama run gemma3:12b"           # ~8 GB, balanced
-alias ai-code="ollama run devstral"          # ~14 GB, coding
+alias ai-code="ollama run gemma3:12b"          # ~7 GB, coding + daily use
 alias ai-reason="ollama run phi4-reasoning"        # ~9 GB, chain-of-thought
 alias ai-power="ollama run mistral-small3.1:24b"   # ~14 GB, best overall
 alias ai-status="ollama ps"

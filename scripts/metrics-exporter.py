@@ -105,6 +105,14 @@ def services():
             status[key] = 'down'
 
     try:
+        # Guard: only invoke the tailscale CLI if the app is already running.
+        # Calling `tailscale status` on macOS wakes the system extension as a
+        # side effect, which is why Tailscale was launching on every poll cycle.
+        ts_alive = subprocess.run(
+            ['pgrep', '-x', 'Tailscale'], capture_output=True, timeout=1
+        ).returncode == 0
+        if not ts_alive:
+            raise RuntimeError('tailscale not running')
         out = subprocess.check_output(['tailscale', 'status', '--json'],
                                       text=True, timeout=3)
         data = json.loads(out)
@@ -168,12 +176,15 @@ def _stack_stop():
     """Unload models, stop WebUI + Pipelines + Ollama. Dashboard stays up."""
     subprocess.Popen(
         ['zsh', '-c',
+         # Unload each loaded model with a tight timeout so a busy model
+         # doesn't stall the whole stop sequence.
          f'for m in $({OLLAMA_BIN} ps 2>/dev/null | tail -n +2 | awk \'{{print $1}}\'); do '
-         f'  curl -s http://localhost:11434/api/generate '
+         f'  curl -s --max-time 4 http://localhost:11434/api/generate '
          f'  -d \'{{"model":"\'$m\'","keep_alive":0}}\' > /dev/null; done; '
          f'{PODMAN_BIN} stop open-webui-pipelines 2>/dev/null; '
          f'{PODMAN_BIN} stop open-webui 2>/dev/null; '
-         f'pkill -x ollama 2>/dev/null'],
+         # Kill the main ollama process and any spawned runner children.
+         f'pkill -x ollama 2>/dev/null; sleep 1; pkill -f "ollama" 2>/dev/null; true'],
         stdout=_LOG, stderr=subprocess.STDOUT)
 
 ACTIONS = {

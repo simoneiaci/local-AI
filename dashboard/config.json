@@ -2,6 +2,7 @@
   "model_hints": {
     "qwen3:14b":        "🇮🇹 Italian · tax docs · reasoning · thinking mode (/think)",
     "gemma3:12b":       "💻💬 Coding · daily chat · multimodal · vision · balanced",
+    "granite3.3:8b":   "🔧 Coding alt · tool-calling · 128K context · multilingual",
     "smollm2:1.7b":     "⚡ Tab autocomplete · tiny · always loaded",
     "nomic-embed-text": "🔍 Embeddings · RAG pipelines · semantic search",
     "swift-mentor":     "🍎 iOS/macOS · Swift 6 · SwiftUI · TCA"

@@ -55,6 +55,7 @@ When suggesting or selecting models, use the task guide below:
 | Quick Q&A / brainstorm       | `phi4-mini` (3 GB)           | `gemma3:4b` (3 GB)    | Light   |
 | General writing / emails     | `mistral-small3.1:24b`       | `gemma3:12b`           | 14 / 7  |
 | Code generation / debugging  | `gemma3:12b`           | `granite3.3:8b`        | 7 / 6   |
+| Tool / function calling      | `granite3.3:8b`        | `gemma3:12b`           | 6 / 7   |
 | Reasoning / math / logic     | `phi4-reasoning` (14B)       | `magistral:24b-small-2506` | 9 / 14 |
 | Summarization                | `gemma3:12b`                 | `granite3.3:8b`        | 7 / 6   |
 | RAG / document Q&A           | `granite3.3:8b` (128K ctx)   | `mistral-small3.1:24b` | 6 / 14  |

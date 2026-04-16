@@ -74,7 +74,8 @@ ai-monitor        # live GPU/CPU/RAM via macmon
 | Role | Model | Size | Notes |
 |------|-------|------|-------|
 | Daily driver | `gemma3:12b` | 7 GB | Best all-round, multimodal |
-| Coding | `gemma3:12b` | 7 GB | Coding + daily use, multimodal (devstral removed — too heavy for 24 GB) |
+| Coding | `gemma3:12b` | 7 GB | Coding + daily use, multimodal |
+| Coding (alt) | `granite3.3:8b` | 6 GB | Tool-calling, 128K context, multilingual |
 | Italian · Tax · Reasoning | `qwen3:14b` | 9.3 GB | Italian docs, 730/F24, reasoning + `/think` mode |
 | Tab autocomplete | `smollm2:1.7b` | 1 GB | Instant, always loaded |
 | Embeddings | `nomic-embed-text` | 0.3 GB | For RAG pipelines |

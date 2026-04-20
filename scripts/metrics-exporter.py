@@ -5,7 +5,7 @@ Writes /tmp/ai-metrics.json every 3 seconds for the dashboard container to read.
 Also runs a control server on port 9091 so the dashboard can start/stop services.
 No external dependencies — uses only stdlib + macOS built-ins.
 """
-import subprocess, json, re, time, shutil, os, threading
+import subprocess, json, re, time, shutil, os, threading, hmac
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
@@ -143,8 +143,10 @@ def collect():
     fut_svc  = _collector_pool.submit(services)
     wait([fut_cpu, fut_ram, fut_disk, fut_svc], timeout=10, return_when=ALL_COMPLETED)
     def safe(fut):
-        try:    return fut.result(timeout=0)
-        except: return None
+        try:
+            return fut.result(timeout=0)
+        except Exception:
+            return None
     return {
         'ts':       time.time(),
         'cpu_pct':  safe(fut_cpu),
@@ -208,7 +210,8 @@ def _authorized(handler) -> bool:
     if not CONTROL_TOKEN:
         return True  # token auth disabled — no token configured
     auth = handler.headers.get('Authorization', '')
-    return auth == f'Bearer {CONTROL_TOKEN}'
+    expected = f'Bearer {CONTROL_TOKEN}'
+    return hmac.compare_digest(auth, expected)
 
 class ControlHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):

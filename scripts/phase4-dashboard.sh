@@ -68,13 +68,23 @@ log "Image built: $IMAGE_NAME"
 podman rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
 # ── 5. Run dashboard container ───────────────────────────────────────────────
+# NOTE: Mount the parent /private/tmp as /hosttmp — Podman virtiofs cannot bind
+# a single file on macOS (see AGENTS.md gotcha #1). The container reads
+# /hosttmp/ai-metrics.json from that directory view.
 info "Starting dashboard container on port $PORT..."
+CONTROL_TOKEN_VALUE=""
+SECRETS_FILE="$SCRIPT_DIR/../.secrets"
+if [[ -f "$SECRETS_FILE" ]]; then
+  CONTROL_TOKEN_VALUE=$(grep '^CONTROL_TOKEN=' "$SECRETS_FILE" | cut -d= -f2 || true)
+fi
+
 podman run -d \
   --name "$CONTAINER_NAME" \
   -p "${PORT}:9090" \
   -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
   -e CONTROL_URL=http://host.containers.internal:9091 \
-  -v "${METRICS_DIR}:/hostmetrics:ro" \
+  -e CONTROL_TOKEN="$CONTROL_TOKEN_VALUE" \
+  -v "${METRICS_DIR}:/hosttmp:ro" \
   --restart=always \
   "$IMAGE_NAME"
 

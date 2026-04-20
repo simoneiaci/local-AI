@@ -369,6 +369,44 @@ Lives at `scripts/metrics-exporter.py`, started by `ai-stack-start`:
 - Commit messages: `<type>: <short summary>`, types: `feat`, `fix`, `docs`, `refactor`, `chore`.
 - Never force-push to `main`. Never commit `.secrets` or any file containing tokens.
 
+### Docs-sync rule — MANDATORY
+
+**Anytime code changes, check whether `docs/index.html` (the GitHub Pages site)
+needs a matching update.** The docs site is the public-facing description of
+this stack — if it drifts from reality, users hit setup instructions that no
+longer match the repo.
+
+Before finishing any task that modifies code, run through this checklist:
+
+1. **Model changes** (added/removed/swapped a model in scripts, aliases,
+   `CLAUDE.md`, `AGENTS.md`, or `dashboard/config.json`):
+   → update the Models table, Task→Model guide, dashboard mockup, and any
+     code examples in `docs/index.html` that reference the old model name.
+2. **Port, URL, or container-name changes** (anything in `dashboard/`,
+   `scripts/`, `stack-aliases-v2.sh`): → update matching references in the
+   Dashboard / Architecture sections.
+3. **New shell alias / removed alias** in `stack-aliases-v2.sh`:
+   → update the Commands & Aliases table.
+4. **New service / removed service** (e.g. SearXNG, Pipelines, Tailscale):
+   → update the Overview cards, Architecture diagram, and relevant section.
+5. **Environment variables added/changed**: → update the Environment Variables
+   table in the Commands section.
+6. **Setup-script behavior changes** (phase1–5 scripts): → update the matching
+   Setup step and any example commands.
+
+If the change is purely internal (refactor, bug fix with no user-visible
+surface), say so explicitly in the commit / PR summary: "docs-sync: N/A —
+internal refactor only."
+
+Grep the docs for any renamed model/port/alias before committing:
+
+```bash
+grep -n "<old-name>" docs/index.html
+```
+
+If `grep` finds a hit, fix it in the same commit as the code change — not a
+follow-up. A drifted docs site is worse than an outdated comment.
+
 ### End-to-End Smoke Test
 
 After any infrastructure change:

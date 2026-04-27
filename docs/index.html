@@ -386,8 +386,8 @@ footer a:hover{color:var(--text);text-decoration:none}
 <!-- ── Setup ── -->
 <section class="section" id="s-setup">
   <div class="s-num">02 <span class="dim">/</span> Setup</div>
-  <h2>Five phases, fully automated.</h2>
-  <p class="section-desc">Five scripts take you from zero to a fully running local AI stack. Run them in order from the repo root.</p>
+  <h2>Six phases, fully automated.</h2>
+  <p class="section-desc">Six scripts take you from zero to a fully running local AI stack. Run them in order from the repo root. Phase 6 layers community-recommended improvements on top.</p>
 
   <div class="steps">
     <div class="step">
@@ -431,6 +431,15 @@ footer a:hover{color:var(--text);text-decoration:none}
         <p>Choose Tailscale (private VPN), Caddy + DuckDNS (public HTTPS), Cloudflare Tunnel, or a combination.</p>
         <pre><span class="cmd">bash</span> scripts/phase5-remote.sh
 <span class="c"># 1=Tailscale  2=Caddy  3=Cloudflare  4=Both</span></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <h4>Phase 6 — Community Improvements <span class="dim">(optional)</span></h4>
+        <p>Layers practitioner-recommended upgrades: LM Studio (MLX backend, ~20–30% faster on Apple Silicon — community-reported), <code>mlx-lm</code> CLI, web-search MCP servers (Tavily / Brave / fetch) wired into Continue.dev and OpenCode, the lightweight <code>pi</code> coding agent, and TurboQuant model variants. Includes a native macOS menu bar app.</p>
+        <pre><span class="cmd">bash</span> scripts/phase6-improvements.sh
+<span class="c"># Idempotent — safe to re-run. Each step prompts (y/N).</span></pre>
       </div>
     </div>
   </div>
@@ -903,18 +912,36 @@ EOF
 <section class="section" id="s-commands">
   <div class="s-num">09 <span class="dim">/</span> Commands</div>
   <h2>Commands &amp; aliases.</h2>
-  <p class="section-desc">All shell aliases are added to <code>~/.zshrc</code> by the setup scripts and sourced from <code>~/Documents/AI/stack-aliases-v2.sh</code>.</p>
+  <p class="section-desc">All shell aliases live in the repo at <code>stack-aliases-v2.sh</code> and are sourced from <code>~/.zshrc</code> — clone the repo and you have them.</p>
 
   <h3>Stack Management</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Command</th><th>Does</th></tr>
       <tr><td><code>ai-stack-start</code></td><td>Start Ollama + Podman + Open WebUI + Pipelines + Dashboard + metrics exporter</td></tr>
-      <tr><td><code>ai-stack-stop</code></td><td>Unload models, stop all containers, stop Ollama</td></tr>
+      <tr><td><code>ai-stack-stop</code></td><td>Stop AI services — dashboard + metrics stay up</td></tr>
+      <tr><td><code>ai-stack-off</code></td><td>Full shutdown — stops dashboard and Podman machine too</td></tr>
       <tr><td><code>ai-health</code></td><td>Run <code>scripts/status.sh</code> — full stack health check</td></tr>
       <tr><td><code>ai-monitor</code></td><td>Live GPU/CPU/RAM/Neural Engine via <code>macmon</code></td></tr>
       <tr><td><code>ai-models</code></td><td>Show currently loaded models + VRAM</td></tr>
       <tr><td><code>ai-disk</code></td><td>Show model disk usage + available space</td></tr>
+      <tr><td><code>ai-menubar-start</code> / <code>ai-menubar-stop</code></td><td>Launch / quit the macOS menu bar app</td></tr>
+    </table>
+  </div>
+
+  <h3>Phase 6 — MLX &amp; Web Search</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Command</th><th>Does</th></tr>
+      <tr><td><code>ai-mlx-up</code></td><td>Launch LM Studio (start its server on port 1234 from the Developer tab)</td></tr>
+      <tr><td><code>ai-mlx-down</code></td><td>Quit LM Studio (via osascript)</td></tr>
+      <tr><td><code>ai-mlx-status</code></td><td>List models loaded in LM Studio's MLX server</td></tr>
+      <tr><td><code>ai-mlx "prompt"</code></td><td>One-shot generation via <code>mlx_lm.generate</code> (Qwen2.5-Coder 14B 4-bit)</td></tr>
+      <tr><td><code>ai-use-mlx</code></td><td>Point OpenCode at LM Studio (<code>:1234</code>)</td></tr>
+      <tr><td><code>ai-use-ollama</code></td><td>Point OpenCode back at Ollama (<code>:11434</code>)</td></tr>
+      <tr><td><code>ai-pi</code></td><td>Run the <code>pi</code> coding agent (lighter base prompt than OpenCode)</td></tr>
+      <tr><td><code>ai-secrets</code></td><td>Source <code>.secrets</code> into the current shell (Tavily / Brave keys)</td></tr>
+      <tr><td><code>ai-health-phase6</code></td><td>Verify LM Studio, Pi, mlx-lm, and the web-search API key</td></tr>
     </table>
   </div>
 
@@ -923,7 +950,7 @@ EOF
     <table>
       <tr><th>Command</th><th>Switches to</th></tr>
       <tr><td><code>ai-use-coding</code></td><td><code>gemma3:12b</code> (OpenCode + Aider)</td></tr>
-      <tr><td><code>ai-use-general</code></td><td><code>gemma3:12b</code></td></tr>
+      <tr><td><code>ai-use-general</code></td><td><code>mistral-small3.1:24b</code></td></tr>
     </table>
   </div>
 

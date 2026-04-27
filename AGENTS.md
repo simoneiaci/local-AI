@@ -44,7 +44,8 @@ The machine has **24GB unified memory**. This is the single most important const
 
 > **Only models from the organization's approved list may be used.**
 > Models are classified as **Green** (fully approved) or **Yellow** (elevated risk).
-> **Qwen and DeepSeek models are NOT approved** — never suggest them.
+> **Qwen models are approved for personal use only — never suggest them for corporate/work tasks.**
+> **DeepSeek models are NOT approved** — never suggest them.
 
 When suggesting or selecting models, use the task guide below:
 

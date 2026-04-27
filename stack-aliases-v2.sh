@@ -52,3 +52,76 @@ ai-stack-off() {
   /opt/homebrew/bin/podman machine stop 2>/dev/null || true
   echo '✓ Stack fully off'
 }
+
+ai-menubar-start() {
+  if pgrep -f "menubar/app.py" > /dev/null 2>&1; then
+    echo 'Menu bar app is already running'
+    return
+  fi
+  nohup python3 ~/Documents/AI/Local-AI/menubar/app.py > /tmp/ai-menubar.log 2>&1 &
+  echo "✓ Menu bar app started (log → /tmp/ai-menubar.log)"
+}
+
+ai-menubar-stop() {
+  pkill -f "menubar/app.py" 2>/dev/null && echo '✓ Menu bar app stopped' || echo 'Not running'
+}
+
+# ── Phase 6: LM Studio (MLX backend) integration ──
+ai-mlx-up() {
+  if curl -s http://localhost:1234/v1/models > /dev/null 2>&1; then
+    echo '✓ LM Studio server already running on :1234'
+    return
+  fi
+  if [[ -d "/Applications/LM Studio.app" ]]; then
+    open -ga "LM Studio"
+    echo '→ LM Studio launched — enable Developer tab → Start Server (port 1234)'
+  else
+    echo '✗ LM Studio not installed. Run: bash scripts/phase6-improvements.sh'
+  fi
+}
+
+ai-mlx-down() {
+  osascript -e 'tell application "LM Studio" to quit' 2>/dev/null \
+    && echo '✓ LM Studio stopped' || echo 'Not running'
+}
+
+ai-mlx-status() {
+  curl -s http://localhost:1234/v1/models 2>/dev/null \
+    | python3 -c "import sys,json; d=json.load(sys.stdin); print('Loaded models:'); [print(' •', m['id']) for m in d.get('data',[])]" \
+    2>/dev/null || echo '✗ LM Studio server not reachable on :1234'
+}
+
+# Switch OpenCode between LM Studio (MLX) and Ollama backends.
+ai-use-mlx() {
+  export OPENCODE_PROVIDER=openai-compatible
+  export OPENCODE_API_BASE=http://localhost:1234/v1
+  echo "→ OpenCode now using LM Studio (MLX) at :1234"
+}
+
+ai-use-ollama() {
+  export OPENCODE_PROVIDER=openai-compatible
+  export OPENCODE_API_BASE=http://localhost:11434/v1
+  echo "→ OpenCode now using Ollama at :11434"
+}
+
+# mlx-lm direct generation (Apple MLX framework).
+alias ai-mlx='mlx_lm.generate --model mlx-community/Qwen2.5-Coder-14B-Instruct-4bit --prompt'
+
+# Pi coding agent (lighter base prompt than OpenCode).
+alias ai-pi='pi'
+
+# Load secrets (TAVILY_API_KEY etc.) into the current shell.
+alias ai-secrets='set -a; source ~/Documents/AI/Local-AI/.secrets; set +a; echo "→ secrets loaded"'
+
+# Health check for Phase 6 services.
+ai-health-phase6() {
+  echo "── Phase 6 services ──"
+  curl -s http://localhost:1234/v1/models > /dev/null 2>&1 \
+    && echo "✓ LM Studio (MLX) on :1234" \
+    || echo "✗ LM Studio not running"
+  command -v pi >/dev/null && echo "✓ Pi installed" || echo "✗ Pi not installed"
+  python3 -c "import mlx_lm" 2>/dev/null && echo "✓ mlx-lm installed" || echo "✗ mlx-lm not installed"
+  [[ -n "${TAVILY_API_KEY:-}${BRAVE_API_KEY:-}" ]] \
+    && echo "✓ Web search API key present" \
+    || echo "✗ No web search API key (run: ai-secrets)"
+}

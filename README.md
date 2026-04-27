@@ -45,15 +45,28 @@ bash scripts/phase4-dashboard.sh
 
 # 6. Run Phase 5 — Remote access (Tailscale / Caddy / Cloudflare)
 bash scripts/phase5-remote.sh
+
+# 7. Run Phase 6 — Community improvements (LM Studio MLX, web search MCP, Pi, TurboQuant)
+bash scripts/phase6-improvements.sh
 ```
 
 After Phase 1, use these aliases from any terminal:
 
 ```bash
-ai-stack-start    # start everything (Ollama + WebUI + Dashboard)
-ai-stack-stop     # cleanly shut everything down
-ai-health         # check all services at a glance
-ai-monitor        # live GPU/CPU/RAM via macmon
+ai-stack-start      # start everything (Ollama + WebUI + Dashboard)
+ai-stack-stop       # stop AI services (dashboard stays up)
+ai-stack-off        # full shutdown — everything off
+ai-mlx-up           # launch LM Studio (MLX backend, faster than Ollama)
+ai-mlx-down         # quit LM Studio
+ai-mlx-status       # show MLX models loaded
+ai-mlx              # one-shot mlx-lm generation (--prompt "...")
+ai-use-mlx          # switch OpenCode to LM Studio backend
+ai-use-ollama       # switch OpenCode back to Ollama
+ai-menubar-start    # launch menu bar app
+ai-menubar-stop     # quit menu bar app
+ai-health           # check all services at a glance
+ai-health-phase6    # check Phase 6 services (MLX, Pi, mlx-lm, search MCP)
+ai-monitor          # live GPU/CPU/RAM via macmon
 ```
 
 ---
@@ -114,6 +127,43 @@ A lightweight Podman container at `http://localhost:9090` shows:
 
 ---
 
+## Menu Bar App
+
+A native macOS menu bar widget that lives in your top menu bar.
+
+**Install** (one-time):
+
+```bash
+pip3 install --break-system-packages rumps
+```
+
+**Run:**
+
+```bash
+ai-menubar-start    # launch in background
+ai-menubar-stop     # quit
+```
+
+The title bar shows a live status dot and CPU%:
+
+| Title | Meaning |
+|-------|---------|
+| `🟢 12%` | All core services up |
+| `🟡 8%`  | Partial — some services down |
+| `🔴`     | Stack is off |
+| `⚫`     | Metrics exporter not running |
+
+Click the icon to expand the menu: CPU / RAM / Disk stats, per-service status, and **Start Stack / Stop Stack / Full Off** buttons — plus one-click links to Open WebUI and the Dashboard.
+
+**Add to Login Items** so it starts automatically:
+
+1. System Settings → General → Login Items → click `+`
+2. Navigate to `menubar/app.py` — or add a wrapper script that runs `ai-menubar-start`
+
+Log output goes to `/tmp/ai-menubar.log`.
+
+---
+
 ## Remote Access
 
 Run `bash scripts/phase5-remote.sh` and choose:
@@ -137,12 +187,12 @@ Cmd+L    # open AI chat sidebar
 Cmd+I    # inline edit / refactor
 
 # Terminal agents
-opencode          # full TUI coding agent (uses devstral)
-aider-code        # Aider with devstral
+opencode          # full TUI coding agent (uses gemma3:12b)
+aider-code        # Aider with gemma3:12b
 aider-think       # Aider with phi4-reasoning (for complex refactors)
 
 # Quick model switching
-ai-use-coding     # → devstral
+ai-use-coding     # → gemma3:12b
 ai-use-general    # → mistral-small3.1:24b
 ```
 
@@ -158,13 +208,18 @@ Local-AI/
 │   ├── phase3-webui.sh          # Open WebUI via Podman
 │   ├── phase4-dashboard.sh      # Dashboard container + metrics exporter
 │   ├── phase5-remote.sh         # Tailscale / Caddy / Cloudflare
+│   ├── phase6-improvements.sh   # LM Studio MLX, web search MCP, Pi, TurboQuant
 │   ├── metrics-exporter.py      # Host metrics + control server (port 9091)
 │   └── status.sh                # Quick stack health check
 ├── dashboard/
 │   ├── app.py                   # Dashboard web server (no dependencies)
 │   └── Dockerfile               # python:3.11-alpine, port 9090
+├── menubar/
+│   ├── app.py                   # macOS menu bar app (rumps)
+│   └── requirements.txt         # pip: rumps
 ├── docs/
 │   └── index.html               # GitHub Pages documentation
+├── stack-aliases-v2.sh          # Shell functions: ai-stack-* and ai-menubar-*
 ├── PROJECT-PLAN.md              # Full architecture + decisions log
 └── AGENTS.md                    # Rules for AI agents working on this project
 ```
@@ -174,6 +229,48 @@ Local-AI/
 ## Documentation
 
 📖 **[Full docs on GitHub Pages →](https://simoneiaci.github.io/local-AI/)**
+
+---
+
+## Phase 6 — Community-Recommended Improvements
+
+Based on practices shared in the **"Self-Hosted AI Explorers"** Cisco Webex room (April 2026). On a 24 GB MacBook Pro M4 Pro, these close the biggest gaps vs what experienced practitioners run.
+
+> All figures below are **community-reported** (room participants), not benchmarks reproduced on this machine. Treat as directional until you measure on your own workload.
+
+| Improvement | Why | Reported gain |
+|---|---|---|
+| **LM Studio (MLX)** | Tyler Duzan: *"Ollama underperforms LM Studio on Mac"* | +20–30% tok/s (reported) |
+| **mlx-lm CLI** | Direct Apple MLX framework — best Apple Silicon perf | Comparable to LM Studio, scriptable |
+| **Web search MCP** | Tyler: *"You really need to enable web search — model training cutoffs are old"* | Quality bump on doc lookups (qualitative) |
+| **Pi coding agent** | Jonathon Schumaker: *"Lower base prompt = faster prompt-processing"* | Faster prompt-processing than OpenCode (reported) |
+| **Speculative decoding** | Pair `smollm2:1.7b` (draft) with `gemma3:12b` | 1.5–2× tok/s (reported) |
+| **TurboQuant variants** | Recent llama.cpp addition — fits 27B in 24 GB | Bigger models on same hardware |
+
+### Switch backends on the fly
+
+```bash
+ai-use-mlx       # OpenCode → LM Studio (MLX) at :1234
+ai-use-ollama    # OpenCode → Ollama at :11434
+ai-mlx-up        # launch LM Studio
+ai-mlx-down      # quit LM Studio
+ai-mlx-status    # see what's loaded in MLX
+ai-mlx "prompt"  # one-shot generation via mlx-lm
+ai-health-phase6 # verify all phase 6 services
+```
+
+### Web search for your local models
+
+Phase 6 wires Tavily + Brave + fetch MCP servers into Continue.dev and OpenCode. Add API keys to `.secrets`:
+
+```bash
+TAVILY_API_KEY=tvly-xxxxx   # 1000 free searches/month — https://tavily.com
+BRAVE_API_KEY=BSAxxxxx      # 2000 free searches/month — https://brave.com/search/api/
+```
+
+Then `ai-secrets` to load them into your shell.
+
+> ⚠️ **Cisco compliance note** (per Todd Keyser): Qwen models are **not allowed on Cisco-managed hardware**. On personal devices it's your call — `qwen2.5-coder` is Apache 2.0. Check the [Cisco AI Model Guidance](https://cisco.sharepoint.com/:w:/s/LegalOI/ETPaQq5XfhdNmFs6yzTygmcBK1CJdPNdpF_kqYE1TmOr0g) before using on work hardware.
 
 ---
 

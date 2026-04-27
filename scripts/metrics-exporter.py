@@ -96,6 +96,7 @@ def services():
         ('ollama',     'http://localhost:11434/api/tags'),
         ('open_webui', 'http://localhost:3000'),
         ('pipelines',  'http://localhost:9099'),
+        ('lmstudio',   'http://localhost:1234/v1/models'),
     ]
     for key, url in health_urls:
         try:
@@ -160,6 +161,8 @@ def collect():
 OLLAMA_BIN  = '/opt/homebrew/bin/ollama'
 PODMAN_BIN  = '/opt/homebrew/bin/podman'
 TS_BIN      = '/usr/local/bin/tailscale'
+LMSTUDIO_APP = '/Applications/LM Studio.app'
+LMSTUDIO_URL = 'http://localhost:1234/v1/models'
 
 _LOG = open('/tmp/ai-stack.log', 'a')
 
@@ -203,6 +206,9 @@ ACTIONS = {
     'podman_start':      lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'start']),
     'tailscale_up':      lambda: subprocess.Popen([TS_BIN, 'up']),
     'tailscale_down':    lambda: subprocess.Popen([TS_BIN, 'down']),
+    'lmstudio_start':    lambda: subprocess.Popen(['open', '-a', LMSTUDIO_APP]),
+    'lmstudio_stop':     lambda: subprocess.Popen(['osascript', '-e',
+                             'tell application "LM Studio" to quit']),
 }
 
 def _authorized(handler) -> bool:

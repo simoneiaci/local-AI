@@ -9,3 +9,13 @@
 
 # Editor
 .vscode/settings.json
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Agent / IDE working directories
+.agents/
+.claude/
+.continue/

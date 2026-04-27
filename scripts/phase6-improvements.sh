@@ -91,10 +91,11 @@ else
 fi
 
 # ── 3. Web search MCP (closes the biggest quality gap per Tyler) ─────────────
-header "3. Web search MCP — for Continue.dev & OpenCode"
+header "3. Web search MCP — shared config for local tools"
 
 MCP_CFG_DIR="$HOME/.config/local-ai"
 MCP_CFG="$MCP_CFG_DIR/mcp-servers.json"
+MCP_WRAPPER="$REPO_ROOT/scripts/mcp-with-secrets.sh"
 mkdir -p "$MCP_CFG_DIR"
 
 if [[ -f "$MCP_CFG" ]]; then
@@ -103,26 +104,24 @@ if [[ -f "$MCP_CFG" ]]; then
 fi
 
 # Tavily is recommended (1000 free searches/month, designed for LLMs)
-cat > "$MCP_CFG" << 'EOF'
+cat > "$MCP_CFG" << EOF
 {
-  "_comment": "Web search MCP servers for local AI tools. Enables models to fetch fresh docs (Tyler Duzan: critical for Chinese models with old training cutoffs).",
+  "_comment": "Web search MCP servers for local AI tools. Commands go through mcp-with-secrets.sh so .secrets is loaded before each server starts.",
   "mcpServers": {
     "tavily": {
-      "_doc": "Get free key at https://tavily.com — 1000 searches/mo. Set TAVILY_API_KEY in macOS Keychain or .secrets",
-      "command": "npx",
-      "args": ["-y", "tavily-mcp@latest"],
-      "env": { "TAVILY_API_KEY": "${TAVILY_API_KEY}" }
+      "_doc": "Get free key at https://tavily.com — 1000 searches/mo. Set TAVILY_API_KEY in .secrets",
+      "command": "$MCP_WRAPPER",
+      "args": ["npx", "-y", "tavily-mcp@latest"]
     },
     "brave-search": {
       "_doc": "Alternative — get free key at https://brave.com/search/api/ — 2000 searches/mo",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" }
+      "command": "$MCP_WRAPPER",
+      "args": ["npx", "-y", "@modelcontextprotocol/server-brave-search"]
     },
     "fetch": {
       "_doc": "Free, no API key — fetches any URL as markdown. Pair with the search MCP above.",
-      "command": "uvx",
-      "args": ["mcp-server-fetch"]
+      "command": "$MCP_WRAPPER",
+      "args": ["uvx", "mcp-server-fetch"]
     }
   }
 }
@@ -157,7 +156,7 @@ else
   warn "No Continue.dev config found — run phase2 first to wire MCP into it"
 fi
 
-info "Add API keys to ~/Documents/AI/Local-AI/.secrets (then 'source' it):"
+info "Add API keys to ~/Documents/AI/Local-AI/.secrets:"
 echo "    TAVILY_API_KEY=tvly-xxxxx"
 echo "    BRAVE_API_KEY=BSAxxxxx"
 
@@ -204,7 +203,7 @@ info "TurboQuant (recent llama.cpp addition) reduces VRAM significantly."
 info "On your 24 GB Mac (~14-16 GB usable), this opens up:"
 echo ""
 echo "    • Qwen2.5-Coder-14B-Instruct-MLX-4bit  ~8 GB   (Apache 2.0)"
-echo "    • Gemma-2-27B-it-MLX-3bit              ~12 GB  (Tyler's spec/docs pick)"
+echo "    • Gemma-4-26B-a4b-it                   ~15 GB  (approved, tight fit)"
 echo "    • Mistral-Small-24B-MLX-4bit           ~13 GB"
 echo ""
 warn "Compliance note (per Todd Keyser in the room):"
@@ -228,10 +227,7 @@ else
   warn "Skipped — pull manually with: ollama pull qwen2.5-coder:14b"
 fi
 
-if ask "Pull gemma2:27b for spec/plan/docs generation (~16 GB, tight on 24 GB)?"; then
-  warn "This will be tight on RAM — close all other apps before loading"
-  /opt/homebrew/bin/ollama pull gemma2:27b && log "gemma2:27b pulled"
-fi
+warn "Skipping Gemma 27B pulls: project policy says Gemma 27B variants are marginal/risky on 24 GB and must not be loaded."
 
 # ── 7. Shell aliases ──────────────────────────────────────────────────────────
 header "7. Shell environment — Phase 6 aliases"
@@ -275,7 +271,7 @@ echo "  • TurboQuant models  → ollama list"
 echo ""
 echo -e "${BOLD}Next steps:${NC}"
 echo "  1. ${BLUE}source ~/.zshrc${NC}"
-echo "  2. Add API keys to ${BLUE}~/Documents/AI/Local-AI/.secrets${NC}, then ${BLUE}ai-secrets${NC}"
+echo "  2. Add API keys to ${BLUE}~/Documents/AI/Local-AI/.secrets${NC}"
 echo "  3. Open LM Studio once → enable Developer tab → start server on :1234"
 echo "  4. ${BLUE}ai-use-mlx${NC} to switch OpenCode to LM Studio backend"
 echo "  5. ${BLUE}ai-health-phase6${NC} to verify everything"

@@ -437,7 +437,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="step-num">6</div>
       <div class="step-body">
         <h4>Phase 6 — Community Improvements <span class="dim">(optional)</span></h4>
-        <p>Layers practitioner-recommended upgrades: LM Studio (MLX backend, ~20–30% faster on Apple Silicon — community-reported), <code>mlx-lm</code> CLI, web-search MCP servers (Tavily / Brave / fetch) wired into Continue.dev and OpenCode, the lightweight <code>pi</code> coding agent, and TurboQuant model variants. Includes a native macOS menu bar app.</p>
+        <p>Layers practitioner-recommended upgrades: LM Studio (MLX backend, ~20–30% faster on Apple Silicon — community-reported), <code>mlx-lm</code> CLI, web-search MCP servers (Tavily / Brave / fetch) with a shared local config and Continue.dev integration, the lightweight <code>pi</code> coding agent, and TurboQuant model variants. Includes a native macOS menu bar app.</p>
         <pre><span class="cmd">bash</span> scripts/phase6-improvements.sh
 <span class="c"># Idempotent — safe to re-run. Each step prompts (y/N).</span></pre>
       </div>
@@ -937,8 +937,8 @@ EOF
       <tr><td><code>ai-mlx-down</code></td><td>Quit LM Studio (via osascript)</td></tr>
       <tr><td><code>ai-mlx-status</code></td><td>List models loaded in LM Studio's MLX server</td></tr>
       <tr><td><code>ai-mlx "prompt"</code></td><td>One-shot generation via <code>mlx_lm.generate</code> (Qwen2.5-Coder 14B 4-bit)</td></tr>
-      <tr><td><code>ai-use-mlx</code></td><td>Point OpenCode at LM Studio (<code>:1234</code>)</td></tr>
-      <tr><td><code>ai-use-ollama</code></td><td>Point OpenCode back at Ollama (<code>:11434</code>)</td></tr>
+      <tr><td><code>ai-use-mlx</code></td><td>Point OpenCode at LM Studio (<code>:1234</code>) and persist that backend for new shells</td></tr>
+      <tr><td><code>ai-use-ollama</code></td><td>Point OpenCode back at Ollama (<code>:11434</code>) and persist that backend for new shells</td></tr>
       <tr><td><code>ai-pi</code></td><td>Run the <code>pi</code> coding agent (lighter base prompt than OpenCode)</td></tr>
       <tr><td><code>ai-secrets</code></td><td>Source <code>.secrets</code> into the current shell (Tavily / Brave keys)</td></tr>
       <tr><td><code>ai-health-phase6</code></td><td>Verify LM Studio, Pi, mlx-lm, and the web-search API key</td></tr>

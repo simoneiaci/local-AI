@@ -144,14 +144,14 @@ ai-menubar-start    # launch in background
 ai-menubar-stop     # quit
 ```
 
-The title bar shows a live status dot and CPU%:
+The menu bar icon shows a live status dot:
 
-| Title | Meaning |
+| Icon | Meaning |
 |-------|---------|
-| `🟢 12%` | All core services up |
-| `🟡 8%`  | Partial — some services down |
-| `🔴`     | Stack is off |
-| `⚫`     | Metrics exporter not running |
+| Green | RAM under 60% |
+| Yellow | RAM 60–79% |
+| Red | RAM 80%+ |
+| Grey | Metrics exporter not running |
 
 Click the icon to expand the menu: CPU / RAM / Disk stats, per-service status, and **Start Stack / Stop Stack / Full Off** buttons — plus one-click links to Open WebUI and the Dashboard.
 
@@ -245,13 +245,13 @@ Based on practices shared in the **"Self-Hosted AI Explorers"** Cisco Webex room
 | **Web search MCP** | Tyler: *"You really need to enable web search — model training cutoffs are old"* | Quality bump on doc lookups (qualitative) |
 | **Pi coding agent** | Jonathon Schumaker: *"Lower base prompt = faster prompt-processing"* | Faster prompt-processing than OpenCode (reported) |
 | **Speculative decoding** | Pair `smollm2:1.7b` (draft) with `gemma3:12b` | 1.5–2× tok/s (reported) |
-| **TurboQuant variants** | Recent llama.cpp addition — fits 27B in 24 GB | Bigger models on same hardware |
+| **TurboQuant variants** | Recent llama.cpp addition — lower VRAM for tight-fit models | Bigger approved models on same hardware |
 
 ### Switch backends on the fly
 
 ```bash
-ai-use-mlx       # OpenCode → LM Studio (MLX) at :1234
-ai-use-ollama    # OpenCode → Ollama at :11434
+ai-use-mlx       # OpenCode → LM Studio (MLX) at :1234, persists for new shells
+ai-use-ollama    # OpenCode → Ollama at :11434, persists for new shells
 ai-mlx-up        # launch LM Studio
 ai-mlx-down      # quit LM Studio
 ai-mlx-status    # see what's loaded in MLX
@@ -261,14 +261,14 @@ ai-health-phase6 # verify all phase 6 services
 
 ### Web search for your local models
 
-Phase 6 wires Tavily + Brave + fetch MCP servers into Continue.dev and OpenCode. Add API keys to `.secrets`:
+Phase 6 writes a shared Tavily + Brave + fetch MCP config and wires it into Continue.dev when `config.json` is present. Add API keys to `.secrets`:
 
 ```bash
 TAVILY_API_KEY=tvly-xxxxx   # 1000 free searches/month — https://tavily.com
 BRAVE_API_KEY=BSAxxxxx      # 2000 free searches/month — https://brave.com/search/api/
 ```
 
-Then `ai-secrets` to load them into your shell.
+The MCP launch wrapper loads `.secrets` automatically when Continue starts the servers. Use `ai-secrets` only when you also want those keys in the current shell.
 
 > ⚠️ **Cisco compliance note** (per Todd Keyser): Qwen models are **not allowed on Cisco-managed hardware**. On personal devices it's your call — `qwen2.5-coder` is Apache 2.0. Check the [Cisco AI Model Guidance](https://cisco.sharepoint.com/:w:/s/LegalOI/ETPaQq5XfhdNmFs6yzTygmcBK1CJdPNdpF_kqYE1TmOr0g) before using on work hardware.
 

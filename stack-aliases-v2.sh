@@ -91,18 +91,39 @@ ai-mlx-status() {
     2>/dev/null || echo '✗ LM Studio server not reachable on :1234'
 }
 
+_local_ai_backend_file="$HOME/.config/local-ai/active-backend"
+
+_local_ai_apply_backend() {
+  local backend="${1:-}"
+  [[ -z "$backend" && -f "$_local_ai_backend_file" ]] && backend="$(<"$_local_ai_backend_file")"
+  case "$backend" in
+    lmstudio|mlx)
+      export OPENCODE_PROVIDER=openai-compatible
+      export OPENCODE_API_BASE=http://localhost:1234/v1
+      ;;
+    ollama|"")
+      export OPENCODE_PROVIDER=openai-compatible
+      export OPENCODE_API_BASE=http://localhost:11434/v1
+      ;;
+  esac
+}
+
 # Switch OpenCode between LM Studio (MLX) and Ollama backends.
 ai-use-mlx() {
-  export OPENCODE_PROVIDER=openai-compatible
-  export OPENCODE_API_BASE=http://localhost:1234/v1
+  mkdir -p "$(dirname "$_local_ai_backend_file")"
+  printf 'lmstudio\n' > "$_local_ai_backend_file"
+  _local_ai_apply_backend lmstudio
   echo "→ OpenCode now using LM Studio (MLX) at :1234"
 }
 
 ai-use-ollama() {
-  export OPENCODE_PROVIDER=openai-compatible
-  export OPENCODE_API_BASE=http://localhost:11434/v1
+  mkdir -p "$(dirname "$_local_ai_backend_file")"
+  printf 'ollama\n' > "$_local_ai_backend_file"
+  _local_ai_apply_backend ollama
   echo "→ OpenCode now using Ollama at :11434"
 }
+
+_local_ai_apply_backend
 
 # mlx-lm direct generation (Apple MLX framework).
 alias ai-mlx='mlx_lm.generate --model mlx-community/Qwen2.5-Coder-14B-Instruct-4bit --prompt'

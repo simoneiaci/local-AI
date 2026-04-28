@@ -524,8 +524,9 @@ footer a:hover{color:var(--text);text-decoration:none}
           <div class="shortcut-item"><div class="kbd-wrap"><kbd>⌘</kbd><kbd>I</kbd></div><div class="shortcut-desc">Inline edit — select code and describe the change</div></div>
           <div class="shortcut-item"><div class="kbd-wrap"><kbd>Tab</kbd></div><div class="shortcut-desc">Accept autocomplete from <code>smollm2:1.7b</code></div></div>
         </div>
-        <div class="tool-models"><span class="tool-model-label">Models:</span><code>gemma3:12b</code> · <code>granite3.3:8b</code> · <code>qwen3:14b</code> <span style="color:var(--muted2)">(personal only)</span></div>
-        <div class="tool-config">Config: <code>~/.continue/config.json</code></div>
+        <p class="tool-desc">Primary local models use LM Studio at <code>localhost:1234/v1</code>. Ollama remains configured as a fallback; Lab vLLM entries stay separate at the top of the config.</p>
+        <div class="tool-models"><span class="tool-model-label">Local LM Studio:</span><code>gemma3:12b</code> · <code>granite3.3:8b</code> · <code>phi4-mini</code> · <code>phi4-reasoning</code></div>
+        <div class="tool-config">Config: <code>~/.continue/config.json</code> · daily pick: <code>Local LM Studio - Gemma 3 12B</code></div>
       </div>
     </div>
 
@@ -587,6 +588,16 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><td>API Base URL</td><td><code>http://localhost:1234/v1</code> (LM Studio default) or <code>http://localhost:11434/v1</code> (Ollama)</td></tr>
       <tr><td>API Key</td><td><code>lm-studio</code> or <code>ollama</code> (any non-empty string)</td></tr>
       <tr><td>Model</td><td><code>gemma3:12b</code>, <code>granite3.3:8b</code>, <code>qwen3:14b</code> (personal-only), …</td></tr>
+    </table>
+  </div>
+
+  <h3>Continue.dev Runtime Layout</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Group</th><th>Provider</th><th>Endpoint</th><th>Role</th></tr>
+      <tr><td>Lab vLLM</td><td><code>openai</code></td><td><code>https://api-models.apps.ocp1.telcocloud.poc.lab/v1</code></td><td>Remote lab models, kept untouched</td></tr>
+      <tr><td>Local LM Studio</td><td><code>lmstudio</code></td><td><code>http://localhost:1234/v1</code></td><td>Primary local chat/edit models</td></tr>
+      <tr><td>Local Ollama</td><td><code>ollama</code></td><td><code>http://localhost:11434</code></td><td>Fallback local runtime + autocomplete + embeddings</td></tr>
     </table>
   </div>
 </section>

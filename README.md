@@ -186,6 +186,12 @@ Then on iPhone: Safari → Open WebUI → Share → **Add to Home Screen** for a
 
 ## Coding Tools
 
+Continue.dev is configured in `~/.continue/config.json` with three groups:
+
+- **Lab vLLM** entries stay at the top and are left untouched.
+- **Local LM Studio** entries are the primary local choices, using `http://localhost:1234/v1`.
+- **Local Ollama** entries remain available as fallback, with `smollm2:1.7b` for tab autocomplete and `nomic-embed-text` for embeddings.
+
 ```bash
 # VS Code — install Continue extension, then:
 Cmd+L    # open AI chat sidebar
@@ -200,6 +206,8 @@ aider-think       # Aider with phi4-reasoning (for complex refactors)
 ai-use-coding     # → gemma3:12b
 ai-use-general    # → mistral-small3.1:24b
 ```
+
+Recommended Continue selection for daily local coding: **Local LM Studio - Gemma 3 12B (coding / daily)**.
 
 ---
 

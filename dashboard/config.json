@@ -1,6 +1,6 @@
 {
   "model_hints": {
-    "qwen3:14b":        "🇮🇹 Italian · tax docs · reasoning · thinking mode (/think)",
+    "phi4-reasoning":   "🧠 Reasoning · math · logic · approved local model",
     "gemma3:12b":       "💻💬 Coding · daily chat · multimodal · vision · balanced",
     "granite3.3:8b":   "🔧 Coding alt · tool-calling · 128K context · multilingual",
     "smollm2:1.7b":     "⚡ Tab autocomplete · tiny · always loaded",

@@ -169,9 +169,8 @@ ai-use-ollama() {
 
 _local_ai_apply_backend
 
-# mlx-lm direct generation (Apple MLX framework).
-# Qwen is personal-only in this project; do not use it with corporate/work data.
-alias ai-mlx='mlx_lm.generate --model mlx-community/Qwen2.5-Coder-14B-Instruct-4bit --prompt'
+# mlx-lm direct generation (Apple MLX framework) with an approved Gemma model.
+alias ai-mlx='mlx_lm.generate --model mlx-community/gemma-3-12b-it-4bit --prompt'
 
 # Pi coding agent (lighter base prompt than OpenCode).
 alias ai-pi='pi'

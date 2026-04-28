@@ -90,7 +90,7 @@ ai-monitor          # live GPU/CPU/RAM via macmon
 | Daily driver | `gemma3:12b` | 7 GB | Best all-round, multimodal |
 | Coding | `gemma3:12b` | 7 GB | Coding + daily use, multimodal |
 | Coding (alt) | `granite3.3:8b` | 6 GB | Tool-calling, 128K context, multilingual |
-| Italian · Tax · Reasoning | `qwen3:14b` | 9.3 GB | Personal-only; no corporate/work data |
+| Reasoning · Math · Logic | `phi4-reasoning` | 9 GB | Approved reasoning model that fits comfortably |
 | Tab autocomplete | `smollm2:1.7b` | 1 GB | Instant, always loaded |
 | Embeddings | `nomic-embed-text` | 0.3 GB | For RAG pipelines |
 
@@ -285,7 +285,7 @@ The MCP launch wrapper loads `.secrets` automatically when Continue starts the s
 
 `ai-stack-start` uses LM Studio as the default runtime. Use `ai-use-ollama` when you explicitly want the Ollama API instead.
 
-> ⚠️ **Compliance note:** Qwen models are approved here only for personal use. Do not run corporate/work data through Qwen models. For corporate hardware, follow your organization's approved-model policy before pulling or running them.
+> ⚠️ **Compliance note:** Qwen and DeepSeek models are not used in this project. Use `phi4-reasoning` for reasoning workflows and `granite3.3:8b` for multilingual/RAG work.
 
 ---
 

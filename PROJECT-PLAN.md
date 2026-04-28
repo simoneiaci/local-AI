@@ -62,6 +62,8 @@ With 24GB total, you need to plan around this:
 > Models are classified as **Green** (fully approved) or **Yellow** (elevated risk, use with caution).
 > Notably, **Qwen** and **DeepSeek** models are NOT on the approved list.
 
+Use `phi4-reasoning` for local reasoning, math, and logic work on this laptop. Use `granite3.3:8b` for multilingual/RAG document workflows where long context matters.
+
 ---
 
 ### 3a. Complete Gemma Family (All Green)

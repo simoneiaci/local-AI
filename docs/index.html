@@ -461,14 +461,14 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
       <tr><td>Daily driver · Coding</td><td><code>gemma3:12b</code></td><td><span class="tag tag-yellow">7 GB</span></td><td>Chat, code gen, refactoring, multimodal (images)</td></tr>
       <tr><td>Coding (lightweight alt)</td><td><code>granite3.3:8b</code></td><td><span class="tag tag-green">6 GB</span></td><td>Code gen, tool-calling, 128K context, multilingual</td></tr>
-      <tr><td>Italian · Tax · Reasoning</td><td><code>qwen3:14b</code></td><td><span class="tag tag-yellow">9.3 GB</span></td><td>Personal-only; no corporate/work data</td></tr>
+      <tr><td>Reasoning · Math · Logic</td><td><code>phi4-reasoning</code></td><td><span class="tag tag-yellow">9 GB</span></td><td>Approved reasoning model that fits comfortably</td></tr>
       <tr><td>Tab autocomplete</td><td><code>smollm2:1.7b</code></td><td><span class="tag tag-green">1 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
       <tr><td>Embeddings</td><td><code>nomic-embed-text</code></td><td><span class="tag tag-green">0.3 GB</span></td><td>RAG pipelines, semantic search</td></tr>
     </table>
   </div>
 
-  <div class="alert alert-yellow">⚠️ Qwen models in this project are personal-use only. Do not run corporate/work data through <code>qwen3:14b</code> or Qwen MLX variants.</div>
-  <div class="alert alert-blue">💡 <strong>qwen3:14b</strong> covers Italian language, tax documents, and step-by-step reasoning in a single model for personal data. Type <code>/think</code> before your prompt to engage deep reasoning mode.</div>
+  <div class="alert alert-yellow">⚠️ Qwen and DeepSeek models are not used in this project. Qwen model entries were removed from configs, aliases, setup scripts, and docs.</div>
+  <div class="alert alert-blue">💡 Use <strong>phi4-reasoning</strong> for reasoning-heavy prompts and <strong>granite3.3:8b</strong> for multilingual/RAG document work.</div>
 
   <h3>Custom Modelfiles</h3>
   <div class="table-wrap">
@@ -484,8 +484,8 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><th>Task</th><th>Best model</th><th>Why</th></tr>
       <tr><td>Code generation</td><td><code>gemma3:12b</code> · <code>granite3.3:8b</code></td><td>gemma3 for general code; granite for tool-calling and long context (128K)</td></tr>
       <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> · <code>gemma3:12b</code></td><td>Custom persona pre-loaded with Swift 6 + TCA context</td></tr>
-      <tr><td>Tax / Italian documents</td><td><code>qwen3:14b</code></td><td>Personal-only Italian language + reasoning; no corporate/work data</td></tr>
-      <tr><td>Complex personal reasoning</td><td><code>qwen3:14b</code></td><td>Hybrid thinking mode — prefix with <code>/think</code>; no corporate/work data</td></tr>
+      <tr><td>Tax / Italian documents</td><td><code>granite3.3:8b</code></td><td>Multilingual, 128K context, strong RAG fit</td></tr>
+      <tr><td>Complex reasoning</td><td><code>phi4-reasoning</code></td><td>Approved 14B reasoning model that fits the laptop</td></tr>
       <tr><td>Image analysis</td><td><code>gemma3:12b</code></td><td>Multimodal, fast, high accuracy</td></tr>
       <tr><td>Quick chat</td><td><code>gemma3:12b</code></td><td>Fast, 7 GB, always available</td></tr>
       <tr><td>Embeddings / RAG</td><td><code>nomic-embed-text</code></td><td>Required by Open WebUI knowledge base</td></tr>
@@ -553,7 +553,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="tool-body">
         <p class="tool-desc">Commit-aware coding assistant. Add files to context, describe changes in plain English — Aider writes and commits the code.</p>
         <pre style="margin:0"><span class="cmd">aider-code</span>   <span class="c"># gemma3:12b — fast, great for coding</span>
-<span class="cmd">aider-think</span>  <span class="c"># qwen3:14b — personal-only reasoning</span></pre>
+<span class="cmd">aider-think</span>  <span class="c"># phi4-reasoning — approved reasoning</span></pre>
       </div>
     </div>
   </div>
@@ -564,7 +564,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="flow-step">
       <div class="flow-num">1</div>
       <div>
-        <div class="flow-title">Plan <span class="tag tag-yellow">qwen3:14b /think · personal only</span></div>
+        <div class="flow-title">Plan <span class="tag tag-yellow">phi4-reasoning</span></div>
         <div class="flow-desc">Analyse the problem, identify edge cases, design the approach step-by-step before writing any code.</div>
       </div>
     </div>
@@ -587,7 +587,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><th>Setting</th><th>Value</th></tr>
       <tr><td>API Base URL</td><td><code>http://localhost:1234/v1</code> (LM Studio default) or <code>http://localhost:11434/v1</code> (Ollama)</td></tr>
       <tr><td>API Key</td><td><code>lm-studio</code> or <code>ollama</code> (any non-empty string)</td></tr>
-      <tr><td>Model</td><td><code>gemma3:12b</code>, <code>granite3.3:8b</code>, <code>qwen3:14b</code> (personal-only), …</td></tr>
+      <tr><td>Model</td><td><code>gemma3:12b</code>, <code>granite3.3:8b</code>, <code>phi4-reasoning</code>, …</td></tr>
     </table>
   </div>
 
@@ -640,7 +640,7 @@ footer a:hover{color:var(--text);text-decoration:none}
         <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>smollm2:1.7b</strong><br><span style="color:var(--muted2)">1.1 GB · </span><span class="tag tag-green" style="font-size:.64rem">● loaded</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>gemma3:12b</strong><br><span style="color:var(--muted2)">7.6 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>granite3.3:8b</strong><br><span style="color:var(--muted2)">4.9 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
-        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>qwen3:14b</strong><br><span style="color:var(--muted2)">personal only · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>phi4-reasoning</strong><br><span style="color:var(--muted2)">9 GB · </span><span class="tag tag-blue" style="font-size:.64rem">reasoning</span></div>
       </div>
     </div>
   </div>
@@ -775,7 +775,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="step-body"><h4>Use in chat</h4><p>Click <strong>+</strong> in a new chat → select your Knowledge collection. Or use 📎 to attach a single file directly. Then ask: "Quali spese mediche posso detrarre nel 730/2025?"</p></div>
     </div>
   </div>
-  <div class="alert alert-blue">💡 Best personal-use model for Italian tax RAG: <code>qwen3:14b</code>. Do not use it with corporate/work data. For long documents (128K+ context): <code>gemma3:12b</code> or <code>granite3.3:8b</code>.</div>
+  <div class="alert alert-blue">💡 Best local model for Italian tax RAG: <code>granite3.3:8b</code> for multilingual 128K-context document Q&amp;A. Use <code>phi4-reasoning</code> when the task is mostly reasoning rather than retrieval.</div>
 
   <h3>2 · Memory</h3>
   <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your tax situation — building a personal context that persists between sessions.</p>
@@ -869,7 +869,7 @@ footer a:hover{color:var(--text);text-decoration:none}
         <h4>Or via Ollama CLI</h4>
         <pre><span class="cmd">cat</span> &gt; ~/my-assistant.modelfile &lt;&lt;'EOF'
 # Personal-only; no corporate/work data
-FROM qwen3:14b
+FROM phi4-reasoning
 SYSTEM """You are a helpful assistant..."""
 EOF
 <span class="cmd">ollama create</span> my-assistant -f ~/my-assistant.modelfile</pre>
@@ -953,7 +953,7 @@ EOF
       <tr><td><code>ai-mlx-up</code></td><td>Launch LM Studio (start its server on port 1234 from the Developer tab)</td></tr>
       <tr><td><code>ai-mlx-down</code></td><td>Quit LM Studio (via osascript)</td></tr>
       <tr><td><code>ai-mlx-status</code></td><td>List models loaded in LM Studio's MLX server</td></tr>
-      <tr><td><code>ai-mlx "prompt"</code></td><td>One-shot generation via <code>mlx_lm.generate</code> (Qwen2.5-Coder 14B 4-bit; personal-only)</td></tr>
+      <tr><td><code>ai-mlx "prompt"</code></td><td>One-shot generation via <code>mlx_lm.generate</code> using approved Gemma 3 12B MLX</td></tr>
       <tr><td><code>ai-use-mlx</code></td><td>Point OpenCode at LM Studio (<code>:1234</code>) and persist that backend for new shells; this is the default</td></tr>
       <tr><td><code>ai-use-ollama</code></td><td>Point OpenCode back at Ollama (<code>:11434</code>) and persist that backend for new shells</td></tr>
       <tr><td><code>ai-pi</code></td><td>Run the <code>pi</code> coding agent (lighter base prompt than OpenCode)</td></tr>
@@ -978,7 +978,7 @@ EOF
 <span class="cmd">ollama run granite3.3:8b</span>     <span class="c"># coding (tool-calling, 128K ctx)</span>
 <span class="cmd">ollama ps</span>                     <span class="c"># loaded models + VRAM</span>
 <span class="cmd">ollama list</span>                   <span class="c"># all available models</span>
-<span class="cmd">ollama pull qwen3:14b</span>         <span class="c"># personal-only; no corporate/work data</span>
+<span class="cmd">ollama pull phi4-reasoning</span>     <span class="c"># approved reasoning model</span>
 <span class="c"># Unload model immediately (free RAM):</span>
 <span class="cmd">curl</span> http://localhost:11434/api/generate \
   -d <span class="str">'{"model":"gemma3:12b","keep_alive":0}'</span></pre>

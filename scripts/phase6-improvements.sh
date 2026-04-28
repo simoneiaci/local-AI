@@ -84,7 +84,7 @@ else
     else
       pip3 install --break-system-packages --quiet mlx-lm && log "mlx-lm installed via pip"
     fi
-    info "Quick test: mlx_lm.generate --model mlx-community/Qwen2.5-Coder-14B-Instruct-4bit --prompt 'hi'"
+    info "Quick test: mlx_lm.generate --model mlx-community/gemma-3-12b-it-4bit --prompt 'hi'"
   else
     warn "Skipped mlx-lm install"
   fi
@@ -202,12 +202,12 @@ header "6. TurboQuant model variants — fit bigger models on 24 GB"
 info "TurboQuant (recent llama.cpp addition) reduces VRAM significantly."
 info "On your 24 GB Mac (~14-16 GB usable), this opens up:"
 echo ""
-echo "    • Qwen2.5-Coder-14B-Instruct-MLX-4bit  ~8 GB   (Apache 2.0)"
+echo "    • Phi-4-Reasoning Q4                    ~9 GB   (approved reasoning)"
 echo "    • Gemma-4-26B-a4b-it                   ~15 GB  (approved, tight fit)"
 echo "    • Mistral-Small-24B-MLX-4bit           ~13 GB"
 echo ""
 warn "Compliance note:"
-warn "Qwen models are personal-use only under this project policy."
+warn "Qwen and DeepSeek models are not used in this project."
 warn "For corporate hardware, follow your organization's approved-model policy."
 echo ""
 
@@ -220,10 +220,10 @@ FREE_GB=$(vm_stat 2>/dev/null | awk '
 [[ -n "$FREE_GB" ]] && info "Approx free RAM right now: ${FREE_GB} GB"
 echo ""
 
-if ask "Pull mlx-community/Qwen2.5-Coder-14B-Instruct-4bit via Ollama (Apache, ~8 GB) — personal use only per AGENTS.md?"; then
-  /opt/homebrew/bin/ollama pull qwen2.5-coder:14b && log "qwen2.5-coder:14b pulled"
+if ask "Pull phi4-reasoning via Ollama (~9 GB, approved local reasoning model)?"; then
+  /opt/homebrew/bin/ollama pull phi4-reasoning && log "phi4-reasoning pulled"
 else
-  warn "Skipped — pull manually with: ollama pull qwen2.5-coder:14b"
+  warn "Skipped — pull manually with: ollama pull phi4-reasoning"
 fi
 
 warn "Skipping Gemma 27B pulls: project policy says Gemma 27B variants are marginal/risky on 24 GB and must not be loaded."

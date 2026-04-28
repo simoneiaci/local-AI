@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Local-AI Dashboard — lightweight container web server.
-Reads /hosttmp/ai-metrics.json (bind-mounted /private/tmp) + queries Ollama API.
+Reads /hosttmp/ai-metrics.json (bind-mounted /private/tmp) and queries local model APIs.
 No external dependencies; single-file HTML rendered inline.
 """
 import json, os, urllib.request, urllib.error
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 OLLAMA   = os.getenv('OLLAMA_BASE_URL', 'http://host.containers.internal:11434')
+LMSTUDIO = os.getenv('LMSTUDIO_BASE_URL', 'http://host.containers.internal:1234/v1')
 CONTROL  = os.getenv('CONTROL_URL', 'http://host.containers.internal:9091')
 CONTROL_TOKEN = os.getenv('CONTROL_TOKEN', '')
 METRICS  = '/hosttmp/ai-metrics.json'
@@ -46,10 +47,22 @@ def host_metrics():
     return {}
 
 def api_data():
+    host = host_metrics()
+    backend = (host.get('backend') or 'lmstudio').strip()
+    if backend not in ('lmstudio', 'ollama'):
+        backend = 'lmstudio'
     ps   = fetch_json(f'{OLLAMA}/api/ps')
     tags = fetch_json(f'{OLLAMA}/api/tags')
-    host = host_metrics()
-    return {'ps': ps, 'tags': tags, 'host': host}
+    lmstudio_models = fetch_json(f'{LMSTUDIO}/models')
+    return {
+        'backend': backend,
+        'host': host,
+        'ollama': {'ps': ps, 'tags': tags},
+        'lmstudio': {'models': lmstudio_models},
+        # Backward-compatible fields for older dashboard JS during rebuilds.
+        'ps': ps,
+        'tags': tags,
+    }
 
 def proxy_control(body_bytes: bytes) -> tuple[int, bytes]:
     """Forward a control action to the host control server with Bearer auth."""
@@ -204,10 +217,12 @@ HTML = """<!DOCTYPE html>
   }
   .svc-row:hover{border-color:var(--border2)}
   .svc-row.up{border-left:2px solid var(--green)}
+  .svc-row.idle{border-left:2px solid var(--yellow)}
   .svc-row.down{border-left:2px solid var(--muted2)}
   .svc-left{display:flex;align-items:center;gap:11px;min-width:0}
   .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
   .dot.up{background:var(--green);box-shadow:0 0 8px rgba(45,202,114,.6)}
+  .dot.idle{background:var(--yellow);box-shadow:0 0 8px rgba(212,168,67,.55)}
   .dot.down{background:var(--muted2)}
   .dot.unknown{background:var(--muted2);opacity:.4}
   .svc-name{font-family:var(--sans);font-weight:600;font-size:.84rem;color:var(--text-hi);letter-spacing:.005em}
@@ -430,7 +445,8 @@ function renderSystem(host){
 function renderServices(svc){
   const items=[
     {key:'podman',    label:'Podman VM', sub:'container runtime',      url:null,                     stop:'podman_stop',  start:'podman_start'},
-    {key:'lmstudio',  label:'LM Studio', sub:'mlx api · :1234',        url:null,                     stop:'lmstudio_stop', start:'lmstudio_start'},
+    {key:'lmstudio',  label:'LM Studio app', sub:'desktop runtime',    url:null,                     stop:'lmstudio_stop', start:'lmstudio_start'},
+    {key:'lmstudio_api', label:'LM Studio API', sub:'openai api · :1234', idleSub:'reachable · no chat model', url:null, stop:'lmstudio_stop', start:'lmstudio_start'},
     {key:'ollama',    label:'Ollama',    sub:'api · :11434',           url:'http://localhost:11434', stop:'ollama_stop',  start:'ollama_start'},
     {key:'open_webui',label:'Open WebUI',sub:'chat · :3000',           url:'http://localhost:3000',  stop:'webui_stop',   start:'webui_start'},
     {key:'pipelines', label:'Pipelines', sub:'middleware · :9099',     url:'http://localhost:9099',  stop:'pipelines_stop', start:'pipelines_start'},
@@ -439,10 +455,11 @@ function renderServices(svc){
   const rows=items.map(i=>{
     const st=svc[i.key]||'unknown';
     const isUp=st==='up';
-    const detail=i.key==='tailscale'&&svc.tailscale_ip?svc.tailscale_ip:i.sub;
+    const canStop=isUp || st==='idle';
+    const detail=st==='idle'&&i.idleSub?i.idleSub:(i.key==='tailscale'&&svc.tailscale_ip?svc.tailscale_ip:i.sub);
     const openBtn=i.url&&isUp?`<a class="act-open" href="${i.url}" target="_blank" rel="noopener">open&nbsp;↗</a>`:'';
     const startBtn=`<button class="act-start" onclick="control('${i.start}','Starting ${i.label}')" ${isUp?'disabled':''}>${i.startLabel||'start'}</button>`;
-    const stopBtn=`<button class="act-stop" onclick="control('${i.stop}','Stopping ${i.label}')" ${!isUp?'disabled':''}>stop</button>`;
+    const stopBtn=`<button class="act-stop" onclick="control('${i.stop}','Stopping ${i.label}')" ${!canStop?'disabled':''}>stop</button>`;
     return `<div class="svc-row ${st}">
       <div class="svc-left">
         <div class="dot ${st}"></div>
@@ -452,7 +469,8 @@ function renderServices(svc){
     </div>`;
   }).join('');
   const up=items.filter(i=>svc[i.key]==='up').length;
-  return `<div class="card-head"><div class="card-title">services</div><div class="card-sub">${up}/${items.length} up</div></div>
+  const idle=items.filter(i=>svc[i.key]==='idle').length;
+  return `<div class="card-head"><div class="card-title">services</div><div class="card-sub">${up}/${items.length} ready${idle?` · ${idle} idle`:''}</div></div>
     <div class="svc-list">${rows}</div>`;
 }
 
@@ -464,7 +482,36 @@ function modelHint(name){
   return '';
 }
 
-function renderModels(ps,tags){
+function isChatModelName(name){
+  const n=String(name||'').toLowerCase();
+  return n && !n.includes('embed') && !n.includes('embedding');
+}
+
+function renderLmStudioModels(modelsPayload){
+  const raw=(modelsPayload && modelsPayload.data) || [];
+  const all=raw.filter(m=>isChatModelName(m.id||m.name||''));
+  if(!all.length){
+    const msg=raw.length?'LM Studio API reachable, but no chat model exposed':'no LM Studio chat models found — is :1234 running?';
+    return `<div class="card-head"><div class="card-title">models</div><div class="card-sub">LM Studio</div></div><div class="empty">${msg}</div>`;
+  }
+  const sorted=[...all].sort((a,b)=>String(a.id||'').localeCompare(String(b.id||'')));
+  const cards=sorted.map(m=>{
+    const name=m.id||m.name||'unknown';
+    const hint=modelHint(name);
+    const hintHtml=hint?`<div class="model-hint">${esc(hint)}</div>`:'';
+    const owner=m.owned_by?`<div class="model-extra"><span>${esc(m.owned_by)}</span></div>`:'';
+    return `<div class="model-card active">
+      <div class="model-name">${esc(name)}</div>
+      <div class="model-meta"><span class="model-size">LM Studio</span><span class="badge loaded">● chat</span></div>
+      ${hintHtml}
+      ${owner}
+    </div>`;
+  }).join('');
+  return `<div class="card-head"><div class="card-title">models</div><div class="card-sub">LM Studio · ${all.length} chat</div></div>
+  <div class="model-grid">${cards}</div>`;
+}
+
+function renderOllamaModels(ps,tags){
   const loadedMap={};
   (ps.models||[]).forEach(m=>{loadedMap[m.name]=m});
   const all=tags.models||[];
@@ -502,15 +549,28 @@ function renderModels(ps,tags){
   <div class="model-grid">${cards}</div>`;
 }
 
+function renderModels(state){
+  const backend=state.backend||'lmstudio';
+  if(backend==='lmstudio'){
+    return renderLmStudioModels((state.lmstudio||{}).models||{});
+  }
+  const ollama=state.ollama||{};
+  return renderOllamaModels(ollama.ps||{},ollama.tags||{});
+}
+
 // Last-known-good values — prevents a single bad poll from blanking the whole UI
 let _lastHost = null;
 let _lastSvc  = null;
-let _lastModels = {ps:{}, tags:{}};
+let _lastModels = {backend:'lmstudio', ollama:{ps:{}, tags:{}}, lmstudio:{models:{}}};
 let _lastSig   = '';
 
 function sigOf(host,svc,models){
   try{
-    return JSON.stringify([host.cpu_pct,host.ram&&host.ram.used_gb,host.disk&&host.disk.free_gb,svc,Object.keys(models.ps.models||{}).length,Object.keys(models.tags.models||{}).length]);
+    const lmModels=((models.lmstudio||{}).models||{}).data||[];
+    const lmCount=lmModels.filter(m=>isChatModelName(m.id||m.name||'')).length;
+    const ollamaPs=((models.ollama||{}).ps||{}).models?.length||0;
+    const ollamaTags=((models.ollama||{}).tags||{}).models?.length||0;
+    return JSON.stringify([host.cpu_pct,host.ram&&host.ram.used_gb,host.disk&&host.disk.free_gb,svc,models.backend,lmCount,ollamaPs,ollamaTags]);
   }catch{ return Math.random().toString(); }
 }
 
@@ -519,18 +579,23 @@ async function refresh(){
     const r=await fetch('/api/data');
     const d=await r.json();
     const host=d.host||{}, svc=host.services||{};
+    const nextModels={
+      backend:d.backend||host.backend||_lastModels.backend||'lmstudio',
+      ollama:d.ollama||{ps:d.ps||{},tags:d.tags||{}},
+      lmstudio:d.lmstudio||{models:{}}
+    };
 
     if(host.cpu_pct != null || (host.ram && host.ram.used_gb != null)) _lastHost=host;
     if(Object.keys(svc).length > 0) _lastSvc=svc;
-    if((d.ps && d.ps.models) || (d.tags && d.tags.models)) _lastModels={ps:d.ps||{},tags:d.tags||{}};
+    _lastModels=nextModels;
 
     const dispHost = _lastHost || host;
     const dispSvc  = _lastSvc  || svc;
 
     $('card-system').innerHTML=renderSystem(dispHost);
     $('card-services').innerHTML=renderServices(dispSvc);
-    $('card-models').innerHTML=renderModels(_lastModels.ps,_lastModels.tags);
-    updateStackBtn(dispSvc.lmstudio);
+    $('card-models').innerHTML=renderModels(_lastModels);
+    updateStackBtn(dispSvc.lmstudio_api);
 
     // Pulse cards whose contents actually changed
     const sig=sigOf(dispHost,dispSvc,_lastModels);

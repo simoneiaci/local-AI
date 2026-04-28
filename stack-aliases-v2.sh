@@ -1,6 +1,25 @@
 
 # ── Local-AI stack start / stop (v2 — includes dashboard) ──
+_local_ai_secret_file="$HOME/Documents/AI/Local-AI/.secrets"
+
+_local_ai_control_token() {
+  mkdir -p "$(dirname "$_local_ai_secret_file")"
+  touch "$_local_ai_secret_file"
+  chmod 600 "$_local_ai_secret_file"
+  if ! grep -q '^CONTROL_TOKEN=' "$_local_ai_secret_file" 2>/dev/null; then
+    if command -v openssl >/dev/null 2>&1; then
+      printf 'CONTROL_TOKEN=%s\n' "$(openssl rand -hex 32)" >> "$_local_ai_secret_file"
+    else
+      printf 'CONTROL_TOKEN=%s%s\n' "$(uuidgen | tr -d '-')" "$(uuidgen | tr -d '-')" >> "$_local_ai_secret_file"
+    fi
+    echo '→ Generated CONTROL_TOKEN in .secrets' >&2
+  fi
+  grep '^CONTROL_TOKEN=' "$_local_ai_secret_file" | tail -1 | cut -d= -f2-
+}
+
 ai-stack-start() {
+  local control_token
+  control_token="$(_local_ai_control_token)"
   echo '→ Starting LM Studio...'
   ai-use-mlx >/dev/null
   if curl -s http://localhost:1234/v1/models > /dev/null 2>&1; then
@@ -19,16 +38,24 @@ ai-stack-start() {
   echo '→ Starting Pipelines...'
   /opt/homebrew/bin/podman start open-webui-pipelines 2>/dev/null || true
   echo '→ Starting dashboard...'
+  if /opt/homebrew/bin/podman inspect local-ai-dashboard > /dev/null 2>&1; then
+    if ! /opt/homebrew/bin/podman inspect --format '{{range .Config.Env}}{{println .}}{{end}}' local-ai-dashboard 2>/dev/null | grep -q '^LMSTUDIO_BASE_URL='; then
+      echo '→ Recreating dashboard with LM Studio model support...'
+      /opt/homebrew/bin/podman rm -f local-ai-dashboard 2>/dev/null || true
+    fi
+  fi
   /opt/homebrew/bin/podman inspect local-ai-dashboard > /dev/null 2>&1 || \
     /opt/homebrew/bin/podman run -d --name local-ai-dashboard \
       -p 9090:9090 \
-      -e CONTROL_TOKEN=$(grep CONTROL_TOKEN ~/Documents/AI/Local-AI/.secrets | cut -d= -f2) \
+      -e CONTROL_TOKEN="$control_token" \
       -e CONTROL_URL=http://host.containers.internal:9091 \
+      -e LMSTUDIO_BASE_URL=http://host.containers.internal:1234/v1 \
       -v /private/tmp:/hosttmp:ro \
       localhost/local-ai-dashboard
   /opt/homebrew/bin/podman start local-ai-dashboard 2>/dev/null || true
   pkill -f "metrics-exporter.py" 2>/dev/null; sleep 1
-  nohup python3 ~/Documents/AI/Local-AI/scripts/metrics-exporter.py > /tmp/ai-metrics-exporter.log 2>&1 &
+  CONTROL_TOKEN="$control_token" CONTROL_BIND=0.0.0.0 \
+    nohup python3 ~/Documents/AI/Local-AI/scripts/metrics-exporter.py > /tmp/ai-metrics-exporter.log 2>&1 &
   sleep 3
   echo '✓ Stack is up'
   echo '  Runtime     → LM Studio (:1234)'
@@ -74,6 +101,8 @@ ai-menubar-start() {
 }
 
 ai-menubar-stop() {
+  launchctl bootout "gui/$(id -u)/local-ai-menubar" 2>/dev/null || true
+  launchctl remove local-ai-menubar 2>/dev/null || true
   pkill -f "menubar/app.py" 2>/dev/null && echo '✓ Menu bar app stopped' || echo 'Not running'
 }
 
@@ -141,6 +170,7 @@ ai-use-ollama() {
 _local_ai_apply_backend
 
 # mlx-lm direct generation (Apple MLX framework).
+# Qwen is personal-only in this project; do not use it with corporate/work data.
 alias ai-mlx='mlx_lm.generate --model mlx-community/Qwen2.5-Coder-14B-Instruct-4bit --prompt'
 
 # Pi coding agent (lighter base prompt than OpenCode).

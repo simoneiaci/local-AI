@@ -451,7 +451,7 @@ footer a:hover{color:var(--text);text-decoration:none}
 <section class="section" id="s-models">
   <div class="s-num">03 <span class="dim">/</span> Models</div>
   <h2>Right model for every task.</h2>
-  <p class="section-desc">All models run locally via Ollama. Only one large model fits in RAM at a time — <code>smollm2:1.7b</code> and <code>nomic-embed-text</code> stay loaded alongside any other.</p>
+  <p class="section-desc">Models run locally through LM Studio by default, with Ollama available as an alternate runtime. Only one large model fits in RAM at a time — <code>smollm2:1.7b</code> and <code>nomic-embed-text</code> stay loaded alongside any other.</p>
 
   <div class="alert alert-yellow">⚠️ With 24 GB unified memory, ~14–16 GB is available for models after macOS overhead. Swap models as needed — unloading takes a second.</div>
 
@@ -461,13 +461,14 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
       <tr><td>Daily driver · Coding</td><td><code>gemma3:12b</code></td><td><span class="tag tag-yellow">7 GB</span></td><td>Chat, code gen, refactoring, multimodal (images)</td></tr>
       <tr><td>Coding (lightweight alt)</td><td><code>granite3.3:8b</code></td><td><span class="tag tag-green">6 GB</span></td><td>Code gen, tool-calling, 128K context, multilingual</td></tr>
-      <tr><td>Italian · Tax · Reasoning</td><td><code>qwen3:14b</code></td><td><span class="tag tag-yellow">9.3 GB</span></td><td>Italian docs, 730/CU/F24, reasoning, <code>/think</code> mode</td></tr>
+      <tr><td>Italian · Tax · Reasoning</td><td><code>qwen3:14b</code></td><td><span class="tag tag-yellow">9.3 GB</span></td><td>Personal-only; no corporate/work data</td></tr>
       <tr><td>Tab autocomplete</td><td><code>smollm2:1.7b</code></td><td><span class="tag tag-green">1 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
       <tr><td>Embeddings</td><td><code>nomic-embed-text</code></td><td><span class="tag tag-green">0.3 GB</span></td><td>RAG pipelines, semantic search</td></tr>
     </table>
   </div>
 
-  <div class="alert alert-blue">💡 <strong>qwen3:14b</strong> covers Italian language, tax documents, and step-by-step reasoning in a single model. Type <code>/think</code> before your prompt to engage deep reasoning mode.</div>
+  <div class="alert alert-yellow">⚠️ Qwen models in this project are personal-use only. Do not run corporate/work data through <code>qwen3:14b</code> or Qwen MLX variants.</div>
+  <div class="alert alert-blue">💡 <strong>qwen3:14b</strong> covers Italian language, tax documents, and step-by-step reasoning in a single model for personal data. Type <code>/think</code> before your prompt to engage deep reasoning mode.</div>
 
   <h3>Custom Modelfiles</h3>
   <div class="table-wrap">
@@ -483,8 +484,8 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><th>Task</th><th>Best model</th><th>Why</th></tr>
       <tr><td>Code generation</td><td><code>gemma3:12b</code> · <code>granite3.3:8b</code></td><td>gemma3 for general code; granite for tool-calling and long context (128K)</td></tr>
       <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> · <code>gemma3:12b</code></td><td>Custom persona pre-loaded with Swift 6 + TCA context</td></tr>
-      <tr><td>Tax / Italian documents</td><td><code>qwen3:14b</code></td><td>Best Italian language + reasoning, knows 730/F24/CU</td></tr>
-      <tr><td>Complex reasoning</td><td><code>qwen3:14b</code></td><td>Hybrid thinking mode — prefix with <code>/think</code></td></tr>
+      <tr><td>Tax / Italian documents</td><td><code>qwen3:14b</code></td><td>Personal-only Italian language + reasoning; no corporate/work data</td></tr>
+      <tr><td>Complex personal reasoning</td><td><code>qwen3:14b</code></td><td>Hybrid thinking mode — prefix with <code>/think</code>; no corporate/work data</td></tr>
       <tr><td>Image analysis</td><td><code>gemma3:12b</code></td><td>Multimodal, fast, high accuracy</td></tr>
       <tr><td>Quick chat</td><td><code>gemma3:12b</code></td><td>Fast, 7 GB, always available</td></tr>
       <tr><td>Embeddings / RAG</td><td><code>nomic-embed-text</code></td><td>Required by Open WebUI knowledge base</td></tr>
@@ -523,7 +524,7 @@ footer a:hover{color:var(--text);text-decoration:none}
           <div class="shortcut-item"><div class="kbd-wrap"><kbd>⌘</kbd><kbd>I</kbd></div><div class="shortcut-desc">Inline edit — select code and describe the change</div></div>
           <div class="shortcut-item"><div class="kbd-wrap"><kbd>Tab</kbd></div><div class="shortcut-desc">Accept autocomplete from <code>smollm2:1.7b</code></div></div>
         </div>
-        <div class="tool-models"><span class="tool-model-label">Models:</span><code>gemma3:12b</code> · <code>granite3.3:8b</code> · <code>qwen3:14b</code></div>
+        <div class="tool-models"><span class="tool-model-label">Models:</span><code>gemma3:12b</code> · <code>granite3.3:8b</code> · <code>qwen3:14b</code> <span style="color:var(--muted2)">(personal only)</span></div>
         <div class="tool-config">Config: <code>~/.continue/config.json</code></div>
       </div>
     </div>
@@ -551,7 +552,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="tool-body">
         <p class="tool-desc">Commit-aware coding assistant. Add files to context, describe changes in plain English — Aider writes and commits the code.</p>
         <pre style="margin:0"><span class="cmd">aider-code</span>   <span class="c"># gemma3:12b — fast, great for coding</span>
-<span class="cmd">aider-think</span>  <span class="c"># qwen3:14b — complex refactors</span></pre>
+<span class="cmd">aider-think</span>  <span class="c"># qwen3:14b — personal-only reasoning</span></pre>
       </div>
     </div>
   </div>
@@ -562,7 +563,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="flow-step">
       <div class="flow-num">1</div>
       <div>
-        <div class="flow-title">Plan <span class="tag tag-yellow">qwen3:14b /think</span></div>
+        <div class="flow-title">Plan <span class="tag tag-yellow">qwen3:14b /think · personal only</span></div>
         <div class="flow-desc">Analyse the problem, identify edge cases, design the approach step-by-step before writing any code.</div>
       </div>
     </div>
@@ -579,13 +580,13 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="alert alert-blue">💡 Keep context under ~100K tokens even for large-context models. Performance degrades near the limit on Apple Silicon due to memory bandwidth constraints.</div>
 
   <h3>Connect Any Tool</h3>
-  <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">Any OpenAI-compatible client works — point it at your local Ollama:</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">Any OpenAI-compatible client works — point it at LM Studio by default, or Ollama when you switch runtimes:</p>
   <div class="table-wrap">
     <table>
       <tr><th>Setting</th><th>Value</th></tr>
-      <tr><td>API Base URL</td><td><code>http://localhost:11434/v1</code></td></tr>
-      <tr><td>API Key</td><td><code>ollama</code> (any non-empty string)</td></tr>
-      <tr><td>Model</td><td><code>gemma3:12b</code>, <code>granite3.3:8b</code>, <code>qwen3:14b</code>, …</td></tr>
+      <tr><td>API Base URL</td><td><code>http://localhost:1234/v1</code> (LM Studio default) or <code>http://localhost:11434/v1</code> (Ollama)</td></tr>
+      <tr><td>API Key</td><td><code>lm-studio</code> or <code>ollama</code> (any non-empty string)</td></tr>
+      <tr><td>Model</td><td><code>gemma3:12b</code>, <code>granite3.3:8b</code>, <code>qwen3:14b</code> (personal-only), …</td></tr>
     </table>
   </div>
 </section>
@@ -595,6 +596,7 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="s-num">05 <span class="dim">/</span> Dashboard</div>
   <h2>Live control at a glance.</h2>
   <p class="section-desc">A lightweight Podman container at <code>http://localhost:9090</code>. Auto-refreshes every 5 seconds. Start/stop services directly from the UI.</p>
+  <div class="alert alert-blue">LM Studio API is marked ready only when <code>:1234/v1/models</code> exposes a non-embedding chat model. If the server is reachable but only embeddings are exposed, the dashboard shows it as idle.</div>
 
   <div class="dash-preview">
     <div class="dash-preview-lbl">Live preview (static mockup)</div>
@@ -611,7 +613,9 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="dash-card">
         <h5>Services</h5>
         <div style="font-size:.86rem;display:flex;flex-direction:column;gap:10px">
-          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Ollama <span style="color:var(--muted);font-size:.74em">API · port 11434</span></div>
+          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>LM Studio app <span style="color:var(--muted);font-size:.74em">desktop runtime</span></div>
+          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>LM Studio API <span style="color:var(--muted);font-size:.74em">ready · chat model on 1234</span></div>
+          <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Ollama <span style="color:var(--muted);font-size:.74em">alternate · port 11434</span></div>
           <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Open WebUI <span style="color:var(--muted);font-size:.74em">Chat · port 3000</span></div>
           <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Pipelines <span style="color:var(--muted);font-size:.74em">Middleware · port 9099</span></div>
           <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Podman VM <span style="color:var(--muted);font-size:.74em">Container runtime</span></div>
@@ -620,12 +624,12 @@ footer a:hover{color:var(--text);text-decoration:none}
       </div>
     </div>
     <div class="dash-card">
-      <h5>Models — 1 loaded · 5 available</h5>
+      <h5>Models — LM Studio · chat</h5>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px;font-size:.83rem">
         <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>smollm2:1.7b</strong><br><span style="color:var(--muted2)">1.1 GB · </span><span class="tag tag-green" style="font-size:.64rem">● loaded</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>gemma3:12b</strong><br><span style="color:var(--muted2)">7.6 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>granite3.3:8b</strong><br><span style="color:var(--muted2)">4.9 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
-        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>qwen3:14b</strong><br><span style="color:var(--muted2)">9.3 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>qwen3:14b</strong><br><span style="color:var(--muted2)">personal only · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
       </div>
     </div>
   </div>
@@ -634,19 +638,20 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="table-wrap">
     <table>
       <tr><th>Component</th><th>Where</th><th>Role</th></tr>
-      <tr><td><code>metrics-exporter.py</code></td><td>Mac host</td><td>Writes <code>/tmp/ai-metrics.json</code> every 3 s. Runs control server on port 9091 with token auth.</td></tr>
+      <tr><td><code>metrics-exporter.py</code></td><td>Mac host</td><td>Writes <code>/tmp/ai-metrics.json</code> every 3 s. Runs a fail-closed control server on port 9091 with required token auth.</td></tr>
       <tr><td><code>local-ai-dashboard</code></td><td>Podman container</td><td>Serves the web UI on port 9090. Reads metrics via bind-mount, proxies control actions server-side.</td></tr>
     </table>
   </div>
 
   <h3>Control API</h3>
-  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">The dashboard proxies start/stop buttons to the host control server on port 9091 (Bearer token protected):</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">The dashboard proxies start/stop buttons to the host control server on port 9091. Requests without <code>CONTROL_TOKEN</code> are rejected:</p>
   <div class="code-block">
     <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
     <pre><span class="cmd">POST</span> http://localhost:9091/control
 <span class="kw">Authorization:</span> Bearer &lt;CONTROL_TOKEN&gt;
 
 <span class="str">{"action": "ollama_stop"}     </span><span class="c"># or: ollama_start</span>
+<span class="str">{"action": "lmstudio_stop"}   </span><span class="c"># or: lmstudio_start</span>
 <span class="str">{"action": "webui_stop"}      </span><span class="c"># or: webui_start</span>
 <span class="str">{"action": "pipelines_stop"}  </span><span class="c"># or: pipelines_start</span>
 <span class="str">{"action": "podman_stop"}     </span><span class="c"># or: podman_start</span>
@@ -759,7 +764,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="step-body"><h4>Use in chat</h4><p>Click <strong>+</strong> in a new chat → select your Knowledge collection. Or use 📎 to attach a single file directly. Then ask: "Quali spese mediche posso detrarre nel 730/2025?"</p></div>
     </div>
   </div>
-  <div class="alert alert-blue">💡 Best model for Italian tax RAG: <code>qwen3:14b</code>. For long documents (128K+ context): <code>gemma3:12b</code> or <code>granite3.3:8b</code>.</div>
+  <div class="alert alert-blue">💡 Best personal-use model for Italian tax RAG: <code>qwen3:14b</code>. Do not use it with corporate/work data. For long documents (128K+ context): <code>gemma3:12b</code> or <code>granite3.3:8b</code>.</div>
 
   <h3>2 · Memory</h3>
   <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your tax situation — building a personal context that persists between sessions.</p>
@@ -852,6 +857,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="step-body">
         <h4>Or via Ollama CLI</h4>
         <pre><span class="cmd">cat</span> &gt; ~/my-assistant.modelfile &lt;&lt;'EOF'
+# Personal-only; no corporate/work data
 FROM qwen3:14b
 SYSTEM """You are a helpful assistant..."""
 EOF
@@ -925,7 +931,7 @@ EOF
       <tr><td><code>ai-monitor</code></td><td>Live GPU/CPU/RAM/Neural Engine via <code>macmon</code></td></tr>
       <tr><td><code>ai-models</code></td><td>Show currently loaded models + VRAM</td></tr>
       <tr><td><code>ai-disk</code></td><td>Show model disk usage + available space</td></tr>
-      <tr><td><code>ai-menubar-start</code> / <code>ai-menubar-stop</code></td><td>Launch / quit the macOS menu bar app</td></tr>
+      <tr><td><code>ai-menubar-start</code> / <code>ai-menubar-stop</code></td><td>Launch / quit the macOS menu bar app; stop also unloads the <code>local-ai-menubar</code> launchd job</td></tr>
     </table>
   </div>
 
@@ -936,7 +942,7 @@ EOF
       <tr><td><code>ai-mlx-up</code></td><td>Launch LM Studio (start its server on port 1234 from the Developer tab)</td></tr>
       <tr><td><code>ai-mlx-down</code></td><td>Quit LM Studio (via osascript)</td></tr>
       <tr><td><code>ai-mlx-status</code></td><td>List models loaded in LM Studio's MLX server</td></tr>
-      <tr><td><code>ai-mlx "prompt"</code></td><td>One-shot generation via <code>mlx_lm.generate</code> (Qwen2.5-Coder 14B 4-bit)</td></tr>
+      <tr><td><code>ai-mlx "prompt"</code></td><td>One-shot generation via <code>mlx_lm.generate</code> (Qwen2.5-Coder 14B 4-bit; personal-only)</td></tr>
       <tr><td><code>ai-use-mlx</code></td><td>Point OpenCode at LM Studio (<code>:1234</code>) and persist that backend for new shells; this is the default</td></tr>
       <tr><td><code>ai-use-ollama</code></td><td>Point OpenCode back at Ollama (<code>:11434</code>) and persist that backend for new shells</td></tr>
       <tr><td><code>ai-pi</code></td><td>Run the <code>pi</code> coding agent (lighter base prompt than OpenCode)</td></tr>
@@ -961,7 +967,7 @@ EOF
 <span class="cmd">ollama run granite3.3:8b</span>     <span class="c"># coding (tool-calling, 128K ctx)</span>
 <span class="cmd">ollama ps</span>                     <span class="c"># loaded models + VRAM</span>
 <span class="cmd">ollama list</span>                   <span class="c"># all available models</span>
-<span class="cmd">ollama pull qwen3:14b</span>         <span class="c"># pull a model</span>
+<span class="cmd">ollama pull qwen3:14b</span>         <span class="c"># personal-only; no corporate/work data</span>
 <span class="c"># Unload model immediately (free RAM):</span>
 <span class="cmd">curl</span> http://localhost:11434/api/generate \
   -d <span class="str">'{"model":"gemma3:12b","keep_alive":0}'</span></pre>

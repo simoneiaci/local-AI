@@ -90,7 +90,7 @@ ai-monitor          # live GPU/CPU/RAM via macmon
 | Daily driver | `gemma3:12b` | 7 GB | Best all-round, multimodal |
 | Coding | `gemma3:12b` | 7 GB | Coding + daily use, multimodal |
 | Coding (alt) | `granite3.3:8b` | 6 GB | Tool-calling, 128K context, multilingual |
-| Italian · Tax · Reasoning | `qwen3:14b` | 9.3 GB | Italian docs, 730/F24, reasoning + `/think` mode |
+| Italian · Tax · Reasoning | `qwen3:14b` | 9.3 GB | Personal-only; no corporate/work data |
 | Tab autocomplete | `smollm2:1.7b` | 1 GB | Instant, always loaded |
 | Embeddings | `nomic-embed-text` | 0.3 GB | For RAG pipelines |
 
@@ -121,8 +121,8 @@ ai-monitor          # live GPU/CPU/RAM via macmon
 A lightweight Podman container at `http://localhost:9090` shows:
 
 - **System** — CPU%, RAM used/total, disk free, swap
-- **Services** — LM Studio, Ollama, Open WebUI, Podman VM, Tailscale with start/stop buttons
-- **Models** — All available models, which is loaded, VRAM used, expiry countdown
+- **Services** — LM Studio app/API, Ollama, Open WebUI, Podman VM, Tailscale with start/stop buttons
+- **Models** — Active runtime models; LM Studio by default, Ollama when selected
 
 ![Dashboard](docs/dashboard-preview.png)
 
@@ -155,6 +155,10 @@ The menu bar icon shows a live status dot:
 | Grey | Metrics exporter not running |
 
 Click the icon to expand the menu: CPU / RAM / Disk stats, per-service status, and **Start Stack / Stop Stack / Full Off** buttons — plus one-click links to Open WebUI and the Dashboard.
+
+LM Studio API status is green only when `:1234/v1/models` exposes a non-embedding chat model. Yellow means the API server is reachable but no chat model is exposed.
+
+If the app is running under the `local-ai-menubar` launchd job, quitting from the menu or running `ai-menubar-stop` unloads that job first so macOS does not relaunch it immediately.
 
 **Add to Login Items** so it starts automatically:
 
@@ -273,7 +277,7 @@ The MCP launch wrapper loads `.secrets` automatically when Continue starts the s
 
 `ai-stack-start` uses LM Studio as the default runtime. Use `ai-use-ollama` when you explicitly want the Ollama API instead.
 
-> ⚠️ **Compliance note:** Qwen models are approved here only for personal use. For corporate hardware, follow your organization's approved-model policy before pulling or running them.
+> ⚠️ **Compliance note:** Qwen models are approved here only for personal use. Do not run corporate/work data through Qwen models. For corporate hardware, follow your organization's approved-model policy before pulling or running them.
 
 ---
 

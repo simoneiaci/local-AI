@@ -100,17 +100,19 @@ When suggesting or selecting models, use the task guide below:
 
 ### Continue.dev
 - Config location: `~/.continue/config.json`
-- Provider: `ollama`
+- Provider: Ollama or OpenAI-compatible local API, depending on runtime
 - Supports separate models for chat vs. tab-autocomplete
 
 ### OpenCode
-- Set `OPENCODE_API_BASE=http://localhost:11434/v1`
+- Default: `OPENCODE_API_BASE=http://localhost:1234/v1` for LM Studio
+- Alternate: `OPENCODE_API_BASE=http://localhost:11434/v1` for Ollama
 - Requires models with tool-calling support and 64K+ context
 - Recommended model: `gemma3:12b` or `mistral-small3.1:24b`
 
 ### Open WebUI
 - Runs in Podman on port 3000
-- Connects to Ollama via `http://host.containers.internal:11434` (Podman's hostname for the Mac host)
+- Connects to LM Studio by default via `OPENAI_API_BASE_URL=http://host.containers.internal:1234/v1`
+- Keeps Ollama available as the alternate runtime via `OLLAMA_BASE_URL=http://host.containers.internal:11434`
 - Has built-in RAG with document upload
 - Manage with: `podman start/stop/logs open-webui`
 
@@ -202,7 +204,7 @@ export OLLAMA_NUM_GPU=99              # Use all GPU layers (Metal)
 export OLLAMA_HOST=0.0.0.0:11434     # Allow Podman containers to connect
 
 # OpenCode
-export OPENCODE_API_BASE=http://localhost:11434/v1
+export OPENCODE_API_BASE=http://localhost:1234/v1
 export OPENCODE_MODEL=gemma3:12b
 
 # Convenience aliases (all Green-approved models)
@@ -267,6 +269,8 @@ CONTROL_TOKEN=<random-hex>
 Used by the dashboard proxy → metrics-exporter control server for bearer auth.
 The token is injected into the dashboard container via `-e CONTROL_TOKEN=...`
 at `ai-stack-start` time and read by `metrics-exporter.py` from the same file.
+`ai-stack-start`, `phase4-dashboard.sh`, and the menu bar app generate this
+token if it is missing. The control server rejects all POST actions without it.
 
 ### Dashboard Architecture (CRITICAL)
 
@@ -279,10 +283,13 @@ Browser  ──HTTP──▶  dashboard container :9090  ──HTTP+Bearer──
 ```
 
 Key points:
-- The **dashboard never holds the token** — the browser calls `/control` on :9090
-  and `app.py` server-side adds the `Authorization: Bearer <token>` header.
+- The **browser never holds the token** — it calls `/control` on :9090 and
+  `app.py` server-side adds the `Authorization: Bearer <token>` header.
 - The exporter is the **only thing allowed to shell out** on the host (Ollama,
   Podman, Tailscale). The container can only do HTTP round-trips to :9091.
+- `metrics-exporter.py` binds the control server to `127.0.0.1` by default.
+  Stack scripts set `CONTROL_BIND=0.0.0.0` only when the Podman dashboard needs
+  to reach it, and bearer auth is still required.
 - Metrics flow is **file-based**, not HTTP: exporter writes JSON atomically
   (`.tmp` + `os.replace`) to `/tmp/ai-metrics.json`; dashboard reads it from
   `/hosttmp/ai-metrics.json` (the bind-mounted view).
@@ -339,7 +346,10 @@ Any change to `app.py`, `config.json`, or `Dockerfile` requires a rebuild.
    If `git add` hangs or errors, `rm -f .git/index.lock` and retry.
 
 8. **The dashboard's "start/stop whole stack" toggle button** in the header
-   changes color based on the LM Studio status (green = Start, red = Stop). It
+   changes color based on the LM Studio API readiness status, not just the app process.
+   The LM Studio app and `:1234` API are shown separately because the app can be
+   running while the OpenAI-compatible API is unavailable, or while the API is
+   reachable but exposes only embedding/no chat models. It
    calls the `stack_start` / `stack_stop` actions on the control server — not
    the shell aliases — for the reason in gotcha #4.
 
@@ -353,7 +363,7 @@ Lives at `scripts/metrics-exporter.py`, started by `ai-stack-start`:
   `{"action": "<name>"}` and `Authorization: Bearer <CONTROL_TOKEN>`.
 - Supported actions: `stack_start`, `stack_stop`, `ollama_start/stop`,
   `webui_start/stop`, `pipelines_start/stop`, `podman_start/stop`,
-  `tailscale_up/down`. Extend `ACTIONS` dict to add new ones.
+  `tailscale_up/down`, `lmstudio_start/stop`. Extend `ACTIONS` dict to add new ones.
 - Logs to `/tmp/ai-stack.log` (subprocess output) and `/tmp/ai-metrics-exporter.log` (stdout).
 
 ### GitHub Pages Site (`docs/index.html`)
@@ -366,6 +376,8 @@ Lives at `scripts/metrics-exporter.py`, started by `ai-stack-start`:
 ### Git Workflow
 
 - Default branch: `main`. Remote: `origin` on GitHub.
+- For public GitHub operations, always try to use the `simoneiaci` GitHub account/username first.
+  If the active credentials belong to another account, switch or re-authenticate before pushing.
 - Always `git pull --rebase` before pushing to avoid merge commits.
 - Commit messages: `<type>: <short summary>`, types: `feat`, `fix`, `docs`, `refactor`, `chore`.
 - Never force-push to `main`. Never commit `.secrets` or any file containing tokens.
@@ -415,7 +427,8 @@ After any infrastructure change:
 1. `ai-stack-off` (clean slate)
 2. `ai-stack-start` — watch for errors; browser opens http://localhost:3000
 3. Open http://localhost:9090 — dashboard must show live CPU/RAM/disk and
-   the default services (Podman, LM Studio, Open WebUI, Pipelines) as "up".
+   the default services (Podman, LM Studio app, LM Studio API, Open WebUI,
+   Pipelines) as "up".
 4. Click the header Stack toggle — it should turn red and services should go down.
 5. Click again — services should come back up; metrics keep updating throughout.
 6. `ai-stack-stop` from terminal — dashboard stays up, shows services as down,

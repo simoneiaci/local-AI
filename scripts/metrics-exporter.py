@@ -26,6 +26,8 @@ def _load_secrets() -> dict:
 
 _SECRETS = _load_secrets()
 CONTROL_TOKEN = os.getenv('CONTROL_TOKEN') or _SECRETS.get('CONTROL_TOKEN', '')
+CONTROL_BIND = os.getenv('CONTROL_BIND', '127.0.0.1')
+BACKEND_FILE = Path.home() / '.config/local-ai/active-backend'
 
 # ── Metric collectors ─────────────────────────────────────────────────────────
 
@@ -87,6 +89,26 @@ def disk_stats():
     except Exception:
         return None
 
+def _chat_model_names(models_payload):
+    models = models_payload.get('data', []) if isinstance(models_payload, dict) else []
+    names = []
+    for model in models:
+        if not isinstance(model, dict):
+            continue
+        name = model.get('id') or model.get('name') or ''
+        if name and 'embed' not in name.lower() and 'embedding' not in name.lower():
+            names.append(name)
+    return names
+
+def lmstudio_api_status():
+    import urllib.request
+    try:
+        with urllib.request.urlopen('http://localhost:1234/v1/models', timeout=2) as resp:
+            payload = json.loads(resp.read() or b'{}')
+    except Exception:
+        return 'down'
+    return 'up' if _chat_model_names(payload) else 'idle'
+
 def services():
     import urllib.request
     status = {}
@@ -113,11 +135,7 @@ def services():
     except Exception:
         status['lmstudio'] = 'down'
 
-    try:
-        urllib.request.urlopen('http://localhost:1234/v1/models', timeout=2)
-        status['lmstudio_api'] = 'up'
-    except Exception:
-        status['lmstudio_api'] = 'down'
+    status['lmstudio_api'] = lmstudio_api_status()
 
     try:
         # Guard: only invoke the tailscale CLI if the app is already running.
@@ -148,6 +166,13 @@ def services():
 
     return status
 
+def active_backend():
+    try:
+        backend = BACKEND_FILE.read_text().strip()
+        return backend if backend in ('lmstudio', 'ollama') else 'lmstudio'
+    except Exception:
+        return 'lmstudio'
+
 _collector_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix='collector')
 
 def collect():
@@ -164,6 +189,7 @@ def collect():
             return None
     return {
         'ts':       time.time(),
+        'backend':  active_backend(),
         'cpu_pct':  safe(fut_cpu),
         'ram':      safe(fut_ram),
         'disk':     safe(fut_disk),
@@ -229,9 +255,9 @@ ACTIONS = {
 }
 
 def _authorized(handler) -> bool:
-    """Return True if the request carries a valid Bearer token (or no token is configured)."""
+    """Return True only if the request carries a configured valid Bearer token."""
     if not CONTROL_TOKEN:
-        return True  # token auth disabled — no token configured
+        return False
     auth = handler.headers.get('Authorization', '')
     expected = f'Bearer {CONTROL_TOKEN}'
     return hmac.compare_digest(auth, expected)
@@ -283,9 +309,9 @@ class ReusableHTTPServer(HTTPServer):
     allow_reuse_address = True
 
 def run_control_server():
-    server = ReusableHTTPServer(('', 9091), ControlHandler)
-    auth_status = 'token auth enabled' if CONTROL_TOKEN else 'NO TOKEN — auth disabled'
-    print(f'Control server -> http://localhost:9091/control ({auth_status})', flush=True)
+    server = ReusableHTTPServer((CONTROL_BIND, 9091), ControlHandler)
+    auth_status = 'token auth required' if CONTROL_TOKEN else 'NO TOKEN — controls disabled'
+    print(f'Control server -> http://{CONTROL_BIND}:9091/control ({auth_status})', flush=True)
     server.serve_forever()
 
 # ── Main loop ─────────────────────────────────────────────────────────────────

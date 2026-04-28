@@ -3,10 +3,15 @@
 import json
 import math
 import os
+import errno
+import fcntl
+import secrets as secrets_lib
 import struct
 import subprocess
+import sys
 import threading
 import time
+import urllib.error
 import urllib.request
 import zlib
 from pathlib import Path
@@ -21,6 +26,10 @@ LMSTUDIO_API = 'http://localhost:1234/v1'
 PODMAN       = '/opt/homebrew/bin/podman'
 EXPORTER     = str(Path.home() / 'Documents/AI/Local-AI/scripts/metrics-exporter.py')
 BACKEND_FILE = Path.home() / '.config/local-ai/active-backend'
+APP_PATH     = str(Path(__file__).resolve())
+LAUNCHD_LABEL = 'local-ai-menubar'
+LOCK_PATH    = '/tmp/local-ai-menubar.lock'
+_INSTANCE_LOCK = None
 
 
 # ── Icons ─────────────────────────────────────────────────────────────────────
@@ -85,10 +94,23 @@ def _load_token() -> str:
                 return line.partition('=')[2].strip()
     except Exception:
         pass
+    try:
+        token = secrets_lib.token_hex(32)
+        SECRETS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(SECRETS_PATH, 'a') as f:
+            f.write(f'CONTROL_TOKEN={token}\n')
+        os.chmod(SECRETS_PATH, 0o600)
+        return token
+    except Exception:
+        pass
     return ''
 
 
-def _control(action: str, token: str):
+def _control(action: str, token: str) -> bool:
+    if not token:
+        rumps.notification('Local-AI', f'Action failed: {action}',
+                           'Missing CONTROL_TOKEN in .secrets', sound=False)
+        return False
     try:
         body = json.dumps({'action': action}).encode()
         req = urllib.request.Request(
@@ -97,9 +119,24 @@ def _control(action: str, token: str):
             headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {token}'},
             method='POST',
         )
-        urllib.request.urlopen(req, timeout=5)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            payload = json.loads(resp.read() or b'{}')
+        if payload.get('ok') is False:
+            rumps.notification('Local-AI', f'Action failed: {action}',
+                               str(payload.get('error', 'unknown error')), sound=False)
+            return False
+        return True
+    except urllib.error.HTTPError as e:
+        try:
+            payload = json.loads(e.read() or b'{}')
+            msg = payload.get('error', str(e))
+        except Exception:
+            msg = str(e)
+        rumps.notification('Local-AI', f'Action failed: {action}', msg, sound=False)
+        return False
     except Exception as e:
         rumps.notification('Local-AI', f'Action failed: {action}', str(e), sound=False)
+        return False
 
 
 def _ollama_get(path):
@@ -129,6 +166,53 @@ def _lmstudio_get(path):
             return json.load(resp)
     except Exception:
         return None
+
+
+def _acquire_instance_lock() -> bool:
+    global _INSTANCE_LOCK
+    current_pid = os.getpid()
+    try:
+        out = subprocess.check_output(['ps', '-axo', 'pid=,comm=,command='], text=True, timeout=2)
+        for line in out.splitlines():
+            parts = line.strip().split(None, 2)
+            if len(parts) != 3:
+                continue
+            try:
+                pid = int(parts[0])
+            except ValueError:
+                continue
+            process_name = Path(parts[1]).name.lower()
+            command = parts[2]
+            if 'python' in process_name and pid != current_pid and (APP_PATH in command or 'menubar/app.py' in command):
+                return False
+    except Exception:
+        pass
+
+    _INSTANCE_LOCK = open(LOCK_PATH, 'w')
+    try:
+        fcntl.flock(_INSTANCE_LOCK, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as e:
+        if e.errno in (errno.EACCES, errno.EAGAIN):
+            return False
+        raise
+    _INSTANCE_LOCK.seek(0)
+    _INSTANCE_LOCK.truncate()
+    _INSTANCE_LOCK.write(f'{os.getpid()}\n')
+    _INSTANCE_LOCK.flush()
+    return True
+
+
+def _remove_launchd_job():
+    uid = str(os.getuid())
+    for cmd in (
+        ['launchctl', 'bootout', f'gui/{uid}/{LAUNCHD_LABEL}'],
+        ['launchctl', 'remove', LAUNCHD_LABEL],
+    ):
+        try:
+            subprocess.run(cmd, stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL, timeout=2)
+        except Exception:
+            pass
 
 
 def _ensure_exporter():
@@ -212,7 +296,10 @@ class LocalAIApp(rumps.App):
                                callback=lambda _: subprocess.Popen(['open', 'http://localhost:9090'])),
                 rumps.MenuItem('LM Studio ↗',
                                callback=lambda _: subprocess.Popen(['open', '-a', 'LM Studio'])),
+                None,
+                rumps.MenuItem('Quit Local-AI', callback=self._quit),
             ],
+            quit_button=None,
         )
 
         # Populate model list immediately in background; first poll will apply it
@@ -283,9 +370,21 @@ class LocalAIApp(rumps.App):
             models = f'  · models {disk["ollama_gb"]} GB' if disk.get('ollama_gb') else ''
             self._mi_disk.title = f'Disk: {disk["free_gb"]} GB free{models}'
 
-        def sdot(key): return '🟢' if svc.get(key) == 'up' else '🔴'
+        def sdot(key):
+            state = svc.get(key)
+            if state == 'up':
+                return '🟢'
+            if state == 'idle':
+                return '🟡'
+            return '🔴'
 
-        lm_api = ' · API :1234' if svc.get('lmstudio_api') == 'up' else ' · API off'
+        lm_api_state = svc.get('lmstudio_api')
+        if lm_api_state == 'up':
+            lm_api = ' · API ready'
+        elif lm_api_state == 'idle':
+            lm_api = ' · API idle'
+        else:
+            lm_api = ' · API off'
         self._mi_lmstudio.title = f'{sdot("lmstudio")} LM Studio app (default){lm_api}'
         self._mi_ollama.title = f'{sdot("ollama")} Ollama (alternate)'
         self._mi_webui.title  = f'{sdot("open_webui")} Open WebUI'
@@ -314,8 +413,11 @@ class LocalAIApp(rumps.App):
                         self._active_model = 'lmstudio-offline'
                         self._models_dirty = True
                 return
-            models = sorted(m.get('id', '') for m in models_payload.get('data', []) if m.get('id'))
-            active = models[0] if models else None
+            models = sorted(
+                name for name in (m.get('id', '') for m in models_payload.get('data', []))
+                if name and self._is_chat_model(name)
+            )
+            active = models[0] if models else 'lmstudio-no-chat-model'
             with self._lock:
                 if models != self._known_models or active != self._active_model:
                     self._known_models = models
@@ -350,8 +452,12 @@ class LocalAIApp(rumps.App):
 
         if backend == 'lmstudio':
             if not models:
-                self._mi_model.title = 'LM Studio: —'
-                self._mi_model.add(rumps.MenuItem('(server offline or no model loaded)'))
+                if active == 'lmstudio-no-chat-model':
+                    self._mi_model.title = 'LM Studio: no chat model'
+                    self._mi_model.add(rumps.MenuItem('(API reachable; no chat model exposed)'))
+                else:
+                    self._mi_model.title = 'LM Studio: —'
+                    self._mi_model.add(rumps.MenuItem('(server offline or no chat model loaded)'))
                 self._mi_model.add(None)
                 self._mi_model.add(rumps.MenuItem('Refresh', callback=self._refresh_models_now))
                 self._mi_model.add(rumps.MenuItem('Open LM Studio',
@@ -460,6 +566,19 @@ class LocalAIApp(rumps.App):
             target=_control, args=('lmstudio_stop', self._token), daemon=True
         ).start()
 
+    def _quit(self, _):
+        try:
+            nsapp = getattr(self, '_nsapp', None)
+            status_item = getattr(nsapp, 'nsstatusitem', None)
+            if status_item is not None:
+                from AppKit import NSStatusBar
+                NSStatusBar.systemStatusBar().removeStatusItem_(status_item)
+                setattr(nsapp, 'nsstatusitem', None)
+        except Exception:
+            pass
+        _remove_launchd_job()
+        rumps.quit_application()
+
     def _read_backend(self):
         try:
             return BACKEND_FILE.read_text().strip() or 'lmstudio'
@@ -468,15 +587,19 @@ class LocalAIApp(rumps.App):
 
     def _set_backend(self, backend):
         try:
+            previous = self._read_backend()
+            self._mi_backend.title = f'Runtime: switching to {backend}…'
+            if backend == 'lmstudio':
+                actions = ('ollama_stop', 'lmstudio_start')
+            else:
+                actions = ('lmstudio_stop', 'ollama_start')
+            for action in actions:
+                if not _control(action, self._token):
+                    self._mi_backend.title = f'Runtime: {previous}'
+                    return
             BACKEND_FILE.parent.mkdir(parents=True, exist_ok=True)
             BACKEND_FILE.write_text(backend + '\n')
             self._mi_backend.title = f'Runtime: {backend}'
-            if backend == 'lmstudio':
-                _control('ollama_stop', self._token)
-                _control('lmstudio_start', self._token)
-            else:
-                _control('lmstudio_stop', self._token)
-                _control('ollama_start', self._token)
             rumps.notification('Local-AI', 'Runtime switched',
                                f'Active runtime: {backend}. New shells will use this backend.',
                                sound=False)
@@ -486,4 +609,7 @@ class LocalAIApp(rumps.App):
 
 
 if __name__ == '__main__':
+    if not _acquire_instance_lock():
+        print('Local-AI menu bar app is already running; exiting.', file=sys.stderr)
+        raise SystemExit(0)
     LocalAIApp().run()

@@ -1,8 +1,16 @@
 
 # ── Local-AI stack start / stop (v2 — includes dashboard) ──
 ai-stack-start() {
-  echo '→ Starting Ollama...'
-  pgrep -x ollama > /dev/null || (nohup /opt/homebrew/bin/ollama serve > /tmp/ollama.log 2>&1 &)
+  echo '→ Starting LM Studio...'
+  ai-use-mlx >/dev/null
+  if curl -s http://localhost:1234/v1/models > /dev/null 2>&1; then
+    echo '✓ LM Studio server already running on :1234'
+  elif [[ -d "/Applications/LM Studio.app" ]]; then
+    open -ga "LM Studio"
+    echo '→ LM Studio launched — enable Developer tab → Start Server (port 1234)'
+  else
+    echo '✗ LM Studio not installed. Run: bash scripts/phase6-improvements.sh'
+  fi
   sleep 2
   echo '→ Starting Podman machine...'
   /opt/homebrew/bin/podman machine start 2>/dev/null || true
@@ -23,6 +31,7 @@ ai-stack-start() {
   nohup python3 ~/Documents/AI/Local-AI/scripts/metrics-exporter.py > /tmp/ai-metrics-exporter.log 2>&1 &
   sleep 3
   echo '✓ Stack is up'
+  echo '  Runtime     → LM Studio (:1234)'
   echo '  Open WebUI  → http://localhost:3000'
   echo '  Pipelines   → http://localhost:9099'
   echo '  Dashboard   → http://localhost:9090'
@@ -40,6 +49,8 @@ ai-stack-stop() {
   /opt/homebrew/bin/podman stop open-webui 2>/dev/null || true
   echo '→ Stopping Ollama...'
   pkill -x ollama 2>/dev/null || true
+  echo '→ Stopping LM Studio...'
+  osascript -e 'tell application "LM Studio" to quit' 2>/dev/null || true
   echo '✓ AI services stopped  (dashboard + metrics still running → http://localhost:9090)'
 }
 
@@ -101,9 +112,13 @@ _local_ai_apply_backend() {
       export OPENCODE_PROVIDER=openai-compatible
       export OPENCODE_API_BASE=http://localhost:1234/v1
       ;;
-    ollama|"")
+    ollama)
       export OPENCODE_PROVIDER=openai-compatible
       export OPENCODE_API_BASE=http://localhost:11434/v1
+      ;;
+    "")
+      export OPENCODE_PROVIDER=openai-compatible
+      export OPENCODE_API_BASE=http://localhost:1234/v1
       ;;
   esac
 }

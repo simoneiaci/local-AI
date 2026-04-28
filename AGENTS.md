@@ -10,8 +10,8 @@
 
 This project manages a fully local AI stack on a MacBook Pro M4 Pro (24GB). The stack consists of:
 
-- **Ollama** as the primary LLM runtime (port 11434, OpenAI-compatible API at `/v1`)
-- **LM Studio** as a secondary runtime for GUI exploration and MLX models (port 1234)
+- **LM Studio** as the default LLM runtime for MLX models (port 1234, OpenAI-compatible API at `/v1`)
+- **Ollama** as an alternate LLM runtime and model manager (port 11434, OpenAI-compatible API at `/v1`)
 - **Continue.dev** for VS Code coding assistance
 - **OpenCode / Aider** for CLI-based coding
 - **Open WebUI** for chat interface and document RAG
@@ -245,11 +245,11 @@ Local-AI/
 
 Three shell functions defined in `stack-aliases-v2.sh` (sourced from `~/.zshrc`):
 
-- **`ai-stack-start`** — starts Ollama, Podman machine, Open WebUI, Pipelines,
+- **`ai-stack-start`** — starts LM Studio, Podman machine, Open WebUI, Pipelines,
   dashboard container (creating it on first run with the correct bind mount),
   and the metrics-exporter (killing any old instance first). Opens
   http://localhost:3000.
-- **`ai-stack-stop`** — unloads models, stops Pipelines + WebUI + Ollama.
+- **`ai-stack-stop`** — unloads models, stops Pipelines + WebUI + local runtimes.
   **Intentionally leaves the dashboard container and metrics-exporter running**
   so the user can still see system stats and restart services from the dashboard.
 - **`ai-stack-off`** — full shutdown: everything `ai-stack-stop` does PLUS
@@ -339,7 +339,7 @@ Any change to `app.py`, `config.json`, or `Dockerfile` requires a rebuild.
    If `git add` hangs or errors, `rm -f .git/index.lock` and retry.
 
 8. **The dashboard's "start/stop whole stack" toggle button** in the header
-   changes color based on the Ollama status (green = Start, red = Stop). It
+   changes color based on the LM Studio status (green = Start, red = Stop). It
    calls the `stack_start` / `stack_stop` actions on the control server — not
    the shell aliases — for the reason in gotcha #4.
 
@@ -359,7 +359,7 @@ Lives at `scripts/metrics-exporter.py`, started by `ai-stack-start`:
 ### GitHub Pages Site (`docs/index.html`)
 
 - Single-file HTML; inline `<style>` and `<script>`.
-- Hosted at https://simone-iaci.github.io/local-ai/ (or user's equivalent).
+- Hosted on the repository's GitHub Pages site, if enabled.
 - Structure: top nav + stacked `<section id="s-...">` blocks, one per topic.
 - Deploy: commit to `main`, push — GitHub Pages auto-rebuilds within ~1 min.
 
@@ -415,7 +415,7 @@ After any infrastructure change:
 1. `ai-stack-off` (clean slate)
 2. `ai-stack-start` — watch for errors; browser opens http://localhost:3000
 3. Open http://localhost:9090 — dashboard must show live CPU/RAM/disk and
-   all four services (Podman, Ollama, Open WebUI, Pipelines) as "up".
+   the default services (Podman, LM Studio, Open WebUI, Pipelines) as "up".
 4. Click the header Stack toggle — it should turn red and services should go down.
 5. Click again — services should come back up; metrics keep updating throughout.
 6. `ai-stack-stop` from terminal — dashboard stays up, shows services as down,
@@ -429,4 +429,3 @@ After any infrastructure change:
 - Prefers **direct answers and working code** over long explanations.
 - When he says "commit and push", do it — no extra prompts.
 - When he reports a bug, reproduce the cause before patching; don't guess.
-

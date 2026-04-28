@@ -1,6 +1,6 @@
 # Local-AI: Run LLMs Locally on MacBook Pro M4 Pro (24GB)
 
-> **Author:** Simone  
+> **Author:** Simone
 > **Created:** April 12, 2026  
 > **Hardware:** MacBook Pro M4 Pro — 24GB unified memory  
 > **Goal:** Fully private, local AI stack for coding, chat, RAG, and productivity

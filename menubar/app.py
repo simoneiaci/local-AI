@@ -123,6 +123,14 @@ def _ollama_post(path, body):
         return None
 
 
+def _lmstudio_get(path):
+    try:
+        with urllib.request.urlopen(f'{LMSTUDIO_API}{path}', timeout=3) as resp:
+            return json.load(resp)
+    except Exception:
+        return None
+
+
 def _ensure_exporter():
     result = subprocess.run(['pgrep', '-f', 'metrics-exporter.py'], capture_output=True)
     if result.returncode == 0:
@@ -153,8 +161,8 @@ class LocalAIApp(rumps.App):
         self._mi_cpu    = rumps.MenuItem('CPU: —')
         self._mi_ram    = rumps.MenuItem('⚪ RAM: —')
         self._mi_disk   = rumps.MenuItem('Disk: —')
-        self._mi_ollama = rumps.MenuItem('⚪ Ollama')
-        self._mi_lmstudio = rumps.MenuItem('⚪ LM Studio (MLX)')
+        self._mi_lmstudio = rumps.MenuItem('⚪ LM Studio app (default)')
+        self._mi_ollama = rumps.MenuItem('⚪ Ollama (alternate)')
         self._mi_webui  = rumps.MenuItem('⚪ Open WebUI')
         self._mi_pipes  = rumps.MenuItem('⚪ Pipelines')
         self._mi_podman = rumps.MenuItem('⚪ Podman')
@@ -163,12 +171,13 @@ class LocalAIApp(rumps.App):
         # Seed one item so the submenu arrow is visible immediately
         self._mi_model.add(rumps.MenuItem('Loading…'))
 
-        # Phase 6: backend switcher submenu
-        self._mi_backend = rumps.MenuItem('Backend: —')
-        self._mi_backend.add(rumps.MenuItem('Use Ollama',
-                             callback=lambda _: self._set_backend('ollama')))
+        # Runtime switcher submenu. Selecting one persists the backend and
+        # starts it while stopping the other runtime to avoid memory pressure.
+        self._mi_backend = rumps.MenuItem('Runtime: —')
         self._mi_backend.add(rumps.MenuItem('Use LM Studio (MLX)',
                              callback=lambda _: self._set_backend('lmstudio')))
+        self._mi_backend.add(rumps.MenuItem('Use Ollama',
+                             callback=lambda _: self._set_backend('ollama')))
 
         super().__init__(
             name='LocalAI',
@@ -180,8 +189,8 @@ class LocalAIApp(rumps.App):
                 self._mi_ram,
                 self._mi_disk,
                 None,
-                self._mi_ollama,
                 self._mi_lmstudio,
+                self._mi_ollama,
                 self._mi_webui,
                 self._mi_pipes,
                 self._mi_podman,
@@ -243,15 +252,15 @@ class LocalAIApp(rumps.App):
             self._mi_ram.title  = '⚪ RAM: —'
             self._mi_disk.title = 'Disk: —'
             for mi, label in [
-                (self._mi_ollama,   'Ollama'),
-                (self._mi_lmstudio, 'LM Studio (MLX)'),
+                (self._mi_lmstudio, 'LM Studio app (default)'),
+                (self._mi_ollama,   'Ollama (alternate)'),
                 (self._mi_webui,    'Open WebUI'),
                 (self._mi_pipes,    'Pipelines'),
                 (self._mi_podman,   'Podman'),
                 (self._mi_ts,       'Tailscale'),
             ]:
                 mi.title = f'⚪ {label}'
-            self._mi_backend.title = f'Backend: {self._read_backend()}'
+            self._mi_backend.title = f'Runtime: {self._read_backend()}'
             return
 
         cpu  = data.get('cpu_pct')
@@ -276,14 +285,15 @@ class LocalAIApp(rumps.App):
 
         def sdot(key): return '🟢' if svc.get(key) == 'up' else '🔴'
 
-        self._mi_ollama.title = f'{sdot("ollama")} Ollama'
-        self._mi_lmstudio.title = f'{sdot("lmstudio")} LM Studio (MLX)'
+        lm_api = ' · API :1234' if svc.get('lmstudio_api') == 'up' else ' · API off'
+        self._mi_lmstudio.title = f'{sdot("lmstudio")} LM Studio app (default){lm_api}'
+        self._mi_ollama.title = f'{sdot("ollama")} Ollama (alternate)'
         self._mi_webui.title  = f'{sdot("open_webui")} Open WebUI'
         self._mi_pipes.title  = f'{sdot("pipelines")} Pipelines'
         self._mi_podman.title = f'{sdot("podman")} Podman'
         ts_ip = svc.get('tailscale_ip', '')
         self._mi_ts.title = f'{sdot("tailscale")} Tailscale' + (f'  {ts_ip}' if ts_ip else '')
-        self._mi_backend.title = f'Backend: {self._read_backend()}'
+        self._mi_backend.title = f'Runtime: {self._read_backend()}'
 
     # ── Model Management ──────────────────────────────────────────────────────
 
@@ -294,6 +304,25 @@ class LocalAIApp(rumps.App):
         return not ('embed' in n or 'embedding' in n)
 
     def _fetch_models(self):
+        backend = self._read_backend()
+        if backend == 'lmstudio':
+            models_payload = _lmstudio_get('/models')
+            if models_payload is None:
+                with self._lock:
+                    if self._known_models or self._active_model != 'lmstudio-offline':
+                        self._known_models = []
+                        self._active_model = 'lmstudio-offline'
+                        self._models_dirty = True
+                return
+            models = sorted(m.get('id', '') for m in models_payload.get('data', []) if m.get('id'))
+            active = models[0] if models else None
+            with self._lock:
+                if models != self._known_models or active != self._active_model:
+                    self._known_models = models
+                    self._active_model = active
+                    self._models_dirty = True
+            return
+
         tags    = _ollama_get('/api/tags')
         ps      = _ollama_get('/api/ps')
         if tags is None:
@@ -314,25 +343,46 @@ class LocalAIApp(rumps.App):
         with self._lock:
             models = list(self._known_models)
             active = self._active_model
+        backend = self._read_backend()
 
         for key in list(self._mi_model.keys()):
             del self._mi_model[key]
 
+        if backend == 'lmstudio':
+            if not models:
+                self._mi_model.title = 'LM Studio: —'
+                self._mi_model.add(rumps.MenuItem('(server offline or no model loaded)'))
+                self._mi_model.add(None)
+                self._mi_model.add(rumps.MenuItem('Refresh', callback=self._refresh_models_now))
+                self._mi_model.add(rumps.MenuItem('Open LM Studio',
+                                   callback=lambda _: subprocess.Popen(['open', '-a', 'LM Studio'])))
+                return
+
+            short = active.rsplit('/', 1)[-1].rsplit(':', 1)[0] if active else 'loaded'
+            self._mi_model.title = f'LM Studio: {short}'
+            for name in models:
+                self._mi_model.add(rumps.MenuItem(f'✓  {name}' if name == active else f'    {name}'))
+            self._mi_model.add(None)
+            self._mi_model.add(rumps.MenuItem('Refresh', callback=self._refresh_models_now))
+            self._mi_model.add(rumps.MenuItem('Open LM Studio',
+                               callback=lambda _: subprocess.Popen(['open', '-a', 'LM Studio'])))
+            return
+
         if not models:
-            self._mi_model.title = 'Model: —'
+            self._mi_model.title = 'Ollama: —'
             self._mi_model.add(rumps.MenuItem('(Ollama offline)'))
             self._mi_model.add(None)
             self._mi_model.add(rumps.MenuItem('Refresh', callback=self._refresh_models_now))
             return
 
         short = active.rsplit(':', 1)[0] if active else 'none'
-        self._mi_model.title = f'Model: {short}'
+        self._mi_model.title = f'Ollama: {short}'
 
         for name in models:
             label = f'✓  {name}' if name == active else f'    {name}'
             def make_cb(m):
                 def cb(_):
-                    self._mi_model.title = f'Model: ⏳ loading {m.rsplit(":", 1)[0]}…'
+                    self._mi_model.title = f'Ollama: ⏳ loading {m.rsplit(":", 1)[0]}…'
                     threading.Thread(target=self._switch_model, args=(m,), daemon=True).start()
                 return cb
             self._mi_model[label] = rumps.MenuItem(label, callback=make_cb(name))
@@ -360,7 +410,7 @@ class LocalAIApp(rumps.App):
         with self._lock:
             current = self._active_model
         if current == model:
-            self._mi_model.title = f'Model: {model.rsplit(":", 1)[0]} (already loaded)'
+            self._mi_model.title = f'Ollama: {model.rsplit(":", 1)[0]} (already loaded)'
             with self._lock:
                 self._models_dirty = True
             return
@@ -374,7 +424,7 @@ class LocalAIApp(rumps.App):
                 self._active_model = model
                 self._models_dirty = True
         else:
-            self._mi_model.title = f'Model: ⚠ failed to load {model.rsplit(":", 1)[0]}'
+            self._mi_model.title = f'Ollama: ⚠ failed to load {model.rsplit(":", 1)[0]}'
             self._fetch_models()
 
     # ── Actions ───────────────────────────────────────────────────────────────
@@ -412,20 +462,27 @@ class LocalAIApp(rumps.App):
 
     def _read_backend(self):
         try:
-            return BACKEND_FILE.read_text().strip() or 'ollama'
+            return BACKEND_FILE.read_text().strip() or 'lmstudio'
         except Exception:
-            return 'ollama'
+            return 'lmstudio'
 
     def _set_backend(self, backend):
         try:
             BACKEND_FILE.parent.mkdir(parents=True, exist_ok=True)
             BACKEND_FILE.write_text(backend + '\n')
-            self._mi_backend.title = f'Backend: {backend}'
-            rumps.notification('Local-AI', 'Backend switched',
-                               f'Active backend: {backend}. Restart your shell or run "ai-use-{backend}".',
+            self._mi_backend.title = f'Runtime: {backend}'
+            if backend == 'lmstudio':
+                _control('ollama_stop', self._token)
+                _control('lmstudio_start', self._token)
+            else:
+                _control('lmstudio_stop', self._token)
+                _control('ollama_start', self._token)
+            rumps.notification('Local-AI', 'Runtime switched',
+                               f'Active runtime: {backend}. New shells will use this backend.',
                                sound=False)
+            threading.Thread(target=self._fetch_models, daemon=True).start()
         except Exception as e:
-            rumps.notification('Local-AI', 'Backend switch failed', str(e), sound=False)
+            rumps.notification('Local-AI', 'Runtime switch failed', str(e), sound=False)
 
 
 if __name__ == '__main__':

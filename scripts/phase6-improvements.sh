@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
 # Local-AI Phase 6 — Community-Recommended Improvements
-# Based on insights from "Self-Hosted AI Explorers" Webex room (April 2026)
+# Based on community-reported local AI practices.
 #
 #   1. LM Studio (MLX backend)   → 20-30% faster inference on Apple Silicon
 #   2. mlx-lm CLI                → Direct MLX inference + OpenAI-compat server
-#   3. Web search MCP            → Closes biggest quality gap (Tyler Duzan)
+#   3. Web search MCP            → Adds live lookup for stale model knowledge
 #   4. Pi (pi.dev) coding agent  → Lighter base prompt than OpenCode
 #   5. Speculative decoding      → smollm2:1.7b as draft for gemma3:12b
 #   6. TurboQuant model variants → Lower VRAM, fits bigger models on 24 GB
@@ -90,7 +90,7 @@ else
   fi
 fi
 
-# ── 3. Web search MCP (closes the biggest quality gap per Tyler) ─────────────
+# ── 3. Web search MCP (adds live lookup for stale model knowledge) ────────────
 header "3. Web search MCP — shared config for local tools"
 
 MCP_CFG_DIR="$HOME/.config/local-ai"
@@ -206,10 +206,9 @@ echo "    • Qwen2.5-Coder-14B-Instruct-MLX-4bit  ~8 GB   (Apache 2.0)"
 echo "    • Gemma-4-26B-a4b-it                   ~15 GB  (approved, tight fit)"
 echo "    • Mistral-Small-24B-MLX-4bit           ~13 GB"
 echo ""
-warn "Compliance note (per Todd Keyser in the room):"
-warn "Qwen models are NOT allowed on Cisco-managed hardware."
-warn "Project policy (AGENTS.md): Qwen is personal-use only — never for corporate/work."
-warn "On a personal Mac it's your call — Qwen2.5-Coder is Apache 2.0."
+warn "Compliance note:"
+warn "Qwen models are personal-use only under this project policy."
+warn "For corporate hardware, follow your organization's approved-model policy."
 echo ""
 
 # Show free RAM before any 'tight on 24 GB' prompts.

@@ -15,7 +15,8 @@ A complete, production-ready local AI stack on Apple Silicon:
 
 | Component | What it does |
 |-----------|-------------|
-| **Ollama** | Runs LLMs locally — fast GPU inference via Metal |
+| **LM Studio** | Default runtime for MLX models and OpenAI-compatible local API |
+| **Ollama** | Alternate local runtime and model manager |
 | **Open WebUI** | ChatGPT-like interface, runs in Podman |
 | **Continue.dev** | AI assistant inside VS Code (Cmd+L / Cmd+I) |
 | **OpenCode + Aider** | Terminal AI coding agents |
@@ -28,7 +29,7 @@ A complete, production-ready local AI stack on Apple Silicon:
 
 ```bash
 # 1. Clone
-git clone https://github.com/simoneiaci/local-AI.git
+git clone https://github.com/<your-org-or-user>/local-ai.git
 cd local-AI
 
 # 2. Run Phase 1 — Ollama + core models
@@ -53,14 +54,14 @@ bash scripts/phase6-improvements.sh
 After Phase 1, use these aliases from any terminal:
 
 ```bash
-ai-stack-start      # start everything (Ollama + WebUI + Dashboard)
+ai-stack-start      # start everything (LM Studio + WebUI + Dashboard)
 ai-stack-stop       # stop AI services (dashboard stays up)
 ai-stack-off        # full shutdown — everything off
 ai-mlx-up           # launch LM Studio (MLX backend, faster than Ollama)
 ai-mlx-down         # quit LM Studio
 ai-mlx-status       # show MLX models loaded
 ai-mlx              # one-shot mlx-lm generation (--prompt "...")
-ai-use-mlx          # switch OpenCode to LM Studio backend
+ai-use-mlx          # switch OpenCode to LM Studio backend (default)
 ai-use-ollama       # switch OpenCode back to Ollama
 ai-menubar-start    # launch menu bar app
 ai-menubar-stop     # quit menu bar app
@@ -103,7 +104,7 @@ ai-monitor          # live GPU/CPU/RAM via macmon
 ┌────────────────────────────────────────────────┐
 │           MacBook Pro M4 Pro (24 GB)           │
 │                                                │
-│  Ollama (:11434) ──► Open WebUI (:3000)        │
+│  LM Studio (:1234) ─► Open WebUI (:3000)       │
 │       │                                        │
 │       ├──► Continue.dev  (VS Code)             │
 │       ├──► OpenCode / Aider  (terminal)        │
@@ -120,7 +121,7 @@ ai-monitor          # live GPU/CPU/RAM via macmon
 A lightweight Podman container at `http://localhost:9090` shows:
 
 - **System** — CPU%, RAM used/total, disk free, swap
-- **Services** — Ollama, Open WebUI, Podman VM, Tailscale with start/stop buttons
+- **Services** — LM Studio, Ollama, Open WebUI, Podman VM, Tailscale with start/stop buttons
 - **Models** — All available models, which is loaded, VRAM used, expiry countdown
 
 ![Dashboard](docs/dashboard-preview.png)
@@ -228,29 +229,29 @@ Local-AI/
 
 ## Documentation
 
-📖 **[Full docs on GitHub Pages →](https://simoneiaci.github.io/local-AI/)**
+📖 **Full docs can be published with GitHub Pages from `docs/index.html`.**
 
 ---
 
 ## Phase 6 — Community-Recommended Improvements
 
-Based on practices shared in the **"Self-Hosted AI Explorers"** Cisco Webex room (April 2026). On a 24 GB MacBook Pro M4 Pro, these close the biggest gaps vs what experienced practitioners run.
+Based on community-reported local AI practices. On a 24 GB MacBook Pro M4 Pro, these close the biggest gaps vs what experienced practitioners run.
 
 > All figures below are **community-reported** (room participants), not benchmarks reproduced on this machine. Treat as directional until you measure on your own workload.
 
 | Improvement | Why | Reported gain |
 |---|---|---|
-| **LM Studio (MLX)** | Tyler Duzan: *"Ollama underperforms LM Studio on Mac"* | +20–30% tok/s (reported) |
+| **LM Studio (MLX)** | Faster Apple Silicon inference path than Ollama on some workloads | +20–30% tok/s (reported) |
 | **mlx-lm CLI** | Direct Apple MLX framework — best Apple Silicon perf | Comparable to LM Studio, scriptable |
-| **Web search MCP** | Tyler: *"You really need to enable web search — model training cutoffs are old"* | Quality bump on doc lookups (qualitative) |
-| **Pi coding agent** | Jonathon Schumaker: *"Lower base prompt = faster prompt-processing"* | Faster prompt-processing than OpenCode (reported) |
+| **Web search MCP** | Live search helps compensate for model training cutoffs | Quality bump on doc lookups (qualitative) |
+| **Pi coding agent** | Lower base prompt can reduce prompt-processing overhead | Faster prompt-processing than OpenCode (reported) |
 | **Speculative decoding** | Pair `smollm2:1.7b` (draft) with `gemma3:12b` | 1.5–2× tok/s (reported) |
 | **TurboQuant variants** | Recent llama.cpp addition — lower VRAM for tight-fit models | Bigger approved models on same hardware |
 
 ### Switch backends on the fly
 
 ```bash
-ai-use-mlx       # OpenCode → LM Studio (MLX) at :1234, persists for new shells
+ai-use-mlx       # OpenCode → LM Studio (MLX) at :1234, persists for new shells (default)
 ai-use-ollama    # OpenCode → Ollama at :11434, persists for new shells
 ai-mlx-up        # launch LM Studio
 ai-mlx-down      # quit LM Studio
@@ -270,7 +271,9 @@ BRAVE_API_KEY=BSAxxxxx      # 2000 free searches/month — https://brave.com/sea
 
 The MCP launch wrapper loads `.secrets` automatically when Continue starts the servers. Use `ai-secrets` only when you also want those keys in the current shell.
 
-> ⚠️ **Cisco compliance note** (per Todd Keyser): Qwen models are **not allowed on Cisco-managed hardware**. On personal devices it's your call — `qwen2.5-coder` is Apache 2.0. Check the [Cisco AI Model Guidance](https://cisco.sharepoint.com/:w:/s/LegalOI/ETPaQq5XfhdNmFs6yzTygmcBK1CJdPNdpF_kqYE1TmOr0g) before using on work hardware.
+`ai-stack-start` uses LM Studio as the default runtime. Use `ai-use-ollama` when you explicitly want the Ollama API instead.
+
+> ⚠️ **Compliance note:** Qwen models are approved here only for personal use. For corporate hardware, follow your organization's approved-model policy before pulling or running them.
 
 ---
 

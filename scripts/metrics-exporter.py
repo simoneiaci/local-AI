@@ -96,7 +96,6 @@ def services():
         ('ollama',     'http://localhost:11434/api/tags'),
         ('open_webui', 'http://localhost:3000'),
         ('pipelines',  'http://localhost:9099'),
-        ('lmstudio',   'http://localhost:1234/v1/models'),
     ]
     for key, url in health_urls:
         try:
@@ -104,6 +103,21 @@ def services():
             status[key] = 'up'
         except Exception:
             status[key] = 'down'
+
+    try:
+        subprocess.check_call(['pgrep', '-x', 'LM Studio'],
+                              stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL,
+                              timeout=1)
+        status['lmstudio'] = 'up'
+    except Exception:
+        status['lmstudio'] = 'down'
+
+    try:
+        urllib.request.urlopen('http://localhost:1234/v1/models', timeout=2)
+        status['lmstudio_api'] = 'up'
+    except Exception:
+        status['lmstudio_api'] = 'down'
 
     try:
         # Guard: only invoke the tailscale CLI if the app is already running.
@@ -167,18 +181,19 @@ LMSTUDIO_URL = 'http://localhost:1234/v1/models'
 _LOG = open('/tmp/ai-stack.log', 'a')
 
 def _stack_start():
-    """Start Ollama + Podman machine + WebUI + Pipelines (no exporter restart)."""
+    """Start LM Studio + Podman machine + WebUI + Pipelines (no exporter restart)."""
     subprocess.Popen(
         ['zsh', '-c',
-         'pgrep -x ollama > /dev/null || '
-         f'nohup {OLLAMA_BIN} serve > /tmp/ollama.log 2>&1 & '
+         'mkdir -p "$HOME/.config/local-ai"; '
+         'printf "lmstudio\\n" > "$HOME/.config/local-ai/active-backend"; '
+         'open -ga "LM Studio"; '
          f'{PODMAN_BIN} machine start 2>/dev/null; sleep 4; '
          f'{PODMAN_BIN} start open-webui 2>/dev/null; '
          f'{PODMAN_BIN} start open-webui-pipelines 2>/dev/null'],
         stdout=_LOG, stderr=subprocess.STDOUT)
 
 def _stack_stop():
-    """Unload models, stop WebUI + Pipelines + Ollama. Dashboard stays up."""
+    """Unload models, stop WebUI + Pipelines + local runtimes. Dashboard stays up."""
     subprocess.Popen(
         ['zsh', '-c',
          # Unload each loaded model with a tight timeout so a busy model
@@ -189,7 +204,8 @@ def _stack_stop():
          f'{PODMAN_BIN} stop open-webui-pipelines 2>/dev/null; '
          f'{PODMAN_BIN} stop open-webui 2>/dev/null; '
          # Kill the main ollama process and any spawned runner children.
-         f'pkill -x ollama 2>/dev/null; sleep 1; pkill -f "ollama" 2>/dev/null; true'],
+         f'pkill -x ollama 2>/dev/null; sleep 1; pkill -f "ollama" 2>/dev/null; '
+         'osascript -e \'tell application "LM Studio" to quit\' 2>/dev/null; true'],
         stdout=_LOG, stderr=subprocess.STDOUT)
 
 ACTIONS = {
@@ -206,9 +222,10 @@ ACTIONS = {
     'podman_start':      lambda: subprocess.Popen([PODMAN_BIN, 'machine', 'start']),
     'tailscale_up':      lambda: subprocess.Popen([TS_BIN, 'up']),
     'tailscale_down':    lambda: subprocess.Popen([TS_BIN, 'down']),
-    'lmstudio_start':    lambda: subprocess.Popen(['open', '-a', LMSTUDIO_APP]),
-    'lmstudio_stop':     lambda: subprocess.Popen(['osascript', '-e',
-                             'tell application "LM Studio" to quit']),
+    'lmstudio_start':    lambda: subprocess.Popen(['open', '-ga', 'LM Studio']),
+    'lmstudio_stop':     lambda: subprocess.Popen(
+                             ['zsh', '-c',
+                              'osascript -e \'tell application "LM Studio" to quit\' 2>/dev/null; true']),
 }
 
 def _authorized(handler) -> bool:

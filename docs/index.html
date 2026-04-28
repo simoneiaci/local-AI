@@ -284,7 +284,7 @@ footer a:hover{color:var(--text);text-decoration:none}
         <div class="hw-chip">Ollama · Podman</div>
       </div>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="https://github.com/simoneiaci/local-AI" target="_blank" rel="noopener">View on GitHub&nbsp;↗</a>
+        <a class="btn btn-primary" href="https://github.com/your-org/local-ai" target="_blank" rel="noopener">View on GitHub&nbsp;↗</a>
         <a class="btn btn-ghost" href="#s-setup">Read the Setup</a>
       </div>
     </div>
@@ -295,7 +295,7 @@ footer a:hover{color:var(--text);text-decoration:none}
         <div class="hero-panel-status">running</div>
       </div>
       <div class="hero-panel-rows">
-        <div class="hp-row"><span class="hp-lbl">runtime</span><span class="hp-val">ollama · <span class="dim">:11434</span></span></div>
+        <div class="hp-row"><span class="hp-lbl">runtime</span><span class="hp-val">LM Studio · <span class="dim">:1234</span></span></div>
         <div class="hp-row"><span class="hp-lbl">primary</span><span class="hp-val">gemma3:12b <span class="dim">7.3 GB</span></span></div>
         <div class="hp-row"><span class="hp-lbl">coding alt</span><span class="hp-val">granite3.3:8b <span class="dim">4.9 GB</span></span></div>
         <div class="hp-row"><span class="hp-lbl">autocomplete</span><span class="hp-val">smollm2:1.7b <span class="ok">● loaded</span></span></div>
@@ -343,7 +343,7 @@ footer a:hover{color:var(--text);text-decoration:none}
   <p class="section-desc">Chat, code, reason, and retrieve — all locally. No subscriptions, no rate limits, no data leaving your machine.</p>
 
   <div class="card-grid">
-    <div class="card"><span class="card-icon">🦙</span><h4>Ollama</h4><p>Runs LLMs locally with Metal GPU acceleration. OpenAI-compatible API at <code>localhost:11434</code>.</p></div>
+    <div class="card"><span class="card-icon">🧠</span><h4>LM Studio</h4><p>Default MLX runtime for local inference. OpenAI-compatible API at <code>localhost:1234</code>.</p></div>
     <div class="card"><span class="card-icon">💬</span><h4>Open WebUI</h4><p>ChatGPT-like interface in Podman. Multi-model chat, documents, image input, memory, web search.</p></div>
     <div class="card"><span class="card-icon">🛠️</span><h4>Coding Tools</h4><p>Continue.dev in VS Code + OpenCode + Aider. All powered by local models — no cloud needed.</p></div>
     <div class="card"><span class="card-icon">📊</span><h4>Live Dashboard</h4><p>System stats, loaded models, and service controls at <code>localhost:9090</code>. Start/stop with one click.</p></div>
@@ -370,7 +370,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <pre>┌──────────────────────────────────────────────────────────────┐
 │               MacBook Pro M4 Pro  (24 GB RAM)                │
 │                                                              │
-│  Ollama (:11434) ──► Open WebUI (:3000)        [Podman]     │
+│  LM Studio (:1234) ─► Open WebUI (:3000)       [Podman]     │
 │       │           ──► Pipelines (:9099)        [Podman]     │
 │       │                                                      │
 │       ├──► Continue.dev  (VS Code: ⌘L, ⌘I)                 │
@@ -918,7 +918,7 @@ EOF
   <div class="table-wrap">
     <table>
       <tr><th>Command</th><th>Does</th></tr>
-      <tr><td><code>ai-stack-start</code></td><td>Start Ollama + Podman + Open WebUI + Pipelines + Dashboard + metrics exporter</td></tr>
+      <tr><td><code>ai-stack-start</code></td><td>Start LM Studio + Podman + Open WebUI + Pipelines + Dashboard + metrics exporter</td></tr>
       <tr><td><code>ai-stack-stop</code></td><td>Stop AI services — dashboard + metrics stay up</td></tr>
       <tr><td><code>ai-stack-off</code></td><td>Full shutdown — stops dashboard and Podman machine too</td></tr>
       <tr><td><code>ai-health</code></td><td>Run <code>scripts/status.sh</code> — full stack health check</td></tr>
@@ -937,7 +937,7 @@ EOF
       <tr><td><code>ai-mlx-down</code></td><td>Quit LM Studio (via osascript)</td></tr>
       <tr><td><code>ai-mlx-status</code></td><td>List models loaded in LM Studio's MLX server</td></tr>
       <tr><td><code>ai-mlx "prompt"</code></td><td>One-shot generation via <code>mlx_lm.generate</code> (Qwen2.5-Coder 14B 4-bit)</td></tr>
-      <tr><td><code>ai-use-mlx</code></td><td>Point OpenCode at LM Studio (<code>:1234</code>) and persist that backend for new shells</td></tr>
+      <tr><td><code>ai-use-mlx</code></td><td>Point OpenCode at LM Studio (<code>:1234</code>) and persist that backend for new shells; this is the default</td></tr>
       <tr><td><code>ai-use-ollama</code></td><td>Point OpenCode back at Ollama (<code>:11434</code>) and persist that backend for new shells</td></tr>
       <tr><td><code>ai-pi</code></td><td>Run the <code>pi</code> coding agent (lighter base prompt than OpenCode)</td></tr>
       <tr><td><code>ai-secrets</code></td><td>Source <code>.secrets</code> into the current shell (Tavily / Brave keys)</td></tr>
@@ -982,7 +982,7 @@ EOF
 </div><!-- /container -->
 
 <footer>
-  <a href="https://github.com/simoneiaci/local-AI" target="_blank">simoneiaci/local-AI</a>
+  <a href="https://github.com/your-org/local-ai" target="_blank">your-org/local-ai</a>
   &nbsp;·&nbsp;
   <a href="https://ollama.com" target="_blank">Ollama</a>
   &nbsp;·&nbsp;

@@ -186,9 +186,8 @@ Then on iPhone: Safari → Open WebUI → Share → **Add to Home Screen** for a
 
 ## Coding Tools
 
-Continue.dev is configured in `~/.continue/config.json` with three groups:
+Continue.dev is configured in `~/.continue/config.json` with two local runtime groups:
 
-- **Lab vLLM** entries stay at the top and are left untouched.
 - **Local LM Studio** entries are the primary local choices, using `http://localhost:1234/v1`.
 - **Local Ollama** entries remain available as fallback, with `smollm2:1.7b` for tab autocomplete and `nomic-embed-text` for embeddings.
 

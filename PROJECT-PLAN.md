@@ -253,19 +253,11 @@ alias ai-stop="pkill ollama"
 
 ### 5.1 Continue.dev (VS Code — Recommended)
 
-Install from VS Code marketplace. Configure `~/.continue/config.json` with Lab vLLM entries first, then local LM Studio entries, then Ollama fallbacks. Do not remove the Lab vLLM models when adding local models.
+Install from VS Code marketplace. Configure `~/.continue/config.json` with local LM Studio entries first, then Ollama fallbacks. This project does not use remote model endpoints.
 
 ```json
 {
   "models": [
-    {
-      "title": "Lab vLLM - Phi-4 (14B, loaded)",
-      "provider": "openai",
-      "model": "phi-4",
-      "apiBase": "https://api-models.apps.ocp1.telcocloud.poc.lab/v1",
-      "apiKey": "EMPTY",
-      "contextLength": 16384
-    },
     {
       "title": "Local LM Studio - Gemma 3 12B (coding / daily)",
       "provider": "lmstudio",
@@ -290,7 +282,7 @@ Install from VS Code marketplace. Configure `~/.continue/config.json` with Lab v
 }
 ```
 
-This gives you: Lab vLLM choices when needed, LM Studio as the primary local coding chat/edit runtime (Cmd+L/Cmd+I), Ollama as fallback, and tab-autocomplete running locally with `smollm2:1.7b`.
+This gives you: LM Studio as the primary local coding chat/edit runtime (Cmd+L/Cmd+I), Ollama as fallback, and tab-autocomplete running locally with `smollm2:1.7b`.
 
 ### 5.2 OpenCode (CLI)
 

@@ -26,9 +26,9 @@ ai-stack-start() {
     echo '✓ LM Studio server already running on :1234'
   elif [[ -d "/Applications/LM Studio.app" ]]; then
     open -ga "LM Studio"
-    echo '→ LM Studio launched — enable Developer tab → Start Server (port 1234)'
+    echo '→ LM Studio launched — load a model then start the server (Developer tab)'
   else
-    echo '✗ LM Studio not installed. Run: bash scripts/phase6-improvements.sh'
+    echo '✗ LM Studio not installed'
   fi
   sleep 2
   echo '→ Starting Podman machine...'
@@ -38,18 +38,11 @@ ai-stack-start() {
   echo '→ Starting Pipelines...'
   /opt/homebrew/bin/podman start open-webui-pipelines 2>/dev/null || true
   echo '→ Starting dashboard...'
-  if /opt/homebrew/bin/podman inspect local-ai-dashboard > /dev/null 2>&1; then
-    if ! /opt/homebrew/bin/podman inspect --format '{{range .Config.Env}}{{println .}}{{end}}' local-ai-dashboard 2>/dev/null | grep -q '^LMSTUDIO_BASE_URL='; then
-      echo '→ Recreating dashboard with LM Studio model support...'
-      /opt/homebrew/bin/podman rm -f local-ai-dashboard 2>/dev/null || true
-    fi
-  fi
   /opt/homebrew/bin/podman inspect local-ai-dashboard > /dev/null 2>&1 || \
     /opt/homebrew/bin/podman run -d --name local-ai-dashboard \
       -p 9090:9090 \
       -e CONTROL_TOKEN="$control_token" \
       -e CONTROL_URL=http://host.containers.internal:9091 \
-      -e LMSTUDIO_BASE_URL=http://host.containers.internal:1234/v1 \
       -v /private/tmp:/hosttmp:ro \
       localhost/local-ai-dashboard
   /opt/homebrew/bin/podman start local-ai-dashboard 2>/dev/null || true

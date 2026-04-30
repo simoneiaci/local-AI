@@ -248,7 +248,6 @@ class LocalAIApp(rumps.App):
         self._mi_lmstudio = rumps.MenuItem('⚪ LM Studio app (default)')
         self._mi_ollama = rumps.MenuItem('⚪ Ollama (alternate)')
         self._mi_webui  = rumps.MenuItem('⚪ Open WebUI')
-        self._mi_pipes  = rumps.MenuItem('⚪ Pipelines')
         self._mi_podman = rumps.MenuItem('⚪ Podman')
         self._mi_ts     = rumps.MenuItem('⚪ Tailscale')
         self._mi_model  = rumps.MenuItem('Model: —')
@@ -276,7 +275,6 @@ class LocalAIApp(rumps.App):
                 self._mi_lmstudio,
                 self._mi_ollama,
                 self._mi_webui,
-                self._mi_pipes,
                 self._mi_podman,
                 self._mi_ts,
                 None,
@@ -342,7 +340,6 @@ class LocalAIApp(rumps.App):
                 (self._mi_lmstudio, 'LM Studio app (default)'),
                 (self._mi_ollama,   'Ollama (alternate)'),
                 (self._mi_webui,    'Open WebUI'),
-                (self._mi_pipes,    'Pipelines'),
                 (self._mi_podman,   'Podman'),
                 (self._mi_ts,       'Tailscale'),
             ]:
@@ -388,7 +385,6 @@ class LocalAIApp(rumps.App):
         self._mi_lmstudio.title = f'{sdot("lmstudio")} LM Studio app (default){lm_api}'
         self._mi_ollama.title = f'{sdot("ollama")} Ollama (alternate)'
         self._mi_webui.title  = f'{sdot("open_webui")} Open WebUI'
-        self._mi_pipes.title  = f'{sdot("pipelines")} Pipelines'
         self._mi_podman.title = f'{sdot("podman")} Podman'
         ts_ip = svc.get('tailscale_ip', '')
         self._mi_ts.title = f'{sdot("tailscale")} Tailscale' + (f'  {ts_ip}' if ts_ip else '')

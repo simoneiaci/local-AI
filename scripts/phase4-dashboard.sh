@@ -19,6 +19,23 @@ CONTAINER_NAME="local-ai-dashboard"
 IMAGE_NAME="local-ai-dashboard:latest"
 METRICS_DIR="/private/tmp"
 PORT=9090
+SECRETS_FILE="$SCRIPT_DIR/../.secrets"
+
+ensure_control_token() {
+  mkdir -p "$(dirname "$SECRETS_FILE")"
+  touch "$SECRETS_FILE"
+  chmod 600 "$SECRETS_FILE"
+  if ! grep -q '^CONTROL_TOKEN=' "$SECRETS_FILE" 2>/dev/null; then
+    if command -v openssl >/dev/null 2>&1; then
+      TOKEN="$(openssl rand -hex 32)"
+    else
+      TOKEN="$(uuidgen | tr -d '-')$(uuidgen | tr -d '-')"
+    fi
+    printf 'CONTROL_TOKEN=%s\n' "$TOKEN" >> "$SECRETS_FILE"
+    log "Generated CONTROL_TOKEN in .secrets"
+  fi
+  CONTROL_TOKEN_VALUE="$(grep '^CONTROL_TOKEN=' "$SECRETS_FILE" | tail -1 | cut -d= -f2-)"
+}
 
 echo -e "\n${BOLD}╔══════════════════════════════════════╗"
 echo   "║  Local-AI  •  Phase 4: Dashboard     ║"
@@ -26,13 +43,15 @@ echo -e "╚══════════════════════�
 
 # ── 1. Start metrics exporter on host ────────────────────────────────────────
 info "Starting metrics exporter (background)..."
+ensure_control_token
 
 # Kill any existing exporter
 pkill -f "metrics-exporter.py" 2>/dev/null || true
 sleep 1
 
 # Start fresh
-nohup python3 "$EXPORTER" > /tmp/ai-metrics-exporter.log 2>&1 &
+CONTROL_TOKEN="$CONTROL_TOKEN_VALUE" CONTROL_BIND=0.0.0.0 \
+  nohup python3 "$EXPORTER" > /tmp/ai-metrics-exporter.log 2>&1 &
 EXPORTER_PID=$!
 
 METRICS_FILE="/tmp/ai-metrics.json"
@@ -72,16 +91,12 @@ podman rm -f "$CONTAINER_NAME" 2>/dev/null || true
 # a single file on macOS (see AGENTS.md gotcha #1). The container reads
 # /hosttmp/ai-metrics.json from that directory view.
 info "Starting dashboard container on port $PORT..."
-CONTROL_TOKEN_VALUE=""
-SECRETS_FILE="$SCRIPT_DIR/../.secrets"
-if [[ -f "$SECRETS_FILE" ]]; then
-  CONTROL_TOKEN_VALUE=$(grep '^CONTROL_TOKEN=' "$SECRETS_FILE" | cut -d= -f2 || true)
-fi
 
 podman run -d \
   --name "$CONTAINER_NAME" \
   -p "${PORT}:9090" \
   -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
+  -e LMSTUDIO_BASE_URL=http://host.containers.internal:1234/v1 \
   -e CONTROL_URL=http://host.containers.internal:9091 \
   -e CONTROL_TOKEN="$CONTROL_TOKEN_VALUE" \
   -v "${METRICS_DIR}:/hosttmp:ro" \

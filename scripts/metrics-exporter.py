@@ -117,7 +117,6 @@ def services():
     health_urls = [
         ('ollama',     'http://localhost:11434/api/tags'),
         ('open_webui', 'http://localhost:3000'),
-        ('pipelines',  'http://localhost:9099'),
     ]
     for key, url in health_urls:
         try:
@@ -214,8 +213,7 @@ def _stack_start():
          'printf "lmstudio\\n" > "$HOME/.config/local-ai/active-backend"; '
          'open -ga "LM Studio"; '
          f'{PODMAN_BIN} machine start 2>/dev/null; sleep 4; '
-         f'{PODMAN_BIN} start open-webui 2>/dev/null; '
-         f'{PODMAN_BIN} start open-webui-pipelines 2>/dev/null'],
+         f'{PODMAN_BIN} start open-webui 2>/dev/null'],
         stdout=_LOG, stderr=subprocess.STDOUT)
 
 def _stack_stop():
@@ -227,7 +225,6 @@ def _stack_stop():
          f'for m in $({OLLAMA_BIN} ps 2>/dev/null | tail -n +2 | awk \'{{print $1}}\'); do '
          f'  curl -s --max-time 4 http://localhost:11434/api/generate '
          f'  -d \'{{"model":"\'$m\'","keep_alive":0}}\' > /dev/null; done; '
-         f'{PODMAN_BIN} stop open-webui-pipelines 2>/dev/null; '
          f'{PODMAN_BIN} stop open-webui 2>/dev/null; '
          # Kill the main ollama process and any spawned runner children.
          f'pkill -x ollama 2>/dev/null; sleep 1; pkill -f "ollama" 2>/dev/null; '

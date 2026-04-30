@@ -49,42 +49,53 @@ fi
 success "Podman machine is running"
 
 # ─────────────────────────────────────────────
-# 2. Check Ollama is running
+# 2. Check LM Studio API
 # ─────────────────────────────────────────────
-section "Checking Ollama"
+section "Checking LM Studio"
 
-if ! curl -s http://localhost:11434 &>/dev/null; then
-  warn "Ollama doesn't seem to be running. Starting it..."
-  brew services start ollama
-  sleep 3
+if curl -s http://localhost:1234/v1/models &>/dev/null; then
+  success "LM Studio API is running at http://localhost:1234/v1"
+elif [[ -d "/Applications/LM Studio.app" ]]; then
+  warn "LM Studio API is not reachable on :1234. Launching LM Studio..."
+  open -ga "LM Studio"
+  warn "If models do not appear in Open WebUI, open LM Studio and make sure the local API is running on port 1234."
+else
+  warn "LM Studio is not installed yet. Run: bash scripts/phase6-improvements.sh"
 fi
-
-success "Ollama is running"
 
 # ─────────────────────────────────────────────
 # 3. Install or update Open WebUI
 # ─────────────────────────────────────────────
 section "Setting up Open WebUI"
 
-# On macOS, Podman containers reach the host via host.containers.internal
+# On macOS, Podman containers reach the host via host.containers.internal.
 # No --add-host flag needed — it resolves automatically with libkrun
 
 if podman ps -a --format '{{.Names}}' | grep -q '^open-webui$'; then
-  warn "Open WebUI container already exists."
-  info "Options:"
-  echo "  - Start existing:  podman start open-webui"
-  echo "  - Update to latest: podman rm -f open-webui && run this script again"
-  echo ""
-  read "REPLY?Start the existing container? [Y/n] "
-  if [[ "$REPLY" =~ ^[Nn]$ ]]; then
-    echo "Aborted."
-    exit 0
+  WEBUI_ENV="$(podman inspect --format '{{range .Config.Env}}{{println .}}{{end}}' open-webui 2>/dev/null || true)"
+  if ! echo "$WEBUI_ENV" | grep -q '^OPENAI_API_BASE_URL=http://host.containers.internal:1234/v1$'; then
+    warn "Open WebUI exists but is not configured for LM Studio as the default OpenAI-compatible runtime."
+    warn "The container can be recreated while preserving the open-webui data volume."
+    read "REPLY?Recreate Open WebUI with LM Studio defaults? [Y/n] "
+    if [[ "$REPLY" =~ ^[Nn]$ ]]; then
+      podman start open-webui
+    else
+      podman rm -f open-webui
+    fi
+  else
+    warn "Open WebUI container already exists with LM Studio defaults."
+    podman start open-webui
   fi
-  podman start open-webui
-else
+fi
+
+if ! podman ps -a --format '{{.Names}}' | grep -q '^open-webui$'; then
   info "Pulling and starting Open WebUI (this may take a few minutes)..."
   podman run -d \
     -p 3000:8080 \
+    -e ENABLE_OPENAI_API=true \
+    -e OPENAI_API_BASE_URL=http://host.containers.internal:1234/v1 \
+    -e OPENAI_API_KEY=lm-studio \
+    -e ENABLE_OLLAMA_API=true \
     -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
     -v open-webui:/app/backend/data \
     --name open-webui \
@@ -125,7 +136,8 @@ echo "${GREEN}${BOLD}  Open WebUI is running!${RESET}"
 echo "${GREEN}${BOLD}════════════════════════════════════════${RESET}"
 echo ""
 echo "  ${BOLD}URL:${RESET}     ${BLUE}http://localhost:3000${RESET}"
-echo "  ${BOLD}Model:${RESET}   gemma3:12b (via Ollama)"
+echo "  ${BOLD}Default:${RESET} LM Studio via OpenAI-compatible API (:1234)"
+echo "  ${BOLD}Alternate:${RESET} Ollama remains configured at :11434"
 echo ""
 echo "  ${BOLD}First time?${RESET}"
 echo "  Create an admin account on the sign-up screen."

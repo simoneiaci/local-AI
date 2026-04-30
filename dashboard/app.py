@@ -449,7 +449,6 @@ function renderServices(svc){
     {key:'lmstudio_api', label:'LM Studio API', sub:'openai api · :1234', idleSub:'reachable · no chat model', url:null, stop:'lmstudio_stop', start:'lmstudio_start'},
     {key:'ollama',    label:'Ollama',    sub:'api · :11434',           url:'http://localhost:11434', stop:'ollama_stop',  start:'ollama_start'},
     {key:'open_webui',label:'Open WebUI',sub:'chat · :3000',           url:'http://localhost:3000',  stop:'webui_stop',   start:'webui_start'},
-    {key:'pipelines', label:'Pipelines', sub:'middleware · :9099',     url:'http://localhost:9099',  stop:'pipelines_stop', start:'pipelines_start'},
     {key:'tailscale', label:'Tailscale', sub:svc.tailscale_ip||'vpn · not connected', url:null, stop:'tailscale_down', start:'tailscale_up', startLabel:'connect'},
   ];
   const rows=items.map(i=>{

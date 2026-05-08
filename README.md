@@ -87,14 +87,15 @@ ai-monitor          # live GPU/CPU/RAM via macmon
 
 | Role | Model | Size | Notes |
 |------|-------|------|-------|
-| Daily driver | `gemma3:12b` | 7 GB | Best all-round, multimodal |
-| Coding | `gemma3:12b` | 7 GB | Coding + daily use, multimodal |
-| Coding (alt) | `granite3.3:8b` | 6 GB | Tool-calling, 128K context, multilingual |
-| Reasoning · Math · Logic | `phi4-reasoning` | 9 GB | Approved reasoning model that fits comfortably |
-| Tab autocomplete | `smollm2:1.7b` | 1 GB | Instant, always loaded |
-| Embeddings | `nomic-embed-text` | 0.3 GB | For RAG pipelines |
+| Daily driver · Coding | `google/gemma-4-e4b` | 6.33 GB | Primary LM Studio model (BF16 quality) |
+| Tool-calling · RAG · Multilingual alt | `granite-3.3-8b-instruct` | 4.94 GB | 128K context, 12 languages |
+| Reasoning · Math · Logic | `phi-4-reasoning` | 11.12 GB | Approved 15B chain-of-thought model |
+| Tab autocomplete | `smollm2-1.7b-instruct` | 1.82 GB | Instant, always loaded in LM Studio |
+| Embeddings | `text-embedding-nomic-embed-text-v1.5` | 84 MB | For RAG pipelines (LM Studio) |
 
-> ⚠️ Only one large model fits in RAM at a time. `smollm2:1.7b` and `nomic-embed-text` can always stay loaded alongside any model.
+> ⚠️ Only one large model fits in RAM at a time. `smollm2-1.7b-instruct` and `text-embedding-nomic-embed-text-v1.5` can stay loaded alongside any other model.
+
+For `granite-3.3-8b-instruct` in LM Studio, set the per-model default context length to **32K** in **My Models → gear icon**. Use **64K** for long-document sessions only; avoid **128K** as the everyday default on this 24 GB laptop because KV cache memory can push the system into swap.
 
 ---
 
@@ -189,7 +190,7 @@ Then on iPhone: Safari → Open WebUI → Share → **Add to Home Screen** for a
 Continue.dev is configured in `~/.continue/config.json` with two local runtime groups:
 
 - **Local LM Studio** entries are the primary local choices, using `http://localhost:1234/v1`.
-- **Local Ollama** entries remain available as fallback, with `smollm2:1.7b` for tab autocomplete and `nomic-embed-text` for embeddings.
+- **Local Ollama** entries remain available as fallback, with `smollm2-1.7b-instruct` for tab autocomplete and `text-embedding-nomic-embed-text-v1.5` for embeddings (both served by LM Studio).
 
 ```bash
 # VS Code — install Continue extension, then:
@@ -197,16 +198,16 @@ Cmd+L    # open AI chat sidebar
 Cmd+I    # inline edit / refactor
 
 # Terminal agents
-opencode          # full TUI coding agent (uses gemma3:12b)
-aider-code        # Aider with gemma3:12b
-aider-think       # Aider with phi4-reasoning (for complex refactors)
+opencode          # full TUI coding agent (uses google/gemma-4-e4b via LM Studio)
+aider-code        # Aider with google/gemma-4-e4b
+aider-think       # Aider with phi-4-reasoning (for complex refactors)
 
 # Quick model switching
-ai-use-coding     # → gemma3:12b
-ai-use-general    # → mistral-small3.1:24b
+ai-use-mlx        # → LM Studio primary
+ai-use-ollama     # → Ollama fallback
 ```
 
-Recommended Continue selection for daily local coding: **Local LM Studio - Gemma 3 12B (coding / daily)**.
+Recommended Continue selection for daily local coding: **google/gemma-4-e4b** (Local LM Studio).
 
 ---
 
@@ -256,7 +257,7 @@ Based on community-reported local AI practices. On a 24 GB MacBook Pro M4 Pro, t
 | **mlx-lm CLI** | Direct Apple MLX framework — best Apple Silicon perf | Comparable to LM Studio, scriptable |
 | **Web search MCP** | Live search helps compensate for model training cutoffs | Quality bump on doc lookups (qualitative) |
 | **Pi coding agent** | Lower base prompt can reduce prompt-processing overhead | Faster prompt-processing than OpenCode (reported) |
-| **Speculative decoding** | Pair `smollm2:1.7b` (draft) with `gemma3:12b` | 1.5–2× tok/s (reported) |
+| **Speculative decoding** | Pair `smollm2-1.7b-instruct` (draft) with the active LM Studio chat model | 1.5–2× tok/s (reported) |
 | **TurboQuant variants** | Recent llama.cpp addition — lower VRAM for tight-fit models | Bigger approved models on same hardware |
 
 ### Switch backends on the fly
@@ -284,7 +285,7 @@ The MCP launch wrapper loads `.secrets` automatically when Continue starts the s
 
 `ai-stack-start` uses LM Studio as the default runtime. Use `ai-use-ollama` when you explicitly want the Ollama API instead.
 
-> ⚠️ **Compliance note:** Qwen and DeepSeek models are not used in this project. Use `phi4-reasoning` for reasoning workflows and `granite3.3:8b` for multilingual/RAG work.
+> ⚠️ **Compliance note:** Qwen and DeepSeek models are not used in this project. Use `phi-4-reasoning` for reasoning workflows and `granite-3.3-8b-instruct` for multilingual/RAG work.
 
 ---
 

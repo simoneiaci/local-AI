@@ -89,11 +89,18 @@ ai-menubar-start() {
     echo 'Menu bar app is already running'
     return
   fi
-  nohup python3 ~/Documents/AI/Local-AI/menubar/app.py > /tmp/ai-menubar.log 2>&1 &
-  echo "✓ Menu bar app started (log → /tmp/ai-menubar.log)"
+  local plist="$HOME/Library/LaunchAgents/local-ai-menubar.plist"
+  if [[ -f "$plist" ]]; then
+    launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null || launchctl kickstart -k "gui/$(id -u)/local-ai-menubar"
+    echo "✓ Menu bar app started via LaunchAgent (log → /tmp/ai-menubar.log)"
+  else
+    nohup python3 ~/Documents/AI/Local-AI/menubar/app.py > /tmp/ai-menubar.log 2>&1 &
+    echo "✓ Menu bar app started (log → /tmp/ai-menubar.log)"
+  fi
 }
 
 ai-menubar-stop() {
+  osascript -e 'tell application "Local AI" to quit' 2>/dev/null || true
   launchctl bootout "gui/$(id -u)/local-ai-menubar" 2>/dev/null || true
   launchctl remove local-ai-menubar 2>/dev/null || true
   pkill -f "menubar/app.py" 2>/dev/null && echo '✓ Menu bar app stopped' || echo 'Not running'
@@ -171,10 +178,17 @@ alias ai-pi='pi'
 # Load secrets (TAVILY_API_KEY etc.) into the current shell.
 alias ai-secrets='set -a; source ~/Documents/AI/Local-AI/.secrets; set +a; echo "→ secrets loaded"'
 
+# Quick Ollama model sessions (primary google/gemma-4-e4b is in LM Studio → use Open WebUI or OpenCode).
+alias ai-chat="ollama run phi4-mini"                    # ~3 GB, ultra-fast
+alias ai-general="ollama run granite-3.3-8b-instruct"   # ~5 GB, Ollama fallback
+alias ai-code="ollama run granite-3.3-8b-instruct"      # ~5 GB, tool-calling + 128K ctx
+alias ai-reason="ollama run phi-4-reasoning"            # ~11 GB, chain-of-thought
+alias ai-status="ollama ps"
+
 # Health check for Phase 6 services.
 ai-health-phase6() {
   echo "── Phase 6 services ──"
-  curl -s http://localhost:1234/v1/models > /dev/null 2>&1 \
+  curl -s http://localhost:1234/v1/models -H "Authorization: Bearer ${LM_STUDIO_API_KEY:-}" > /dev/null 2>&1 \
     && echo "✓ LM Studio (MLX) on :1234" \
     || echo "✗ LM Studio not running"
   command -v pi >/dev/null && echo "✓ Pi installed" || echo "✗ Pi not installed"

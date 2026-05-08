@@ -1,10 +1,10 @@
 {
   "model_hints": {
-    "phi4-reasoning":   "🧠 Reasoning · math · logic · approved local model",
-    "gemma3:12b":       "💻💬 Coding · daily chat · multimodal · vision · balanced",
-    "granite3.3:8b":   "🔧 Coding alt · tool-calling · 128K context · multilingual",
-    "smollm2:1.7b":     "⚡ Tab autocomplete · tiny · always loaded",
-    "nomic-embed-text": "🔍 Embeddings · RAG pipelines · semantic search",
-    "swift-mentor":     "🍎 iOS/macOS · Swift 6 · SwiftUI · TCA"
+    "google/gemma-4-e4b":                        "Primary · chat · coding · 6.33 GB · BF16 · LM Studio (LOADED)",
+    "phi-4-reasoning":                           "Reasoning · math · logic · 11.12 GB · LM Studio",
+    "granite-3.3-8b-instruct":                   "Tool calling · RAG · 128K context · multilingual · 4.94 GB · LM Studio",
+    "smollm2-1.7b-instruct":                     "Tab autocomplete · 1.82 GB · LM Studio",
+    "text-embedding-nomic-embed-text-v1.5":      "Embeddings · RAG pipelines · 84 MB · LM Studio",
+    "phi4-mini":                                 "Fast chat fallback · ~3 GB · Ollama"
   }
 }

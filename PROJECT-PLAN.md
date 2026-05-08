@@ -75,19 +75,19 @@ All Gemma models are Green-approved. Here's every variant and whether it runs on
 | **Gemma 3 1B**           | `gemma3:1b`              | ~1 GB     | Easily     | Too small for most tasks — skip   |
 | **Gemma 3 4B**           | `gemma3:4b`              | ~3 GB     | Easily     | Quick Q&A, multimodal (text+image)|
 | **Gemma 2 9B**           | `gemma2:9b`              | ~6 GB     | Yes        | Solid general-purpose, text-only  |
-| **Gemma 3 12B**          | `gemma3:12b`             | ~7 GB     | Yes        | **Best Gemma for daily use** — multimodal, strong instruction following (88.9% IFEval) |
+| **Gemma 3 12B**          | `gemma3:12b`             | ~7 GB     | Yes        | Older daily-driver option; replaced by Gemma4 BF16 e4b |
 | **Gemma 4 E4B**          | `gemma4:e4b-it`          | ~3 GB     | Easily     | Edge model — fast but shallow     |
-| **Gemma 4 26B-A4B (MoE)**| `gemma4:26b-a4b-it`     | ~15 GB    | Tight      | MoE: only 4B active params → fast inference, near-31B quality. Close to RAM limit — close other apps. **Confirmed by Reddit user on M3 24GB: 10-20 tok/s via llama.cpp** |
+| **Gemma4 BF16 e4b**      | LM Studio ID varies      | ~8 GB     | Yes        | **Current primary** — BF16 quality with practical RAM headroom |
 | **Gemma 3 27B**          | `gemma3:27b`             | ~16 GB    | Marginal   | Best Gemma quality overall but leaves <8 GB for system — risky, may swap |
 | **Gemma 4 31B**          | `gemma4:31b-it`          | ~20 GB    | No         | Too large — causes swapping, context suffers. Avoid. |
 | Gemma 3n E2B/E4B (LiteRT)| —                       | —         | N/A        | On-device edge only (phones). **Not available on Ollama.** Skip. |
-| Gemma 2 27B              | `gemma2:27b`             | ~17 GB    | Marginal   | Older generation — prefer Gemma 3 12B instead |
+| Gemma 2 27B              | `gemma2:27b`             | ~17 GB    | Marginal   | Older generation — prefer the current primary instead |
 | Gemma 1.1 / 2B / 7B     | `gemma:7b` etc.          | ~5 GB     | Yes        | Older generation — no reason to use over Gemma 3 |
 
 **Recommended Gemma picks:**
-- **Daily driver:** `gemma3:12b` (~7 GB) — best quality-to-RAM ratio in the family
+- **Daily driver:** `Gemma4 BF16 e4b` (~8 GB) — primary LM Studio model
 - **Lightweight:** `gemma3:4b` (~3 GB) — when you need speed or have other models loaded
-- **Maximum quality:** `gemma4:26b-a4b-it` (~15 GB) — MoE efficiency, but close other apps first
+- **Maximum quality within the daily budget:** `Gemma4 BF16 e4b` (~8 GB) — BF16 quality without pushing the laptop to the ceiling
 
 ---
 
@@ -138,22 +138,22 @@ All Gemma models are Green-approved. Here's every variant and whether it runs on
 ```
 TASK                               → BEST MODEL                         → RUNNER-UP                    VRAM
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-CODE GENERATION / DEBUGGING        → devstral (53.6% SWE-Bench)   → granite3.3:8b (lighter)      14 / 6 GB
-CREATIVE WRITING / EMAILS          → mistral-small3.1:24b (87.6% Arena) → gemma3:12b (faster)          14 / 7 GB
+CODE GENERATION / DEBUGGING        → Gemma4 BF16 e4b (~8 GB)            → granite3.3:8b (lighter)      8 / 6 GB
+CREATIVE WRITING / EMAILS          → Gemma4 BF16 e4b (~8 GB)            → granite3.3:8b                 8 / 6 GB
 REASONING / MATH / LOGIC           → phi4-reasoning (75.3% AIME)        → magistral:24b-small-2506     9 / 14 GB
-SUMMARIZATION                      → gemma3:12b (88.9% IFEval)          → granite3.3:8b (128K ctx)     7 / 6 GB
-INSTRUCTION FOLLOWING              → gemma3:12b (88.9% IFEval)          → mistral-small3.1:24b         7 / 14 GB
+SUMMARIZATION                      → Gemma4 BF16 e4b (~8 GB)            → granite3.3:8b (128K ctx)     8 / 6 GB
+INSTRUCTION FOLLOWING              → Gemma4 BF16 e4b (~8 GB)            → granite3.3:8b                 8 / 6 GB
 RAG / DOCUMENT Q&A                 → granite3.3:8b (RAG LoRAs, 128K)    → mistral-small3.1:24b         6 / 14 GB
 FUNCTION / TOOL CALLING            → mistral-small3.1:24b (native)      → granite3.3:8b                14 / 6 GB
-MULTILINGUAL                       → granite3.3:8b (12 languages)       → gemma3:12b                   6 / 7 GB
-MULTIMODAL (text + images)         → gemma3:12b (native vision)         → gemma3:4b (lighter)          7 / 3 GB
+MULTILINGUAL                       → granite3.3:8b (12 languages)       → Gemma4 BF16 e4b              6 / 8 GB
+MULTIMODAL (text + images)         → gemma3:4b (vision-capable)          → verify loaded LM Studio model 3 / varies
 QUICK Q&A / BRAINSTORMING          → phi4-mini (~3 GB, ~30 tok/s)       → gemma3:4b                    3 / 3 GB
 TAB AUTOCOMPLETE IN IDE            → smollm2:1.7b (~1 GB, instant)      → phi4-mini-reasoning          1 / 3 GB
 ```
 
-> **The "Two Model" Strategy:** Keep `gemma3:12b` as your always-loaded daily driver (~7 GB).
-> When you need specialized power, swap to: `devstral` (coding), `phi4-reasoning` (math),
-> or `mistral-small3.1:24b` (everything else). Only one 14 GB model at a time.
+> **The "Two Model" Strategy:** Use `Gemma4 BF16 e4b` as the LM Studio daily driver (~8 GB).
+> When you need specialized power, swap to `phi4-reasoning` for math/reasoning or
+> `granite3.3:8b` for long-context RAG/tool workflows.
 
 ### Quantization Guide
 
@@ -190,8 +190,8 @@ http://localhost:11434/v1
 # Daily driver — fast general chat (Green, ~3 GB)
 ollama pull phi4-mini
 
-# General-purpose workhorse (Green, ~8 GB)
-ollama pull gemma3:12b
+# Primary daily workhorse (Green, ~8 GB)
+# Download Gemma4 BF16 e4b in LM Studio, then query /v1/models for its exact API ID.
 
 # Coding specialist (Green, ~14 GB)
 ollama pull devstral
@@ -237,8 +237,8 @@ curl http://localhost:11434/api/generate -d '{"model":"phi4-mini","keep_alive":0
 ```bash
 # Model shortcuts (all approved Green models)
 alias ai-chat="ollama run phi4-mini"              # ~3 GB, ultra-fast
-alias ai-general="ollama run gemma3:12b"           # ~8 GB, balanced
-alias ai-code="ollama run devstral"          # ~14 GB, coding
+alias ai-general="ollama run granite3.3:8b"        # ~6 GB, Ollama fallback
+alias ai-code="ollama run granite3.3:8b"           # ~6 GB, tool-calling + long context
 alias ai-reason="ollama run phi4-reasoning"        # ~9 GB, chain-of-thought
 alias ai-power="ollama run mistral-small3.1:24b"   # ~14 GB, best overall
 
@@ -259,9 +259,9 @@ Install from VS Code marketplace. Configure `~/.continue/config.json` with local
 {
   "models": [
     {
-      "title": "Local LM Studio - Gemma 3 12B (coding / daily)",
+      "title": "Local LM Studio - Gemma4 BF16 e4b",
       "provider": "lmstudio",
-      "model": "gemma3:12b",
+      "model": "Gemma4 BF16 e4b",
       "apiBase": "http://localhost:1234/v1",
       "contextLength": 32768
     },
@@ -359,7 +359,7 @@ Reddit practitioners consistently report that even models advertising 128K conte
 
 | Model                        | Advertised | Recommended working budget |
 |------------------------------|------------|----------------------------|
-| `gemma3:12b`                 | 128K       | ≤ 32K (sweet spot)         |
+| `Gemma4 BF16 e4b`            | check LM Studio | ≤ 32K unless verified higher |
 | `mistral-small3.1:24b`       | 128K       | ≤ 100K                     |
 | `granite3.3:8b`              | 128K       | ≤ 100K                     |
 | `phi4-reasoning`             | 16K        | ≤ 16K (hard limit)         |
@@ -414,12 +414,12 @@ pip install khoj --break-system-packages
 # Configure to use Ollama with approved model
 # Edit ~/.khoj/khoj.yml:
 #   chat-model: http://localhost:11434/v1
-#   model: gemma3:12b
+#   model: Gemma4 BF16 e4b
 ```
 
 Khoj can index your notes, files, and even web content. Works with Obsidian via plugin.
 
-> **Note:** Configure all RAG tools to use approved models only. Use `gemma3:12b` or `mistral-small3.1:24b` as the chat model, and `nomic-embed-text` for embeddings.
+> **Note:** Configure all RAG tools to use approved models only. Use `Gemma4 BF16 e4b` or `granite3.3:8b` as the chat model, and `nomic-embed-text` for embeddings.
 
 ---
 
@@ -469,7 +469,7 @@ Quick benchmark script to test your models:
 #!/bin/bash
 # save as ~/Local-AI/benchmark.sh
 
-models=("phi4-mini" "gemma3:12b" "devstral" "phi4-reasoning")
+models=("phi4-mini" "granite3.3:8b" "phi4-reasoning")
 prompt="Write a Python function that implements binary search on a sorted list."
 
 for model in "${models[@]}"; do
@@ -594,7 +594,7 @@ caffeinate -s &
 │  Safari PWA  │                    │  on 100.x.y.z:3000  │
 │  = native    │                    │                      │
 │    chat app  │                    │  Models loaded:      │
-│              │                    │  gemma3:12b / etc.   │
+│              │                    │  Gemma4 BF16 e4b     │
 └──────────────┘                    └──────────────────────┘
 ```
 
@@ -817,7 +817,7 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 |------|------------------------------------------------|--------|
 | 1    | Install Ollama + pull `phi4-mini`              | 10 min |
 | 2    | Pull coding model (`devstral`)           | 15 min |
-| 3    | Pull general model (`gemma3:12b`)              | 10 min |
+| 3    | Download primary model (`Gemma4 BF16 e4b`) in LM Studio | 10 min |
 | 4    | Set up shell aliases + env vars                | 5 min  |
 | 5    | Install Continue.dev in VS Code                | 10 min |
 | 6    | Install Open WebUI (Podman)                    | 10 min |
@@ -839,7 +839,7 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 SITUATION                          → MODEL TO USE                           RISK    VRAM
 ──────────────────────────────────────────────────────────────────────────────────────────
 Quick question / brainstorm        → phi4-mini (~3 GB, ultra-fast)          Green   ~3 GB
-Write an email / document          → gemma3:12b (good prose)                Green   ~8 GB
+Write an email / document          → Gemma4 BF16 e4b                        Green   ~8 GB
 General-purpose workhorse          → mistral-small3.1:24b (best overall)    Green   ~14 GB
 Code generation / refactoring      → devstral (best approved coder)   Green   ~14 GB
 Lighter coding tasks               → granite3.3:8b (code-aware, smaller)    Green   ~6 GB

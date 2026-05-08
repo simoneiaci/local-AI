@@ -296,10 +296,10 @@ footer a:hover{color:var(--text);text-decoration:none}
       </div>
       <div class="hero-panel-rows">
         <div class="hp-row"><span class="hp-lbl">runtime</span><span class="hp-val">LM Studio · <span class="dim">:1234</span></span></div>
-        <div class="hp-row"><span class="hp-lbl">primary</span><span class="hp-val">gemma3:12b <span class="dim">7.3 GB</span></span></div>
-        <div class="hp-row"><span class="hp-lbl">coding alt</span><span class="hp-val">granite3.3:8b <span class="dim">4.9 GB</span></span></div>
-        <div class="hp-row"><span class="hp-lbl">autocomplete</span><span class="hp-val">smollm2:1.7b <span class="ok">● loaded</span></span></div>
-        <div class="hp-row"><span class="hp-lbl">embeddings</span><span class="hp-val">nomic-embed-text</span></div>
+        <div class="hp-row"><span class="hp-lbl">primary</span><span class="hp-val">google/gemma-4-e4b <span class="dim">6.33 GB</span></span></div>
+        <div class="hp-row"><span class="hp-lbl">alt</span><span class="hp-val">granite-3.3-8b-instruct <span class="dim">4.94 GB</span></span></div>
+        <div class="hp-row"><span class="hp-lbl">autocomplete</span><span class="hp-val">smollm2-1.7b-instruct <span class="ok">● loaded</span></span></div>
+        <div class="hp-row"><span class="hp-lbl">embeddings</span><span class="hp-val">nomic-embed-text-v1.5</span></div>
         <div class="hp-row"><span class="hp-lbl">remote</span><span class="hp-val">tailscale <span class="dim">e2e</span></span></div>
       </div>
       <div class="hero-panel-mini">
@@ -402,7 +402,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="step-num">2</div>
       <div class="step-body">
         <h4>Phase 2 — Coding Tools</h4>
-        <p>Configures Continue.dev for VS Code, installs OpenCode and Aider, pulls <code>gemma3:12b</code> + <code>granite3.3:8b</code> for coding and <code>smollm2:1.7b</code> for tab autocomplete.</p>
+        <p>Configures Continue.dev for VS Code, installs OpenCode and Aider, pulls <code>granite-3.3-8b-instruct</code> for tool-calling and <code>smollm2-1.7b-instruct</code> for tab autocomplete. Primary model is <code>google/gemma-4-e4b</code> served by LM Studio.</p>
         <pre><span class="cmd">bash</span> scripts/phase2-coding-tools.sh</pre>
       </div>
     </div>
@@ -451,30 +451,31 @@ footer a:hover{color:var(--text);text-decoration:none}
 <section class="section" id="s-models">
   <div class="s-num">03 <span class="dim">/</span> Models</div>
   <h2>Right model for every task.</h2>
-  <p class="section-desc">Models run locally through LM Studio by default, with Ollama available as an alternate runtime. Only one large model fits in RAM at a time — <code>smollm2:1.7b</code> and <code>nomic-embed-text</code> stay loaded alongside any other.</p>
+  <p class="section-desc">Models run locally through LM Studio by default, with Ollama available as an alternate runtime. Only one large model fits in RAM at a time — <code>smollm2-1.7b-instruct</code> and <code>text-embedding-nomic-embed-text-v1.5</code> stay loaded alongside any other.</p>
 
   <div class="alert alert-yellow">⚠️ With 24 GB unified memory, ~14–16 GB is available for models after macOS overhead. Swap models as needed — unloading takes a second.</div>
+  <div class="alert alert-blue">💡 For <code>granite-3.3-8b-instruct</code> in LM Studio, set the model's default Context Length to <strong>32K</strong> in My Models → gear icon. Use <strong>64K</strong> only for long-document sessions; avoid <strong>128K</strong> as the everyday default on this 24 GB laptop.</div>
 
   <h3>Current Stack</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
-      <tr><td>Daily driver · Coding</td><td><code>gemma3:12b</code></td><td><span class="tag tag-yellow">7 GB</span></td><td>Chat, code gen, refactoring, multimodal (images)</td></tr>
-      <tr><td>Coding (lightweight alt)</td><td><code>granite3.3:8b</code></td><td><span class="tag tag-green">6 GB</span></td><td>Code gen, tool-calling, 128K context, multilingual</td></tr>
-      <tr><td>Reasoning · Math · Logic</td><td><code>phi4-reasoning</code></td><td><span class="tag tag-yellow">9 GB</span></td><td>Approved reasoning model that fits comfortably</td></tr>
-      <tr><td>Tab autocomplete</td><td><code>smollm2:1.7b</code></td><td><span class="tag tag-green">1 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
-      <tr><td>Embeddings</td><td><code>nomic-embed-text</code></td><td><span class="tag tag-green">0.3 GB</span></td><td>RAG pipelines, semantic search</td></tr>
+      <tr><td>Primary · Daily driver · Coding</td><td><code>google/gemma-4-e4b</code></td><td><span class="tag tag-green">6.33 GB</span></td><td>Chat, code generation, writing, and refactoring with BF16 quality</td></tr>
+      <tr><td>Tool-calling · RAG · Multilingual alt</td><td><code>granite-3.3-8b-instruct</code></td><td><span class="tag tag-green">4.94 GB</span></td><td>Function calling, 128K context, multilingual</td></tr>
+      <tr><td>Reasoning · Math · Logic</td><td><code>phi-4-reasoning</code></td><td><span class="tag tag-yellow">11.12 GB</span></td><td>Approved 15B reasoning model that fits comfortably</td></tr>
+      <tr><td>Tab autocomplete</td><td><code>smollm2-1.7b-instruct</code></td><td><span class="tag tag-green">1.82 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
+      <tr><td>Embeddings</td><td><code>text-embedding-nomic-embed-text-v1.5</code></td><td><span class="tag tag-green">84 MB</span></td><td>RAG pipelines, semantic search</td></tr>
     </table>
   </div>
 
   <div class="alert alert-yellow">⚠️ Qwen and DeepSeek models are not used in this project. Qwen model entries were removed from configs, aliases, setup scripts, and docs.</div>
-  <div class="alert alert-blue">💡 Use <strong>phi4-reasoning</strong> for reasoning-heavy prompts and <strong>granite3.3:8b</strong> for multilingual/RAG document work.</div>
+  <div class="alert alert-blue">💡 Use <strong>phi-4-reasoning</strong> for reasoning-heavy prompts and <strong>granite-3.3-8b-instruct</strong> for multilingual/RAG document work.</div>
 
   <h3>Custom Modelfiles</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Name</th><th>Based on</th><th>Purpose</th></tr>
-      <tr><td><code>swift-mentor</code></td><td><code>gemma3:12b</code></td><td>iOS/macOS Swift 6 expert — SwiftUI, UIKit, async/await, TCA</td></tr>
+      <tr><td colspan="3" style="color:var(--muted);font-style:italic">No custom modelfiles currently defined — swift-mentor removed with gemma3:12b.</td></tr>
     </table>
   </div>
 
@@ -482,13 +483,13 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="table-wrap">
     <table>
       <tr><th>Task</th><th>Best model</th><th>Why</th></tr>
-      <tr><td>Code generation</td><td><code>gemma3:12b</code> · <code>granite3.3:8b</code></td><td>gemma3 for general code; granite for tool-calling and long context (128K)</td></tr>
-      <tr><td>iOS / Swift coding</td><td><code>swift-mentor</code> · <code>gemma3:12b</code></td><td>Custom persona pre-loaded with Swift 6 + TCA context</td></tr>
-      <tr><td>Tax / Italian documents</td><td><code>granite3.3:8b</code></td><td>Multilingual, 128K context, strong RAG fit</td></tr>
-      <tr><td>Complex reasoning</td><td><code>phi4-reasoning</code></td><td>Approved 14B reasoning model that fits the laptop</td></tr>
-      <tr><td>Image analysis</td><td><code>gemma3:12b</code></td><td>Multimodal, fast, high accuracy</td></tr>
-      <tr><td>Quick chat</td><td><code>gemma3:12b</code></td><td>Fast, 7 GB, always available</td></tr>
-      <tr><td>Embeddings / RAG</td><td><code>nomic-embed-text</code></td><td>Required by Open WebUI knowledge base</td></tr>
+      <tr><td>Code generation · Daily chat</td><td><code>google/gemma-4-e4b</code></td><td>Primary LM Studio model — general code, writing, and refactoring with practical RAM headroom</td></tr>
+      <tr><td>iOS / Swift coding</td><td><code>google/gemma-4-e4b</code></td><td>Strong general coding; use a system prompt with Swift 6 + TCA context</td></tr>
+      <tr><td>Tax / Italian documents</td><td><code>granite-3.3-8b-instruct</code></td><td>Multilingual, 128K context, strong RAG fit</td></tr>
+      <tr><td>Complex reasoning</td><td><code>phi-4-reasoning</code></td><td>Approved 15B reasoning model that fits the laptop</td></tr>
+      <tr><td>Image analysis</td><td><code>google/gemma-4-e4b</code></td><td>Attach images directly in Open WebUI</td></tr>
+      <tr><td>Tool / function calling</td><td><code>granite-3.3-8b-instruct</code></td><td>Optimized for structured tool calls, 128K context</td></tr>
+      <tr><td>Embeddings / RAG</td><td><code>text-embedding-nomic-embed-text-v1.5</code></td><td>Required by Open WebUI knowledge base</td></tr>
     </table>
   </div>
 
@@ -496,9 +497,11 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="table-wrap">
     <table>
       <tr><th>Model</th><th>VRAM</th><th>Fits?</th><th>Notes</th></tr>
-      <tr><td>Gemma 3 4B</td><td>3 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Lightweight, multimodal</td></tr>
-      <tr><td>Gemma 3 12B</td><td>7 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Recommended daily driver</td></tr>
-      <tr><td>Gemma 4 26B-A4B</td><td>~15 GB</td><td><span class="tag tag-yellow">⚠ Tight</span></td><td>MoE — fits but pushes the limit</td></tr>
+      <tr><td>Gemma 3 4B</td><td>3 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Not installed — lightweight multimodal option if needed</td></tr>
+      <tr><td>Gemma 3 12B</td><td>7 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Removed — replaced by Gemma 4</td></tr>
+      <tr><td>google/gemma-4-e4b</td><td>6.33 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Current primary — BF16 quality with room for the local stack</td></tr>
+      <tr><td>granite-3.3-8b-instruct</td><td>4.94 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Tool calling, 128K context, multilingual</td></tr>
+      <tr><td>phi-4-reasoning (15B)</td><td>11.12 GB</td><td><span class="tag tag-yellow">⚠ One at a time</span></td><td>Load alone — no headroom for another large model</td></tr>
       <tr><td>Gemma 3 27B</td><td>16 GB</td><td><span class="tag tag-red">✗ No</span></td><td>Marginal, expect swapping</td></tr>
       <tr><td>Gemma 4 31B</td><td>20 GB</td><td><span class="tag tag-red">✗ No</span></td><td>Too large for 24 GB</td></tr>
     </table>
@@ -522,11 +525,11 @@ footer a:hover{color:var(--text);text-decoration:none}
         <div class="shortcut-row">
           <div class="shortcut-item"><div class="kbd-wrap"><kbd>⌘</kbd><kbd>L</kbd></div><div class="shortcut-desc">Open AI chat sidebar — ask questions about your code</div></div>
           <div class="shortcut-item"><div class="kbd-wrap"><kbd>⌘</kbd><kbd>I</kbd></div><div class="shortcut-desc">Inline edit — select code and describe the change</div></div>
-          <div class="shortcut-item"><div class="kbd-wrap"><kbd>Tab</kbd></div><div class="shortcut-desc">Accept autocomplete from <code>smollm2:1.7b</code></div></div>
+          <div class="shortcut-item"><div class="kbd-wrap"><kbd>Tab</kbd></div><div class="shortcut-desc">Accept autocomplete from <code>smollm2-1.7b-instruct</code></div></div>
         </div>
         <p class="tool-desc">Primary local models use LM Studio at <code>localhost:1234/v1</code>. Ollama remains configured as the local fallback for chat, autocomplete, and embeddings.</p>
-        <div class="tool-models"><span class="tool-model-label">Local LM Studio:</span><code>gemma3:12b</code> · <code>granite3.3:8b</code> · <code>phi4-mini</code> · <code>phi4-reasoning</code></div>
-        <div class="tool-config">Config: <code>~/.continue/config.json</code> · daily pick: <code>Local LM Studio - Gemma 3 12B</code></div>
+        <div class="tool-models"><span class="tool-model-label">Local LM Studio:</span><code>google/gemma-4-e4b</code> · <code>granite-3.3-8b-instruct</code> · <code>phi-4-reasoning</code></div>
+        <div class="tool-config">Config: <code>~/.continue/config.json</code> · daily pick: <code>google/gemma-4-e4b</code></div>
       </div>
     </div>
 
@@ -537,10 +540,10 @@ footer a:hover{color:var(--text);text-decoration:none}
         <a class="tool-link" href="https://github.com/opencode-ai/opencode" target="_blank">Docs ↗</a>
       </div>
       <div class="tool-body">
-        <p class="tool-desc">Full agentic coding in your terminal. Reads your codebase, edits files, runs commands — powered by <code>gemma3:12b</code>.</p>
+        <p class="tool-desc">Full agentic coding in your terminal. Reads your codebase, edits files, runs commands — powered by <code>google/gemma-4-e4b</code> via LM Studio.</p>
         <pre style="margin:0"><span class="cmd">opencode</span>              <span class="c"># launch TUI agent</span>
-<span class="cmd">ai-use-coding</span>         <span class="c"># switch to gemma3:12b</span>
-<span class="cmd">ai-use-general</span>        <span class="c"># switch to mistral-small3.1:24b</span></pre>
+<span class="cmd">ai-use-mlx</span>            <span class="c"># switch to LM Studio (google/gemma-4-e4b)</span>
+<span class="cmd">ai-use-ollama</span>         <span class="c"># switch to Ollama fallback</span></pre>
       </div>
     </div>
 
@@ -552,8 +555,8 @@ footer a:hover{color:var(--text);text-decoration:none}
       </div>
       <div class="tool-body">
         <p class="tool-desc">Commit-aware coding assistant. Add files to context, describe changes in plain English — Aider writes and commits the code.</p>
-        <pre style="margin:0"><span class="cmd">aider-code</span>   <span class="c"># gemma3:12b — fast, great for coding</span>
-<span class="cmd">aider-think</span>  <span class="c"># phi4-reasoning — approved reasoning</span></pre>
+        <pre style="margin:0"><span class="cmd">aider-code</span>   <span class="c"># google/gemma-4-e4b — primary coding model</span>
+<span class="cmd">aider-think</span>  <span class="c"># phi-4-reasoning — approved reasoning</span></pre>
       </div>
     </div>
   </div>
@@ -564,7 +567,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="flow-step">
       <div class="flow-num">1</div>
       <div>
-        <div class="flow-title">Plan <span class="tag tag-yellow">phi4-reasoning</span></div>
+        <div class="flow-title">Plan <span class="tag tag-yellow">phi-4-reasoning</span></div>
         <div class="flow-desc">Analyse the problem, identify edge cases, design the approach step-by-step before writing any code.</div>
       </div>
     </div>
@@ -572,13 +575,13 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="flow-step">
       <div class="flow-num">2</div>
       <div>
-        <div class="flow-title">Build <span class="tag tag-green">gemma3:12b</span></div>
-        <div class="flow-desc">Feed the plan to gemma3:12b. It writes clean, working code fast — no need to reason from scratch.</div>
+        <div class="flow-title">Build <span class="tag tag-green">google/gemma-4-e4b</span></div>
+        <div class="flow-desc">Feed the plan to gemma-4-e4b. It handles day-to-day implementation without pushing the laptop to the old 26B memory ceiling.</div>
       </div>
     </div>
   </div>
 
-  <div class="alert alert-blue">💡 Keep context under ~100K tokens even for large-context models. Performance degrades near the limit on Apple Silicon due to memory bandwidth constraints.</div>
+  <div class="alert alert-blue">💡 Keep context under ~100K tokens even for large-context models. Also check the model's loaded context: a 128K-capable model loaded at 4K will still fail on long prompts. For Granite, default to 32K and move to 64K only when the session needs it.</div>
 
   <h3>Connect Any Tool</h3>
   <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">Any OpenAI-compatible client works — point it at LM Studio by default, or Ollama when you switch runtimes:</p>
@@ -586,8 +589,9 @@ footer a:hover{color:var(--text);text-decoration:none}
     <table>
       <tr><th>Setting</th><th>Value</th></tr>
       <tr><td>API Base URL</td><td><code>http://localhost:1234/v1</code> (LM Studio default) or <code>http://localhost:11434/v1</code> (Ollama)</td></tr>
-      <tr><td>API Key</td><td><code>lm-studio</code> or <code>ollama</code> (any non-empty string)</td></tr>
-      <tr><td>Model</td><td><code>gemma3:12b</code>, <code>granite3.3:8b</code>, <code>phi4-reasoning</code>, …</td></tr>
+      <tr><td>API Key</td><td>Real LM Studio token required — generate in LM Studio → Developer → API Keys. Store as <code>LM_STUDIO_API_KEY</code> in <code>.secrets</code>.</td></tr>
+      <tr><td>Model</td><td><code>google/gemma-4-e4b</code>, <code>granite-3.3-8b-instruct</code>, <code>phi-4-reasoning</code>, …</td></tr>
+      <tr><td>Granite context</td><td><code>32768</code> default; <code>65536</code> for long documents; avoid <code>131072</code> as the default on 24 GB RAM</td></tr>
     </table>
   </div>
 
@@ -636,10 +640,10 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="dash-card">
       <h5>Models — LM Studio · chat</h5>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px;font-size:.83rem">
-        <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>smollm2:1.7b</strong><br><span style="color:var(--muted2)">1.1 GB · </span><span class="tag tag-green" style="font-size:.64rem">● loaded</span></div>
-        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>gemma3:12b</strong><br><span style="color:var(--muted2)">7.6 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
-        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>granite3.3:8b</strong><br><span style="color:var(--muted2)">4.9 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
-        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>phi4-reasoning</strong><br><span style="color:var(--muted2)">9 GB · </span><span class="tag tag-blue" style="font-size:.64rem">reasoning</span></div>
+        <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>google/gemma-4-e4b</strong><br><span style="color:var(--muted2)">6.33 GB · </span><span class="tag tag-green" style="font-size:.64rem">● loaded</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>granite-3.3-8b-instruct</strong><br><span style="color:var(--muted2)">4.94 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>phi-4-reasoning</strong><br><span style="color:var(--muted2)">11.12 GB · </span><span class="tag tag-blue" style="font-size:.64rem">reasoning</span></div>
+        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>smollm2-1.7b-instruct</strong><br><span style="color:var(--muted2)">1.82 GB · </span><span class="tag tag-blue" style="font-size:.64rem">autocomplete</span></div>
       </div>
     </div>
   </div>
@@ -763,7 +767,7 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <div class="step-body"><h4>Set the embedding model</h4><p>Admin Panel → Settings → Documents. Set <strong>Embedding Model</strong> to <code>nomic-embed-text</code> (already pulled). Save.</p></div>
+      <div class="step-body"><h4>Set the embedding model</h4><p>Admin Panel → Settings → Documents. Set <strong>Embedding Model</strong> to <code>text-embedding-nomic-embed-text-v1.5</code> (served by LM Studio). Save.</p></div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
@@ -774,7 +778,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="step-body"><h4>Use in chat</h4><p>Click <strong>+</strong> in a new chat → select your Knowledge collection. Or use 📎 to attach a single file directly. Then ask: "Quali spese mediche posso detrarre nel 730/2025?"</p></div>
     </div>
   </div>
-  <div class="alert alert-blue">💡 Best local model for Italian tax RAG: <code>granite3.3:8b</code> for multilingual 128K-context document Q&amp;A. Use <code>phi4-reasoning</code> when the task is mostly reasoning rather than retrieval.</div>
+  <div class="alert alert-blue">💡 Best local model for Italian tax RAG: <code>granite-3.3-8b-instruct</code> for multilingual 128K-context document Q&amp;A. Use <code>phi-4-reasoning</code> when the task is mostly reasoning rather than retrieval.</div>
 
   <h3>2 · Memory</h3>
   <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your tax situation — building a personal context that persists between sessions.</p>
@@ -840,7 +844,7 @@ footer a:hover{color:var(--text);text-decoration:none}
   </div>
 
   <h3>5 · Image Input (Vision)</h3>
-  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Already works — select <code>gemma3:12b</code> and attach an image. Useful for reading receipts, Xcode error screenshots, diagrams, or scanned documents.</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Use a vision-capable model and attach an image in Open WebUI. <code>google/gemma-4-e4b</code> supports image input. Useful for reading receipts, Xcode error screenshots, diagrams, or scanned documents.</p>
   <div class="table-wrap">
     <table>
       <tr><th>Use case</th><th>Prompt example</th></tr>
@@ -852,11 +856,11 @@ footer a:hover{color:var(--text);text-decoration:none}
   </div>
 
   <h3>6 · Custom Modelfiles (Personas)</h3>
-  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Custom models pre-loaded with expert system prompts. <code>swift-mentor</code> is already created.</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Custom models pre-loaded with expert system prompts. Create them in Open WebUI's Workspace → Models.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <div class="step-body"><h4>Access custom models</h4><p>In Open WebUI, open the model selector — <code>swift-mentor</code> appears alongside base models.</p></div>
+      <div class="step-body"><h4>Create a persona in Open WebUI</h4><p>Workspace → Models → Create Model. Choose <code>google/gemma-4-e4b</code> as base, write a System Prompt, save. Appears immediately in the chat selector.</p></div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
@@ -868,7 +872,7 @@ footer a:hover{color:var(--text);text-decoration:none}
         <h4>Or via Ollama CLI</h4>
         <pre><span class="cmd">cat</span> &gt; ~/my-assistant.modelfile &lt;&lt;'EOF'
 # Personal-only; no corporate/work data
-FROM phi4-reasoning
+FROM phi-4-reasoning
 SYSTEM """You are a helpful assistant..."""
 EOF
 <span class="cmd">ollama create</span> my-assistant -f ~/my-assistant.modelfile</pre>
@@ -965,22 +969,22 @@ EOF
   <div class="table-wrap">
     <table>
       <tr><th>Command</th><th>Switches to</th></tr>
-      <tr><td><code>ai-use-coding</code></td><td><code>gemma3:12b</code> (OpenCode + Aider)</td></tr>
-      <tr><td><code>ai-use-general</code></td><td><code>mistral-small3.1:24b</code></td></tr>
+      <tr><td><code>ai-use-mlx</code></td><td>LM Studio backend — <code>google/gemma-4-e4b</code> (default)</td></tr>
+      <tr><td><code>ai-use-ollama</code></td><td>Ollama backend — <code>granite-3.3-8b-instruct</code> fallback</td></tr>
     </table>
   </div>
 
   <h3>Ollama Direct</h3>
   <div class="code-block">
     <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
-    <pre><span class="cmd">ollama run gemma3:12b</span>         <span class="c"># quick chat in terminal</span>
-<span class="cmd">ollama run granite3.3:8b</span>     <span class="c"># coding (tool-calling, 128K ctx)</span>
+    <pre><span class="cmd">ollama run granite-3.3-8b-instruct</span>  <span class="c"># quick Ollama session (tool-calling, 128K ctx)</span>
+<span class="cmd">ollama run phi-4-reasoning</span>    <span class="c"># reasoning in terminal</span>
 <span class="cmd">ollama ps</span>                     <span class="c"># loaded models + VRAM</span>
 <span class="cmd">ollama list</span>                   <span class="c"># all available models</span>
-<span class="cmd">ollama pull phi4-reasoning</span>     <span class="c"># approved reasoning model</span>
+<span class="c"># Primary model (google/gemma-4-e4b) is served by LM Studio — use Open WebUI or OpenCode</span>
 <span class="c"># Unload model immediately (free RAM):</span>
 <span class="cmd">curl</span> http://localhost:11434/api/generate \
-  -d <span class="str">'{"model":"gemma3:12b","keep_alive":0}'</span></pre>
+  -d <span class="str">'{"model":"granite-3.3-8b-instruct","keep_alive":0}'</span></pre>
   </div>
 
   <h3>Environment Variables</h3>

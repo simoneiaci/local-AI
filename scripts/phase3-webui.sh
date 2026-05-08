@@ -94,7 +94,7 @@ if ! podman ps -a --format '{{.Names}}' | grep -q '^open-webui$'; then
     -p 3000:8080 \
     -e ENABLE_OPENAI_API=true \
     -e OPENAI_API_BASE_URL=http://host.containers.internal:1234/v1 \
-    -e OPENAI_API_KEY=lm-studio \
+    -e OPENAI_API_KEY="${LM_STUDIO_API_KEY:-sk-lm-REPLACE_ME}" \
     -e ENABLE_OLLAMA_API=true \
     -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
     -v open-webui:/app/backend/data \

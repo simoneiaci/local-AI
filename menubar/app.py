@@ -17,6 +17,13 @@ import zlib
 from pathlib import Path
 
 import rumps
+from AppKit import (
+    NSApplication,
+    NSApplicationActivationPolicyAccessory,
+    NSColor,
+    NSForegroundColorAttributeName,
+)
+from Foundation import NSAttributedString
 
 SECRETS_PATH = Path.home() / 'Documents/AI/Local-AI/.secrets'
 METRICS_PATH = '/tmp/ai-metrics.json'
@@ -82,6 +89,13 @@ def _ram_dot(pct):
     if pct < 60:    return '🟢'
     if pct < 80:    return '🟡'
     return '🔴'
+
+
+def _ram_title_color(pct):
+    if pct is None: return NSColor.systemGrayColor()
+    if pct < 60:    return NSColor.systemGreenColor()
+    if pct < 80:    return NSColor.systemYellowColor()
+    return NSColor.systemRedColor()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -168,6 +182,14 @@ def _lmstudio_get(path):
         return None
 
 
+def _lmstudio_api_get(path):
+    try:
+        with urllib.request.urlopen(f'http://localhost:1234{path}', timeout=3) as resp:
+            return json.load(resp)
+    except Exception:
+        return None
+
+
 def _acquire_instance_lock() -> bool:
     global _INSTANCE_LOCK
     current_pid = os.getpid()
@@ -213,6 +235,17 @@ def _remove_launchd_job():
                            stderr=subprocess.DEVNULL, timeout=2)
         except Exception:
             pass
+
+
+def _configure_macos_accessory_app():
+    """Run as a menu-bar accessory app even when launched by Python directly."""
+    try:
+        NSApplication.sharedApplication().setActivationPolicy_(
+            NSApplicationActivationPolicyAccessory
+        )
+    except Exception as e:
+        print(f'Local-AI menu bar: failed to set accessory activation policy: {e}',
+              file=sys.stderr)
 
 
 def _ensure_exporter():
@@ -264,8 +297,8 @@ class LocalAIApp(rumps.App):
 
         super().__init__(
             name='LocalAI',
-            title='',
-            icon=ICON_GREY,
+            title='LAI',
+            icon=None,
             template=False,
             menu=[
                 self._mi_cpu,
@@ -306,6 +339,17 @@ class LocalAIApp(rumps.App):
         rumps.Timer(self._poll, 3).start()
         self._poll(None)
 
+    def _set_status_title(self, pct):
+        self.title = 'LAI'
+        try:
+            status_item = self._nsapp.nsstatusitem
+            attrs = {NSForegroundColorAttributeName: _ram_title_color(pct)}
+            status_item.button().setAttributedTitle_(
+                NSAttributedString.alloc().initWithString_attributes_('LAI', attrs)
+            )
+        except Exception:
+            pass
+
     # ── Polling ───────────────────────────────────────────────────────────────
 
     def _poll(self, _):
@@ -331,8 +375,8 @@ class LocalAIApp(rumps.App):
 
     def _apply(self, data):
         if data is None:
-            self.icon  = ICON_GREY
-            self.title = ''
+            self.icon  = None
+            self._set_status_title(None)
             self._mi_cpu.title  = 'CPU: —'
             self._mi_ram.title  = '⚪ RAM: —'
             self._mi_disk.title = 'Disk: —'
@@ -353,8 +397,8 @@ class LocalAIApp(rumps.App):
         svc  = data.get('services') or {}
 
         pct        = ram.get('pct') if ram else None
-        self.icon  = _ram_icon(pct)
-        self.title = ''
+        self.icon  = None
+        self._set_status_title(pct)
 
         self._mi_cpu.title = f'CPU: {cpu:.1f}%' if cpu is not None else 'CPU: —'
 
@@ -401,19 +445,31 @@ class LocalAIApp(rumps.App):
     def _fetch_models(self):
         backend = self._read_backend()
         if backend == 'lmstudio':
-            models_payload = _lmstudio_get('/models')
+            models_payload = _lmstudio_api_get('/api/v0/models')
             if models_payload is None:
-                with self._lock:
-                    if self._known_models or self._active_model != 'lmstudio-offline':
-                        self._known_models = []
-                        self._active_model = 'lmstudio-offline'
-                        self._models_dirty = True
-                return
+                models_payload = _lmstudio_get('/models')
+                if models_payload is None:
+                    with self._lock:
+                        if self._known_models or self._active_model != 'lmstudio-offline':
+                            self._known_models = []
+                            self._active_model = 'lmstudio-offline'
+                            self._models_dirty = True
+                    return
+            raw_models = models_payload.get('data', [])
             models = sorted(
-                name for name in (m.get('id', '') for m in models_payload.get('data', []))
+                name for name in (m.get('id', '') for m in raw_models)
                 if name and self._is_chat_model(name)
             )
-            active = models[0] if models else 'lmstudio-no-chat-model'
+            loaded = sorted(
+                name for name in (
+                    m.get('id', '') for m in raw_models
+                    if m.get('state') == 'loaded'
+                )
+                if name and self._is_chat_model(name)
+            )
+            active = loaded[0] if loaded else (
+                'lmstudio-no-loaded-chat-model' if models else 'lmstudio-no-chat-model'
+            )
             with self._lock:
                 if models != self._known_models or active != self._active_model:
                     self._known_models = models
@@ -451,6 +507,9 @@ class LocalAIApp(rumps.App):
                 if active == 'lmstudio-no-chat-model':
                     self._mi_model.title = 'LM Studio: no chat model'
                     self._mi_model.add(rumps.MenuItem('(API reachable; no chat model exposed)'))
+                elif active == 'lmstudio-no-loaded-chat-model':
+                    self._mi_model.title = 'LM Studio: no loaded model'
+                    self._mi_model.add(rumps.MenuItem('(chat models available; none loaded)'))
                 else:
                     self._mi_model.title = 'LM Studio: —'
                     self._mi_model.add(rumps.MenuItem('(server offline or no chat model loaded)'))
@@ -461,7 +520,11 @@ class LocalAIApp(rumps.App):
                 return
 
             short = active.rsplit('/', 1)[-1].rsplit(':', 1)[0] if active else 'loaded'
-            self._mi_model.title = f'LM Studio: {short}'
+            self._mi_model.title = (
+                'LM Studio: no loaded model'
+                if active == 'lmstudio-no-loaded-chat-model'
+                else f'LM Studio: {short}'
+            )
             for name in models:
                 self._mi_model.add(rumps.MenuItem(f'✓  {name}' if name == active else f'    {name}'))
             self._mi_model.add(None)
@@ -608,4 +671,5 @@ if __name__ == '__main__':
     if not _acquire_instance_lock():
         print('Local-AI menu bar app is already running; exiting.', file=sys.stderr)
         raise SystemExit(0)
+    _configure_macos_accessory_app()
     LocalAIApp().run()

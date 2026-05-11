@@ -93,7 +93,7 @@ requires `OLLAMA_HOST=0.0.0.0:11434`. Mac must be awake (`caffeinate -s &`).
 | Model                              | Size      | Runtime    | Role                                 |
 |------------------------------------|-----------|------------|--------------------------------------|
 | `google/gemma-4-e4b` (gemma4 arch) | 6.33 GB   | LM Studio  | **Primary** — chat, code (LOADED)    |
-| `phi4-reasoning` (15B)             | 11.12 GB  | LM Studio  | Chain-of-thought reasoning           |
+| `phi-4-reasoning` (15B)            | 11.12 GB  | LM Studio  | Chain-of-thought reasoning           |
 | `granite-3.3-8b-instruct`          | 4.94 GB   | LM Studio  | Tool calling, RAG, 128K context      |
 | `smollm2-1.7b-instruct`            | 1.82 GB   | LM Studio  | Tab autocomplete (Continue.dev)      |
 | `text-embedding-nomic-embed-text-v1.5` | 84 MB | LM Studio  | Embeddings (RAG)                     |
@@ -107,7 +107,7 @@ requires `OLLAMA_HOST=0.0.0.0:11434`. Mac must be awake (`caffeinate -s &`).
 | General writing / emails     | `Gemma4 BF16 e4b`           | `granite3.3:8b`        |
 | Code generation / debugging  | `Gemma4 BF16 e4b`           | `granite3.3:8b`        |
 | Tool / function calling      | `granite3.3:8b`               | `Gemma4 BF16 e4b`    |
-| Reasoning / math / logic     | `phi4-reasoning`              | `Gemma4 BF16 e4b`    |
+| Reasoning / math / logic     | `phi-4-reasoning`             | `Gemma4 BF16 e4b`    |
 | Summarization                | `Gemma4 BF16 e4b`           | `granite3.3:8b`        |
 | RAG / document Q&A           | `granite3.3:8b` (128K ctx)    | `Gemma4 BF16 e4b`    |
 | Multilingual                 | `granite3.3:8b` (12 langs)    | `Gemma4 BF16 e4b`    |
@@ -119,7 +119,7 @@ requires `OLLAMA_HOST=0.0.0.0:11434`. Mac must be awake (`caffeinate -s &`).
 
 - `google/gemma-4-e4b` (6.33 GB) — **current primary**, BF16 quality, gemma4 arch
 - `granite-3.3-8b-instruct` (4.94 GB) — tool calling, 128K context
-- `phi4-reasoning` (11.12 GB) — chain-of-thought, fits with headroom
+- `phi-4-reasoning` (11.12 GB) — chain-of-thought, fits with headroom
 - `smollm2-1.7b-instruct` (1.82 GB) — autocomplete only
 - `phi4-mini` (~3 GB via Ollama) — fast chat fallback
 
@@ -144,8 +144,8 @@ requires `OLLAMA_HOST=0.0.0.0:11434`. Mac must be awake (`caffeinate -s &`).
 1. Is the request about the **primary model** (`Gemma4 BF16 e4b`)? →
    **LM Studio** (port 1234). Use Open WebUI or OpenCode as the client.
 2. Is the request a **quick terminal chat with a small model**
-   (`phi4-mini`, `granite3.3:8b`, `phi4-reasoning`)? → **Ollama**
-   (`ollama run <name>`).
+   (`phi4-mini`, `granite-3.3-8b-instruct`)? → **Ollama**
+   (`ollama run <name>`). `phi-4-reasoning` and the primary model live in LM Studio.
 3. Is the user explicitly wiring up an OpenAI-compatible client? →
    Default to **LM Studio** (`http://localhost:1234/v1`) unless they
    specifically named Ollama.
@@ -186,12 +186,12 @@ ai-use-ollama  # → Ollama
 ### Continue.dev
 - Config: `~/.continue/config.json`
 - Provider: OpenAI-compatible (LM Studio default) or Ollama
-- Separate models for chat (`Gemma4 BF16 e4b`) vs autocomplete (`smollm2:1.7b`)
+- Separate models for chat (`google/gemma-4-e4b`) vs autocomplete (`smollm2-1.7b-instruct`)
 
 ### OpenCode
 - `OPENCODE_API_BASE=http://localhost:1234/v1` (default — LM Studio)
 - Alternate: `http://localhost:11434/v1` (Ollama)
-- Recommended model: `Gemma4 BF16 e4b`
+- Recommended model: `google/gemma-4-e4b`
 - Requires tool-calling + 64K+ context
 
 ### Open WebUI
@@ -360,7 +360,7 @@ say so explicitly in the commit/PR: `docs-sync: N/A — internal refactor only.`
 5. **Config files:** `~/.config/local-ai/` or in this project directory.
 6. **API format:** OpenAI-compatible everywhere — easier tool integration.
 7. **Plan-then-build:** for non-trivial coding tasks, plan with
-   `phi4-reasoning`, implement with `Gemma4 BF16 e4b`.
+   `phi-4-reasoning`, implement with `google/gemma-4-e4b`.
 8. **Context budget:** model max context is not the same as loaded context.
    LM Studio can expose `granite3.3:8b` as a 128K-capable model while it is
    loaded at only 4K, which will fail on long prompts. Default Granite to
@@ -501,18 +501,18 @@ export OLLAMA_HOST=0.0.0.0:11434      # allow Tailscale + Podman to connect
 
 # OpenCode (LM Studio default)
 export OPENCODE_API_BASE=http://localhost:1234/v1
-export OPENCODE_MODEL="Gemma4 BF16 e4b"
+export OPENCODE_MODEL="google/gemma-4-e4b"
 ```
 
 Convenience aliases (already in `stack-aliases-v2.sh`):
 
 ```bash
-alias ai-chat="ollama run phi4-mini"          # ~3 GB, ultra-fast
-alias ai-general="ollama run granite3.3:8b"   # ~6 GB, Ollama fallback
-alias ai-code="ollama run granite3.3:8b"      # ~6 GB, tool-calling + 128K
-alias ai-reason="ollama run phi4-reasoning"   # ~9 GB, reasoning
+alias ai-chat="ollama run phi4-mini"                    # ~3 GB, ultra-fast
+alias ai-general="ollama run granite-3.3-8b-instruct"   # ~5 GB, Ollama fallback
+alias ai-code="ollama run granite-3.3-8b-instruct"      # ~5 GB, tool-calling + 128K ctx
+alias ai-reason="ollama run phi-4-reasoning"            # ~11 GB, chain-of-thought
 alias ai-status="ollama ps"
-# Primary (Gemma4 BF16 e4b, ~8 GB) is in LM Studio — use Open WebUI / OpenCode.
+# Primary (google/gemma-4-e4b, 6.33 GB) is in LM Studio — use Open WebUI / OpenCode.
 ```
 
 ---

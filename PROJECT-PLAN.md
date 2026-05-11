@@ -77,7 +77,7 @@ All Gemma models are Green-approved. Here's every variant and whether it runs on
 | **Gemma 2 9B**           | `gemma2:9b`              | ~6 GB     | Yes        | Solid general-purpose, text-only  |
 | **Gemma 3 12B**          | `gemma3:12b`             | ~7 GB     | Yes        | Older daily-driver option; replaced by Gemma4 BF16 e4b |
 | **Gemma 4 E4B**          | `gemma4:e4b-it`          | ~3 GB     | Easily     | Edge model — fast but shallow     |
-| **Gemma4 BF16 e4b**      | LM Studio ID varies      | ~8 GB     | Yes        | **Current primary** — BF16 quality with practical RAM headroom |
+| **Gemma4 BF16 e4b**      | `google/gemma-4-e4b`     | 6.33 GB   | Yes        | **Current primary** — BF16 quality with practical RAM headroom |
 | **Gemma 3 27B**          | `gemma3:27b`             | ~16 GB    | Marginal   | Best Gemma quality overall but leaves <8 GB for system — risky, may swap |
 | **Gemma 4 31B**          | `gemma4:31b-it`          | ~20 GB    | No         | Too large — causes swapping, context suffers. Avoid. |
 | Gemma 3n E2B/E4B (LiteRT)| —                       | —         | N/A        | On-device edge only (phones). **Not available on Ollama.** Skip. |
@@ -191,7 +191,7 @@ http://localhost:11434/v1
 ollama pull phi4-mini
 
 # Primary daily workhorse (Green, ~8 GB)
-# Download Gemma4 BF16 e4b in LM Studio, then query /v1/models for its exact API ID.
+# Download Gemma4 BF16 e4b in LM Studio. API model ID: google/gemma-4-e4b
 
 # Coding specialist (Green, ~14 GB)
 ollama pull devstral
@@ -261,7 +261,7 @@ Install from VS Code marketplace. Configure `~/.continue/config.json` with local
     {
       "title": "Local LM Studio - Gemma4 BF16 e4b",
       "provider": "lmstudio",
-      "model": "Gemma4 BF16 e4b",
+      "model": "google/gemma-4-e4b",
       "apiBase": "http://localhost:1234/v1",
       "contextLength": 32768
     },

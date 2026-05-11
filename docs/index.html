@@ -300,7 +300,6 @@ footer a:hover{color:var(--text);text-decoration:none}
         <div class="hp-row"><span class="hp-lbl">alt</span><span class="hp-val">granite-3.3-8b-instruct <span class="dim">4.94 GB</span></span></div>
         <div class="hp-row"><span class="hp-lbl">autocomplete</span><span class="hp-val">smollm2-1.7b-instruct <span class="ok">● loaded</span></span></div>
         <div class="hp-row"><span class="hp-lbl">embeddings</span><span class="hp-val">nomic-embed-text-v1.5</span></div>
-        <div class="hp-row"><span class="hp-lbl">remote</span><span class="hp-val">tailscale <span class="dim">e2e</span></span></div>
       </div>
       <div class="hero-panel-mini">
         <div class="hpm"><div class="hpm-lbl">avail&nbsp;ram</div><div class="hpm-val">~16 GB</div></div>
@@ -328,8 +327,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <a href="#s-dashboard"><span class="num">05</span>Dashboard</a>
     <a href="#s-websearch"><span class="num">06</span>Web Search</a>
     <a href="#s-webui"><span class="num">07</span>Open WebUI</a>
-    <a href="#s-remote"><span class="num">08</span>Remote</a>
-    <a href="#s-commands"><span class="num">09</span>Commands</a>
+    <a href="#s-commands"><span class="num">08</span>Commands</a>
     <div class="nav-progress" id="nav-progress"></div>
   </div>
 </nav>
@@ -347,7 +345,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="card"><span class="card-icon">💬</span><h4>Open WebUI</h4><p>ChatGPT-like interface in Podman. Multi-model chat, documents, image input, memory, web search.</p></div>
     <div class="card"><span class="card-icon">🛠️</span><h4>Coding Tools</h4><p>Continue.dev in VS Code + OpenCode + Aider. All powered by local models — no cloud needed.</p></div>
     <div class="card"><span class="card-icon">📊</span><h4>Live Dashboard</h4><p>System stats, loaded models, and service controls at <code>localhost:9090</code>. Start/stop with one click.</p></div>
-    <div class="card"><span class="card-icon">📱</span><h4>iPhone Access</h4><p>Tailscale gives your phone a private encrypted connection to your Mac — from anywhere in the world.</p></div>
+
     <div class="card"><span class="card-icon">🔍</span><h4>Private Web Search</h4><p>Self-hosted SearXNG on port 8080. Models can search the internet — all requests stay on your machine.</p></div>
     <div class="card"><span class="card-icon">🔒</span><h4>Zero Cloud</h4><p>Your prompts, documents, and code never leave your machine. No subscriptions, no rate limits, ever.</p></div>
   </div>
@@ -378,7 +376,6 @@ footer a:hover{color:var(--text);text-decoration:none}
 │       └──► Dashboard (:9090)            [Podman]             │
 │                                                              │
 │  SearXNG (:8080) ──► Open WebUI web search   [Podman]       │
-│  Tailscale / Caddy ──────────────────────► iPhone (anywhere)│
 └──────────────────────────────────────────────────────────────┘</pre>
   </div>
 </section>
@@ -427,16 +424,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="step">
       <div class="step-num">5</div>
       <div class="step-body">
-        <h4>Phase 5 — Remote Access</h4>
-        <p>Choose Tailscale (private VPN), Caddy + DuckDNS (public HTTPS), Cloudflare Tunnel, or a combination.</p>
-        <pre><span class="cmd">bash</span> scripts/phase5-remote.sh
-<span class="c"># 1=Tailscale  2=Caddy  3=Cloudflare  4=Both</span></pre>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">6</div>
-      <div class="step-body">
-        <h4>Phase 6 — Community Improvements <span class="dim">(optional)</span></h4>
+        <h4>Phase 5 (6) — Community Improvements <span class="dim">(optional)</span></h4>
         <p>Layers practitioner-recommended upgrades: LM Studio (MLX backend, ~20–30% faster on Apple Silicon — community-reported), <code>mlx-lm</code> CLI, web-search MCP servers (Tavily / Brave / fetch) with a shared local config and Continue.dev integration, the lightweight <code>pi</code> coding agent, and TurboQuant model variants. Includes a native macOS menu bar app.</p>
         <pre><span class="cmd">bash</span> scripts/phase6-improvements.sh
 <span class="c"># Idempotent — safe to re-run. Each step prompts (y/N).</span></pre>
@@ -633,7 +621,6 @@ footer a:hover{color:var(--text);text-decoration:none}
           <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Open WebUI <span style="color:var(--muted);font-size:.74em">Chat · port 3000</span></div>
           <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Pipelines <span style="color:var(--muted);font-size:.74em">Middleware · port 9099</span></div>
           <div><span class="svc-dot" style="background:var(--green);box-shadow:0 0 6px rgba(45,202,114,.5)"></span>Podman VM <span style="color:var(--muted);font-size:.74em">Container runtime</span></div>
-          <div><span class="svc-dot" style="background:var(--red)"></span>Tailscale <span style="color:var(--muted);font-size:.74em">VPN · not connected</span></div>
         </div>
       </div>
     </div>
@@ -669,7 +656,7 @@ footer a:hover{color:var(--text);text-decoration:none}
 <span class="str">{"action": "webui_stop"}      </span><span class="c"># or: webui_start</span>
 <span class="str">{"action": "pipelines_stop"}  </span><span class="c"># or: pipelines_start</span>
 <span class="str">{"action": "podman_stop"}     </span><span class="c"># or: podman_start</span>
-<span class="str">{"action": "tailscale_down"}  </span><span class="c"># or: tailscale_up</span></pre>
+</pre>
   </div>
 
   <h3>Useful Commands</h3>
@@ -881,56 +868,9 @@ EOF
   </div>
 </section>
 
-<!-- ── Remote Access ── -->
-<section class="section" id="s-remote">
-  <div class="s-num">08 <span class="dim">/</span> Remote Access</div>
-  <h2>Your AI, anywhere.</h2>
-  <p class="section-desc">Access Open WebUI from your iPhone or any device, from anywhere in the world.</p>
-
-  <h3>Method Comparison</h3>
-  <div class="table-wrap">
-    <table>
-      <tr><th>Method</th><th>Security</th><th>Setup</th><th>Best for</th></tr>
-      <tr><td><strong>Tailscale</strong></td><td><span class="tag tag-green">E2E encrypted</span></td><td>5 min</td><td>Personal use — simplest &amp; safest. Recommended.</td></tr>
-      <tr><td><strong>Cloudflare Tunnel</strong></td><td><span class="tag tag-blue">Zero-trust</span></td><td>15 min</td><td>No port forwarding, free, needs a domain</td></tr>
-      <tr><td><strong>Caddy + DuckDNS</strong></td><td><span class="tag tag-yellow">HTTPS/TLS</span></td><td>20 min</td><td>Full control, public URL, requires port forwarding</td></tr>
-    </table>
-  </div>
-
-  <h3>Option 1: Tailscale (Recommended)</h3>
-  <div class="steps">
-    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Install on Mac</h4><p>Download the standalone <code>.pkg</code> (not App Store) from <a href="https://tailscale.com/download/mac" target="_blank">tailscale.com/download/mac</a> and sign in.</p></div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Connect</h4><pre><span class="cmd">tailscale up</span></pre></div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Install on iPhone</h4><p>App Store → Tailscale → sign in with the same account. Your Mac gets a stable private IP visible in the dashboard.</p></div></div>
-    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Access from iPhone</h4><p>Safari → <code>http://&lt;tailscale-ip&gt;:3000</code> → Share → <strong>Add to Home Screen</strong> for a native-looking PWA.</p></div></div>
-  </div>
-
-  <div class="alert alert-yellow">⚠️ Keep your Mac awake while using it remotely: <code>caffeinate -s &amp;</code> (plugged in), or System Settings → Displays → Advanced → Prevent automatic sleeping.</div>
-
-  <h3>Option 2: Cloudflare Tunnel</h3>
-  <div class="code-block">
-    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
-    <pre><span class="cmd">brew install cloudflare/warp/cloudflared</span>
-<span class="cmd">cloudflared tunnel login</span>
-<span class="cmd">cloudflared tunnel create my-ai-tunnel</span>
-<span class="c"># Configure ~/.cloudflared/config.yml, then:</span>
-<span class="cmd">cloudflared tunnel run my-ai-tunnel</span></pre>
-  </div>
-
-  <h3>Run the Setup Script</h3>
-  <div class="code-block">
-    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
-    <pre><span class="cmd">bash</span> scripts/phase5-remote.sh
-<span class="c"># 1 = Tailscale only</span>
-<span class="c"># 2 = Caddy + DuckDNS only</span>
-<span class="c"># 3 = Cloudflare Tunnel only</span>
-<span class="c"># 4 = Tailscale + Caddy (both)</span></pre>
-  </div>
-</section>
-
 <!-- ── Commands ── -->
 <section class="section" id="s-commands">
-  <div class="s-num">09 <span class="dim">/</span> Commands</div>
+  <div class="s-num">08 <span class="dim">/</span> Commands</div>
   <h2>Commands &amp; aliases.</h2>
   <p class="section-desc">All shell aliases live in the repo at <code>stack-aliases-v2.sh</code> and are sourced from <code>~/.zshrc</code> — clone the repo and you have them.</p>
 
@@ -994,7 +934,7 @@ EOF
       <tr><td><code>OLLAMA_KEEP_ALIVE</code></td><td><code>5m</code></td><td>Auto-unload model after 5 min idle — reclaim RAM</td></tr>
       <tr><td><code>OLLAMA_MAX_LOADED_MODELS</code></td><td><code>1</code></td><td>Hard cap at 1 model to avoid OOM on 24 GB</td></tr>
       <tr><td><code>OLLAMA_NUM_GPU</code></td><td><code>99</code></td><td>Use all GPU layers (Metal acceleration)</td></tr>
-      <tr><td><code>OLLAMA_HOST</code></td><td><code>0.0.0.0:11434</code></td><td>Expose to Tailscale + Podman containers</td></tr>
+      <tr><td><code>OLLAMA_HOST</code></td><td><code>0.0.0.0:11434</code></td><td>Expose to Podman containers</td></tr>
     </table>
   </div>
 </section>

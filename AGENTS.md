@@ -51,17 +51,11 @@ zero cloud dependencies; everything runs on `localhost`.
 | Dashboard       | Stack monitoring UI (Podman)             | 9090    |
 | Metrics exporter| Host-side metrics + control server       | 9091    |
 | SearXNG         | Self-hosted web search                   | 8080    |
-| Tailscale       | Encrypted remote access                  | —       |
 
 All LLM endpoints are **OpenAI-compatible** at `<host>:<port>/v1`.
 
 The full project plan lives in `PROJECT-PLAN.md`. The public-facing docs
 site lives in `docs/index.html`.
-
-### Remote access
-Open WebUI is reachable from iPhone via Tailscale at
-`http://<tailscale-ip>:3000`. Ollama at `http://<tailscale-ip>:11434/v1`
-requires `OLLAMA_HOST=0.0.0.0:11434`. Mac must be awake (`caffeinate -s &`).
 
 ---
 
@@ -220,7 +214,6 @@ Local-AI/
 │   ├── phase2-coding-tools.sh  ← Continue.dev + OpenCode + Aider
 │   ├── phase3-webui.sh      ← Open WebUI in Podman
 │   ├── phase4-dashboard.sh  ← Dashboard container + metrics exporter
-│   ├── phase5-remote.sh     ← Tailscale / Caddy / Cloudflare Tunnel
 │   ├── phase6-improvements.sh  ← LM Studio install, mlx-lm, Pi
 │   ├── metrics-exporter.py  ← runs on HOST; writes /tmp/ai-metrics.json
 │   ├── status.sh            ← quick health check
@@ -290,7 +283,7 @@ Browser ──HTTP──▶ dashboard :9090 ──HTTP+Bearer──▶ metrics-e
 - Browser **never** holds the token. `app.py` server-side adds the
   `Authorization: Bearer <token>` header when proxying to :9091.
 - The exporter is the **only thing allowed to shell out** on the host
-  (Ollama/Podman/Tailscale CLIs). The container can only HTTP to :9091.
+  (Ollama/Podman CLIs). The container can only HTTP to :9091.
 - `metrics-exporter.py` binds the control server to `127.0.0.1` by default.
   Stack scripts set `CONTROL_BIND=0.0.0.0` only when the Podman dashboard
   needs to reach it; bearer auth still required.
@@ -311,12 +304,12 @@ podman build -t localhost/local-ai-dashboard .
 
 ### Metrics exporter cheat sheet
 - Lives at `scripts/metrics-exporter.py`, started by `ai-stack-start`.
-- Runs on the **host** (needs `top`, `vm_stat`, `du`, `tailscale`, `podman`).
+- Runs on the **host** (needs `top`, `vm_stat`, `du`, `podman`).
 - Writes `/tmp/ai-metrics.json` every 3 s (`cpu_pct`, `ram`, `disk`, `services`).
 - Control server: `POST /control` with `{"action":"<name>"}` and bearer auth.
 - Actions: `stack_start`, `stack_stop`, `ollama_start`/`stop`,
   `webui_start`/`stop`, `pipelines_start`/`stop`, `podman_start`/`stop`,
-  `tailscale_up`/`down`, `lmstudio_start`/`stop`. Add to the `ACTIONS` dict.
+  `lmstudio_start`/`stop`. Add to the `ACTIONS` dict.
 - Logs: `/tmp/ai-stack.log` (subprocess) and `/tmp/ai-metrics-exporter.log` (stdout).
 
 ---
@@ -497,7 +490,7 @@ Add to `~/.zshrc`:
 export OLLAMA_KEEP_ALIVE=5m           # auto-unload after 5 min idle
 export OLLAMA_MAX_LOADED_MODELS=1     # 1 model at a time (24 GB constraint)
 export OLLAMA_NUM_GPU=99              # use all GPU layers (Metal)
-export OLLAMA_HOST=0.0.0.0:11434      # allow Tailscale + Podman to connect
+export OLLAMA_HOST=0.0.0.0:11434      # allow Podman containers to connect
 
 # OpenCode (LM Studio default)
 export OPENCODE_API_BASE=http://localhost:1234/v1

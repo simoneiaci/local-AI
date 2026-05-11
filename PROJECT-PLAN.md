@@ -496,188 +496,7 @@ This exposes metrics like `ollama_loaded_models`, `ollama_model_ram_mb`, and inf
 
 ---
 
-## 8. Phase 5 — Remote Access (AI in Your Pocket)
-
-Access your local AI from your **iPhone or any device**, anywhere. Run the setup script and pick your option:
-
-```bash
-bash scripts/phase5-remote.sh
-# 1) Tailscale only
-# 2) Caddy + DuckDNS only
-# 3) Cloudflare Tunnel only
-# 4) Tailscale + Caddy (recommended — both together)
-```
-
-### 8.1 Option A — Tailscale (Simplest, Recommended)
-
-```bash
-# 1. Download standalone .pkg (NOT App Store):
-#    https://tailscale.com/download/mac
-
-# 2. Connect your Mac:
-tailscale up
-# → opens browser to sign in / create free account
-
-# 3. Install Tailscale on iPhone (App Store), sign in with same account
-
-# 4. Get your Tailscale IP:
-tailscale ip -4   # → 100.x.y.z
-
-# 5. Access from iPhone:
-# http://100.x.y.z:3000   (Open WebUI)
-# http://100.x.y.z:11434  (Ollama API)
-```
-
-Ollama must listen on all interfaces (already done by the script):
-```bash
-export OLLAMA_HOST=0.0.0.0:11434
-brew services restart ollama
-```
-
-### 8.2 Option B — Caddy + DuckDNS (Public HTTPS URL)
-
-For a permanent URL like `https://myai.duckdns.org` accessible from any browser without Tailscale.
-
-```bash
-# 1. Register free subdomain at duckdns.org (30 seconds)
-# 2. Run the script and pick option 2 — it:
-#    - Installs Caddy
-#    - Writes ~/.config/local-ai/Caddyfile
-#    - Creates a DuckDNS IP-updater script
-#    - Adds a cron job to update DNS every 5 minutes
-# 3. Forward ports 80 and 443 on your router → your Mac's LAN IP
-# 4. Start Caddy:
-caddy run --config ~/.config/local-ai/Caddyfile
-```
-
-> Test from mobile data, not home WiFi — NAT loopback gives false results.
-
-### 8.3 Running Both Together (Option 4)
-
-Tailscale = private daily use (E2E encrypted, no exposure).
-Caddy = shareable public URL for when you need it.
-Both run simultaneously — no conflict.
-
-### 8.4 Access Open WebUI from Your Phone (PWA)
-
-1. Open your AI URL in Safari on iPhone
-2. Tap Share → "Add to Home Screen"
-3. Open WebUI installs as a PWA — launches fullscreen, no browser toolbar
-4. Your own "ChatGPT" icon on your home screen, talking to YOUR local models
-
-### 8.4 Keep Your Mac Awake for Remote Access
-
-Your MacBook needs to be awake and Ollama needs to be running. When plugged in:
-
-```bash
-# Keep Mac awake while plugged in (run in background)
-caffeinate -s &
-
-# Or set via System Settings:
-# System Settings → Displays → Advanced → Prevent automatic sleeping when the display is off
-```
-
-### 8.5 Security Notes
-
-- Tailscale uses **end-to-end WireGuard encryption** — traffic is secure even on public WiFi
-- Your services are **only visible to your Tailscale network** — not exposed to the internet
-- **Do NOT use Tailscale Funnel** (that exposes to the public internet — unnecessary here)
-- No API keys needed since only your devices can reach the services
-
-### 8.6 What This Gives You
-
-```
-┌──────────────┐     Tailscale      ┌──────────────────────┐
-│  Your iPhone │ ◄──(encrypted)───► │  Your MacBook Pro    │
-│  (anywhere)  │     WireGuard      │  running Ollama +    │
-│              │                    │  Open WebUI          │
-│  Safari PWA  │                    │  on 100.x.y.z:3000  │
-│  = native    │                    │                      │
-│    chat app  │                    │  Models loaded:      │
-│              │                    │  Gemma4 BF16 e4b     │
-└──────────────┘                    └──────────────────────┘
-```
-
-Private, encrypted, no cloud involved. Your own ChatGPT in your pocket.
-
-### 8.7 Alternative: Cloudflare Tunnel (Zero-Trust, No Port Forwarding)
-
-If you prefer not to install Tailscale on every device, Cloudflare Tunnel creates an outbound connection from your Mac to Cloudflare — no port forwarding needed.
-
-```bash
-# Install cloudflared
-brew install cloudflare/warp/cloudflared
-
-# Login (opens browser)
-cloudflared tunnel login
-
-# Create tunnel
-cloudflared tunnel create my-ai-tunnel
-```
-
-Create `~/.cloudflared/config.yml`:
-```yaml
-tunnel: my-ai-tunnel
-credentials-file: ~/.cloudflared/<UUID>.json
-
-ingress:
-  - hostname: myai.yourdomain.com
-    service: http://localhost:3000
-  - service: http_status:404
-```
-
-```bash
-# Run the tunnel
-cloudflared tunnel run my-ai-tunnel
-```
-
-Now `https://myai.yourdomain.com` is live — automatic HTTPS, no port forwarding, free tier.
-
-### 8.8 Alternative: Caddy Reverse Proxy + DDNS (Public IP)
-
-Since you have a **public IP at home**, this gives you the most control:
-
-```bash
-# Install Caddy
-brew install caddy
-```
-
-Create a `Caddyfile`:
-```
-myai.duckdns.org {
-    reverse_proxy localhost:3000
-}
-```
-
-```bash
-# Run Caddy (handles HTTPS automatically via Let's Encrypt)
-caddy run --config Caddyfile
-```
-
-**Required setup:**
-1. **Dynamic DNS:** Register at [duckdns.org](https://www.duckdns.org) (free) — maps a hostname to your public IP
-2. **Port forwarding:** Forward ports **80** and **443** on your router to your Mac's local IP
-3. **Open WebUI auth:** Open WebUI has built-in user accounts — set a strong password
-
-**Security checklist:**
-- Caddy handles HTTPS automatically (Let's Encrypt) — all traffic encrypted
-- Open WebUI's built-in authentication protects against unauthorized access
-- Consider adding `basic_auth` in Caddy as a second layer
-- Test from a non-home network (don't test on WiFi — NAT loopback gives false results)
-
-### 8.9 Which Remote Method to Use?
-
-| Method             | Security        | Setup  | Port Forwarding | Best for                        |
-|--------------------|-----------------|--------|-----------------|----------------------------------|
-| **Tailscale**      | E2E encrypted   | 5 min  | Not needed      | Personal use, simplest           |
-| **Cloudflare Tunnel** | Zero-trust   | 15 min | Not needed      | No port forwarding, free         |
-| **Caddy + DDNS**   | HTTPS/TLS       | 20 min | Ports 80 + 443  | Full control with your public IP |
-
-**Recommendation:** Use option 4 (Tailscale + Caddy together). Tailscale for private daily use, Caddy+DuckDNS as a public-URL fallback. Both run simultaneously.
-
----
-
-## 9. Cloud Escape Hatch — GLM 5.1 & MiniMax 2.7
+## 8. Cloud Escape Hatch — GLM 5.1 & MiniMax 2.7
 
 When a task exceeds what fits in 24 GB (huge codebases, long reasoning chains, multi-agent pipelines), you can drop into a cloud model. Both GLM 5.1 and MiniMax 2.7 expose **OpenAI-compatible APIs**, so every tool you already have plugs in with a base URL + model name swap.
 
@@ -788,7 +607,7 @@ ai-use-local()    { export OPENCODE_PROVIDER=openai-compatible
 
 ---
 
-## 10. Quick Reference: Connecting Any Tool to Local Models
+## 9. Quick Reference: Connecting Any Tool to Local Models
 
 Any tool that supports the **OpenAI API** can use your local models. Just set:
 
@@ -811,7 +630,7 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 
 ---
 
-## 11. Recommended Setup Order
+## 10. Recommended Setup Order
 
 | Step | Action                                         | Time   |
 |------|------------------------------------------------|--------|
@@ -826,14 +645,13 @@ Now any tool can hit `http://localhost:4000/v1` with standard OpenAI SDK calls.
 | 9    | (Optional) Pull power models (`mistral-small3.1:24b`, `phi4-reasoning`) | 15 min |
 | 10   | (Optional) Install OpenCode / Aider            | 10 min |
 | 11   | (Optional) Set up AnythingLLM for RAG          | 15 min |
-| 12   | (Optional) Install Tailscale for remote access | 10 min |
 | 13   | (Optional) Prometheus + Grafana                | 30 min |
 
 **Total for core setup: ~1 hour**
 
 ---
 
-## 12. Model Switching Cheat Sheet
+## 11. Model Switching Cheat Sheet
 
 ```
 SITUATION                          → MODEL TO USE                           RISK    VRAM
@@ -852,7 +670,7 @@ Advanced reasoning                 → magistral:24b-small-2506 (Mistral)     Gr
 
 ---
 
-## 13. Key Links & Resources
+## 12. Key Links & Resources
 
 - **Ollama:** https://ollama.com
 - **LM Studio:** https://lmstudio.ai
@@ -863,5 +681,4 @@ Advanced reasoning                 → magistral:24b-small-2506 (Mistral)     Gr
 - **Aider:** https://aider.chat
 - **Tabby:** https://tabby.tabbyml.com
 - **macmon:** https://github.com/vladkens/macmon
-- **Tailscale:** https://tailscale.com
 - **MLX Community Models:** https://huggingface.co/mlx-community

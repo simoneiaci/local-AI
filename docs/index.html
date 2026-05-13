@@ -468,56 +468,70 @@ footer a:hover{color:var(--text);text-decoration:none}
 <!-- ── Setup ── -->
 <section class="section" id="s-setup">
   <div class="s-num">02 <span class="dim">/</span> Setup</div>
-  <h2>Six phases, fully automated.</h2>
-  <p class="section-desc">Six scripts take you from zero to a fully running local AI stack. Run them in order from the repo root. Phase 6 layers community-recommended improvements on top.</p>
+  <h2>Up and running in four steps.</h2>
+  <p class="section-desc">No scripts, no containers, no config files to hand-edit. Download two things, wire them up, and you have a fully private local AI stack.</p>
 
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-body">
-        <h4>Phase 1 — Ollama + Core Models</h4>
-        <p>Installs Ollama, pulls the base model stack, configures shell aliases and environment variables in <code>~/.zshrc</code>.</p>
-        <pre><span class="cmd">bash</span> scripts/phase1-setup.sh</pre>
+        <h4>Download LM Studio</h4>
+        <p>Get the macOS app from <a href="https://lmstudio.ai" target="_blank">lmstudio.ai</a>. Open it, go to the <strong>Developer</strong> tab, and click <strong>Start Server</strong>. The OpenAI-compatible API comes up at <code>localhost:1234</code> automatically.</p>
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <tr><th>Setting</th><th>Value</th></tr>
+            <tr><td>API base</td><td><code>http://localhost:1234/v1</code></td></tr>
+            <tr><td>API key</td><td>Developer &rarr; API Keys &rarr; generate one, save to <code>.secrets</code></td></tr>
+          </table>
+        </div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-body">
-        <h4>Phase 2 — Coding Tools</h4>
-        <p>Configures Continue.dev for VS Code, installs OpenCode and Aider, pulls <code>granite-3.3-8b-instruct</code> for tool-calling and <code>smollm2-1.7b-instruct</code> for tab autocomplete. Primary model is <code>google/gemma-4-e4b</code> served by LM Studio.</p>
-        <pre><span class="cmd">bash</span> scripts/phase2-coding-tools.sh</pre>
+        <h4>Download models</h4>
+        <p>In LM Studio &rarr; <strong>Discover</strong>, search for each model and click Download. Start with the primary; add others as needed.</p>
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <tr><th>Model</th><th>Size</th><th>Role</th></tr>
+            <tr><td><code>google/gemma-4-e4b</code></td><td>6.33 GB</td><td>Primary &mdash; daily chat &amp; coding</td></tr>
+            <tr><td><code>mlx-community/gemma-4-26b-a4b-instruct-4bit</code></td><td>~16 GB</td><td>Heavy &mdash; load alone when quality matters</td></tr>
+            <tr><td><code>granite-3.3-8b-instruct</code></td><td>4.94 GB</td><td>Tool-calling &amp; multilingual RAG</td></tr>
+            <tr><td><code>phi-4-reasoning</code></td><td>11.12 GB</td><td>Reasoning &amp; math &mdash; load alone</td></tr>
+            <tr><td><code>smollm2-1.7b-instruct</code></td><td>1.82 GB</td><td>Tab autocomplete in VS Code</td></tr>
+            <tr><td><code>text-embedding-nomic-embed-text-v1.5</code></td><td>84 MB</td><td>Embeddings for RAG</td></tr>
+          </table>
+        </div>
+        <div class="alert alert-yellow" style="margin-top:12px">&#x26A0;&#xFE0F; Only one large model at a time. Load <code>gemma-4-26b</code> or <code>phi-4-reasoning</code> alone &mdash; eject the primary first.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-body">
-        <h4>Phase 3 — Open WebUI + Pipelines</h4>
-        <p>Starts Podman containers for Open WebUI (port 3000) and Pipelines middleware (port 9099).</p>
-        <pre><span class="cmd">bash</span> scripts/phase3-webui.sh
-<span class="c"># Then open: http://localhost:3000</span></pre>
+        <h4>Wire up your tools</h4>
+        <p>Point each tool at <code>http://localhost:1234/v1</code>. All three use the same OpenAI-compatible endpoint.</p>
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <tr><th>Tool</th><th>Config location</th><th>Model to set</th></tr>
+            <tr><td><strong>Pi</strong></td><td><code>~/.pi/agent/settings.json</code> &rarr; provider <code>lmstudio</code></td><td><code>google/gemma-4-e4b</code></td></tr>
+            <tr><td><strong>Continue.dev</strong></td><td><code>~/.continue/config.json</code> &rarr; provider <code>lmstudio</code></td><td><code>google/gemma-4-e4b</code> &middot; autocomplete: <code>smollm2-1.7b-instruct</code></td></tr>
+            <tr><td><strong>OpenCode</strong></td><td><code>~/.config/opencode/opencode.json</code> &rarr; provider <code>lmstudio</code></td><td><code>google/gemma-4-e4b</code></td></tr>
+          </table>
+        </div>
+        <p style="margin-top:10px;color:var(--muted);font-size:.875rem">To switch between LM Studio and Ollama at any time:</p>
+        <pre><span class="cmd">ai-use-mlx</span>     <span class="c"># LM Studio :1234 (default)</span>
+<span class="cmd">ai-use-ollama</span>  <span class="c"># Ollama :11434</span></pre>
       </div>
     </div>
     <div class="step">
       <div class="step-num">4</div>
       <div class="step-body">
-        <h4>Phase 4 — Dashboard</h4>
-        <p>Starts the metrics exporter (host process) and a Podman container serving the live system dashboard at port 9090.</p>
-        <pre><span class="cmd">bash</span> scripts/phase4-dashboard.sh
-<span class="c"># Then open: http://localhost:9090</span></pre>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">5</div>
-      <div class="step-body">
-        <h4>Phase 5 (6) — Community Improvements <span class="dim">(optional)</span></h4>
-        <p>Layers practitioner-recommended upgrades: LM Studio (MLX backend, ~20–30% faster on Apple Silicon — community-reported), <code>mlx-lm</code> CLI, web-search MCP servers (Tavily / Brave / fetch) with a shared local config and Continue.dev integration, the lightweight <code>pi</code> coding agent, and TurboQuant model variants. Includes a native macOS menu bar app.</p>
-        <pre><span class="cmd">bash</span> scripts/phase6-improvements.sh
-<span class="c"># Idempotent — safe to re-run. Each step prompts (y/N).</span></pre>
+        <h4>Enjoy</h4>
+        <p>Open your editor, run <code>pi</code> or <code>opencode</code> in the terminal, or press <kbd>&#x2318;</kbd><kbd>L</kbd> in VS Code. Everything runs locally &mdash; no API costs, no data leaving your Mac.</p>
+        <div class="alert alert-green">&#x2713; Stack is ready. Primary model loaded at <code>localhost:1234</code> &mdash; all tools are pointing at it.</div>
       </div>
     </div>
   </div>
-
-  <div class="alert alert-green">After Phase 1, source your <code>~/.zshrc</code> once — then use <code>ai-stack-start</code> and <code>ai-stack-stop</code> to manage the whole stack with a single command.</div>
 </section>
 
 <!-- ── Models ── -->
@@ -1115,7 +1129,7 @@ EOF
     </table>
   </div>
 
-  <h3>Phase 6 — MLX &amp; Web Search</h3>
+  <h3>MLX &amp; Coding Agents</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Command</th><th>Does</th></tr>

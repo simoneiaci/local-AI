@@ -262,6 +262,11 @@ footer a:hover{color:var(--text);text-decoration:none}
   .hw-chip:nth-child(odd){border-right:1px solid var(--border)}
   .hw-chip:last-child{border-bottom:none}
 }
+
+/* ── Diagrams ── */
+.diagram{margin:24px 0;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;background:var(--surface)}
+.diagram-bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2)}
+.diagram svg{display:block;width:100%;height:auto}
 </style>
 </head>
 <body>
@@ -297,6 +302,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <div class="hero-panel-rows">
         <div class="hp-row"><span class="hp-lbl">runtime</span><span class="hp-val">LM Studio · <span class="dim">:1234</span></span></div>
         <div class="hp-row"><span class="hp-lbl">primary</span><span class="hp-val">google/gemma-4-e4b <span class="dim">6.33 GB</span></span></div>
+        <div class="hp-row"><span class="hp-lbl">heavy</span><span class="hp-val">gemma-4-26b-a4b <span class="dim">~16 GB &middot; swap out primary</span></span></div>
         <div class="hp-row"><span class="hp-lbl">alt</span><span class="hp-val">granite-3.3-8b-instruct <span class="dim">4.94 GB</span></span></div>
         <div class="hp-row"><span class="hp-lbl">autocomplete</span><span class="hp-val">smollm2-1.7b-instruct <span class="ok">● loaded</span></span></div>
         <div class="hp-row"><span class="hp-lbl">embeddings</span><span class="hp-val">nomic-embed-text-v1.5</span></div>
@@ -363,20 +369,99 @@ footer a:hover{color:var(--text);text-decoration:none}
   </div>
 
   <h3>Architecture</h3>
-  <div class="code-block">
-    <div class="code-bar"><div class="cd cd-r"></div><div class="cd cd-y"></div><div class="cd cd-g"></div></div>
-    <pre>┌──────────────────────────────────────────────────────────────┐
-│               MacBook Pro M4 Pro  (24 GB RAM)                │
-│                                                              │
-│  LM Studio (:1234) ─► Open WebUI (:3000)       [Podman]     │
-│       │           ──► Pipelines (:9099)        [Podman]     │
-│       │                                                      │
-│       ├──► Continue.dev  (VS Code: ⌘L, ⌘I)                 │
-│       ├──► OpenCode / Aider              (terminal)          │
-│       └──► Dashboard (:9090)            [Podman]             │
-│                                                              │
-│  SearXNG (:8080) ──► Open WebUI web search   [Podman]       │
-└──────────────────────────────────────────────────────────────┘</pre>
+  <div class="diagram">
+    <div class="diagram-bar">system topology &middot; MacBook Pro M4 Pro &middot; 24 GB</div>
+    <svg viewBox="0 0 820 420" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono',Menlo,Consolas,monospace" font-size="11">
+      <defs>
+        <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 Z" fill="rgba(74,116,244,.6)"/>
+        </marker>
+        <marker id="arr-g" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 Z" fill="rgba(45,202,114,.5)"/>
+        </marker>
+        <marker id="arr-y" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 Z" fill="rgba(212,168,67,.5)"/>
+        </marker>
+      </defs>
+      <!-- Mac boundary -->
+      <rect x="10" y="10" width="800" height="400" rx="10" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="26" y="28" fill="rgba(255,255,255,.18)" font-size="10" letter-spacing="2">MacBook Pro M4 Pro · 24 GB</text>
+
+      <!-- LM Studio -->
+      <rect x="40" y="160" width="150" height="64" rx="7" fill="rgba(232,148,58,.08)" stroke="rgba(232,148,58,.35)" stroke-width="1"/>
+      <text x="115" y="186" fill="#e8943a" text-anchor="middle" font-weight="700" font-size="12">LM Studio</text>
+      <text x="115" y="203" fill="rgba(232,148,58,.6)" text-anchor="middle" font-size="10">MLX · :1234</text>
+      <text x="115" y="217" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">OpenAI-compatible</text>
+
+      <!-- Ollama -->
+      <rect x="40" y="270" width="150" height="52" rx="7" fill="rgba(255,255,255,.025)" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <text x="115" y="293" fill="rgba(255,255,255,.55)" text-anchor="middle" font-weight="600" font-size="11">Ollama</text>
+      <text x="115" y="309" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="10">:11434 · fallback</text>
+
+      <!-- Open WebUI -->
+      <rect x="280" y="60" width="160" height="64" rx="7" fill="rgba(74,116,244,.08)" stroke="rgba(74,116,244,.35)" stroke-width="1"/>
+      <text x="360" y="86" fill="#8aaeff" text-anchor="middle" font-weight="700" font-size="12">Open WebUI</text>
+      <text x="360" y="103" fill="rgba(74,116,244,.6)" text-anchor="middle" font-size="10">Chat · :3000 · Podman</text>
+      <text x="360" y="117" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">RAG · Memory · Vision</text>
+
+      <!-- Pipelines -->
+      <rect x="280" y="162" width="160" height="52" rx="7" fill="rgba(74,116,244,.05)" stroke="rgba(74,116,244,.2)" stroke-width="1"/>
+      <text x="360" y="184" fill="rgba(74,116,244,.7)" text-anchor="middle" font-weight="600" font-size="11">Pipelines</text>
+      <text x="360" y="200" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="10">:9099 · Podman</text>
+
+      <!-- SearXNG -->
+      <rect x="280" y="270" width="160" height="52" rx="7" fill="rgba(45,202,114,.05)" stroke="rgba(45,202,114,.2)" stroke-width="1"/>
+      <text x="360" y="292" fill="rgba(45,202,114,.7)" text-anchor="middle" font-weight="600" font-size="11">SearXNG</text>
+      <text x="360" y="308" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="10">:8080 · Podman</text>
+
+      <!-- Continue.dev -->
+      <rect x="540" y="60" width="150" height="52" rx="7" fill="rgba(155,127,232,.06)" stroke="rgba(155,127,232,.25)" stroke-width="1"/>
+      <text x="615" y="82" fill="rgba(155,127,232,.85)" text-anchor="middle" font-weight="600" font-size="11">Continue.dev</text>
+      <text x="615" y="98" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="10">VS Code · ⌘L ⌘I</text>
+
+      <!-- OpenCode -->
+      <rect x="540" y="148" width="150" height="52" rx="7" fill="rgba(155,127,232,.06)" stroke="rgba(155,127,232,.25)" stroke-width="1"/>
+      <text x="615" y="170" fill="rgba(155,127,232,.85)" text-anchor="middle" font-weight="600" font-size="11">OpenCode</text>
+      <text x="615" y="186" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="10">Terminal TUI agent</text>
+
+      <!-- Aider -->
+      <rect x="540" y="236" width="150" height="52" rx="7" fill="rgba(155,127,232,.06)" stroke="rgba(155,127,232,.25)" stroke-width="1"/>
+      <text x="615" y="258" fill="rgba(155,127,232,.85)" text-anchor="middle" font-weight="600" font-size="11">Aider</text>
+      <text x="615" y="274" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="10">CLI pair programmer</text>
+
+      <!-- Dashboard -->
+      <rect x="540" y="324" width="150" height="52" rx="7" fill="rgba(74,116,244,.05)" stroke="rgba(74,116,244,.2)" stroke-width="1"/>
+      <text x="615" y="346" fill="rgba(74,116,244,.7)" text-anchor="middle" font-weight="600" font-size="11">Dashboard</text>
+      <text x="615" y="362" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="10">:9090 · Podman</text>
+
+      <!-- pi agent label -->
+      <rect x="540" y="392" width="150" height="8" rx="2" fill="none"/>
+
+      <!-- LM Studio → Open WebUI -->
+      <line x1="190" y1="175" x2="280" y2="88" stroke="rgba(232,148,58,.4)" stroke-width="1.5" marker-end="url(#arr-y)"/>
+      <!-- LM Studio → Pipelines -->
+      <line x1="190" y1="188" x2="280" y2="188" stroke="rgba(74,116,244,.35)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- LM Studio → Continue.dev -->
+      <line x1="190" y1="178" x2="540" y2="86" stroke="rgba(155,127,232,.3)" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <!-- LM Studio → OpenCode -->
+      <line x1="190" y1="182" x2="540" y2="174" stroke="rgba(155,127,232,.3)" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <!-- LM Studio → Aider -->
+      <line x1="190" y1="192" x2="540" y2="262" stroke="rgba(155,127,232,.3)" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <!-- LM Studio → Dashboard (metrics) -->
+      <line x1="190" y1="200" x2="540" y2="350" stroke="rgba(74,116,244,.25)" stroke-width="1" stroke-dasharray="3,4" marker-end="url(#arr)"/>
+      <!-- SearXNG → Open WebUI -->
+      <line x1="360" y1="270" x2="360" y2="124" stroke="rgba(45,202,114,.35)" stroke-width="1.5" marker-end="url(#arr-g)"/>
+      <!-- Ollama → Open WebUI (embeddings) -->
+      <line x1="190" y1="285" x2="280" y2="120" stroke="rgba(45,202,114,.25)" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr-g)"/>
+
+      <!-- Legend -->
+      <line x1="40" y1="375" x2="70" y2="375" stroke="rgba(232,148,58,.5)" stroke-width="1.5"/>
+      <text x="76" y="379" fill="rgba(255,255,255,.35)" font-size="9">inference</text>
+      <line x1="130" y1="375" x2="160" y2="375" stroke="rgba(155,127,232,.45)" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="166" y="379" fill="rgba(255,255,255,.35)" font-size="9">API (OpenAI-compat)</text>
+      <line x1="280" y1="375" x2="310" y2="375" stroke="rgba(45,202,114,.4)" stroke-width="1.5"/>
+      <text x="316" y="379" fill="rgba(255,255,255,.35)" font-size="9">search / embeddings</text>
+    </svg>
   </div>
 </section>
 
@@ -442,6 +527,62 @@ footer a:hover{color:var(--text);text-decoration:none}
   <p class="section-desc">Models run locally through LM Studio by default, with Ollama available as an alternate runtime. Only one large model fits in RAM at a time — <code>smollm2-1.7b-instruct</code> and <code>text-embedding-nomic-embed-text-v1.5</code> stay loaded alongside any other.</p>
 
   <div class="alert alert-yellow">⚠️ With 24 GB unified memory, ~14–16 GB is available for models after macOS overhead. Swap models as needed — unloading takes a second.</div>
+
+  <div class="diagram">
+    <div class="diagram-bar">memory budget &middot; 24 GB unified RAM</div>
+    <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono',Menlo,Consolas,monospace" font-size="11">
+      <!-- grid lines -->
+      <line x1="180" y1="20" x2="180" y2="200" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <line x1="287" y1="20" x2="287" y2="200" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <line x1="394" y1="20" x2="394" y2="200" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <line x1="501" y1="20" x2="501" y2="200" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <line x1="608" y1="20" x2="608" y2="200" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <line x1="715" y1="20" x2="715" y2="200" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <!-- axis labels -->
+      <text x="180" y="215" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">0 GB</text>
+      <text x="287" y="215" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">4 GB</text>
+      <text x="394" y="215" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">8 GB</text>
+      <text x="501" y="215" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">12 GB</text>
+      <text x="608" y="215" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">16 GB</text>
+      <text x="715" y="215" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">20 GB</text>
+
+      <!-- budget line at 16 GB -->
+      <line x1="608" y1="16" x2="608" y2="202" stroke="rgba(212,168,67,.45)" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="612" y="14" fill="rgba(212,168,67,.7)" font-size="9">~16 GB budget</text>
+
+      <!-- bars: x origin=180, scale=26.75px per GB -->
+      <!-- macOS overhead 8 GB -->
+      <rect x="180" y="28" width="214" height="22" rx="3" fill="rgba(240,107,107,.15)" stroke="rgba(240,107,107,.3)" stroke-width="1"/>
+      <text x="176" y="43" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">macOS</text>
+      <text x="398" y="43" fill="rgba(240,107,107,.7)" font-size="10"> 8 GB</text>
+
+      <!-- gemma-4-e4b 6.33 GB -->
+      <rect x="180" y="58" width="169" height="22" rx="3" fill="rgba(45,202,114,.15)" stroke="rgba(45,202,114,.4)" stroke-width="1"/>
+      <text x="176" y="73" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">gemma-4-e4b</text>
+      <text x="353" y="73" fill="rgba(45,202,114,.8)" font-size="10"> 6.33 GB ✓ primary</text>
+
+      <!-- smollm2 1.82 GB -->
+      <rect x="180" y="88" width="49" height="22" rx="3" fill="rgba(45,202,114,.1)" stroke="rgba(45,202,114,.25)" stroke-width="1"/>
+      <text x="176" y="103" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">smollm2</text>
+      <text x="233" y="103" fill="rgba(45,202,114,.6)" font-size="10"> 1.82 GB ✓ always loaded</text>
+
+      <!-- granite 4.94 GB -->
+      <rect x="180" y="118" width="132" height="22" rx="3" fill="rgba(74,116,244,.12)" stroke="rgba(74,116,244,.3)" stroke-width="1"/>
+      <text x="176" y="133" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">granite-3.3-8b</text>
+      <text x="316" y="133" fill="rgba(74,116,244,.8)" font-size="10"> 4.94 GB ✓ alt</text>
+
+      <!-- phi-4-reasoning 11.12 GB -->
+      <rect x="180" y="148" width="298" height="22" rx="3" fill="rgba(212,168,67,.1)" stroke="rgba(212,168,67,.35)" stroke-width="1"/>
+      <text x="176" y="163" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">phi-4-reasoning</text>
+      <text x="482" y="163" fill="rgba(212,168,67,.8)" font-size="10"> 11.12 GB ⚠ alone</text>
+
+      <!-- gemma-4-26b 16 GB -->
+      <rect x="180" y="178" width="428" height="22" rx="3" fill="rgba(232,148,58,.1)" stroke="rgba(232,148,58,.4)" stroke-width="1"/>
+      <text x="176" y="193" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">gemma-4-26b</text>
+      <text x="612" y="193" fill="rgba(232,148,58,.8)" font-size="10"> ~16 GB ⚠ alone</text>
+    </svg>
+  </div>
+
   <div class="alert alert-blue">💡 For <code>granite-3.3-8b-instruct</code> in LM Studio, set the model's default Context Length to <strong>32K</strong> in My Models → gear icon. Use <strong>64K</strong> only for long-document sessions; avoid <strong>128K</strong> as the everyday default on this 24 GB laptop.</div>
 
   <h3>Current Stack</h3>
@@ -449,6 +590,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <table>
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
       <tr><td>Primary · Daily driver · Coding</td><td><code>google/gemma-4-e4b</code></td><td><span class="tag tag-green">6.33 GB</span></td><td>Chat, code generation, writing, and refactoring with BF16 quality</td></tr>
+      <tr><td>Heavy · High-quality generation</td><td><code>mlx-community/gemma-4-26b-a4b-instruct-4bit</code></td><td><span class="tag tag-orange">~16 GB</span></td><td>Deeper reasoning and longer context — load alone, unload primary first</td></tr>
       <tr><td>Tool-calling · RAG · Multilingual alt</td><td><code>granite-3.3-8b-instruct</code></td><td><span class="tag tag-green">4.94 GB</span></td><td>Function calling, 128K context, multilingual</td></tr>
       <tr><td>Reasoning · Math · Logic</td><td><code>phi-4-reasoning</code></td><td><span class="tag tag-yellow">11.12 GB</span></td><td>Approved 15B reasoning model that fits comfortably</td></tr>
       <tr><td>Tab autocomplete</td><td><code>smollm2-1.7b-instruct</code></td><td><span class="tag tag-green">1.82 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
@@ -473,7 +615,8 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><th>Task</th><th>Best model</th><th>Why</th></tr>
       <tr><td>Code generation · Daily chat</td><td><code>google/gemma-4-e4b</code></td><td>Primary LM Studio model — general code, writing, and refactoring with practical RAM headroom</td></tr>
       <tr><td>iOS / Swift coding</td><td><code>google/gemma-4-e4b</code></td><td>Strong general coding; use a system prompt with Swift 6 + TCA context</td></tr>
-      <tr><td>Tax / Italian documents</td><td><code>granite-3.3-8b-instruct</code></td><td>Multilingual, 128K context, strong RAG fit</td></tr>
+      <tr><td>Long-form / multilingual documents</td><td><code>granite-3.3-8b-instruct</code></td><td>Multilingual, 128K context, strong RAG fit</td></tr>
+      <tr><td>Deep generation &middot; Nuanced tasks</td><td><code>mlx-community/gemma-4-26b-a4b-instruct-4bit</code></td><td>26B 4-bit MLX &mdash; load alone when quality matters more than speed</td></tr>
       <tr><td>Complex reasoning</td><td><code>phi-4-reasoning</code></td><td>Approved 15B reasoning model that fits the laptop</td></tr>
       <tr><td>Image analysis</td><td><code>google/gemma-4-e4b</code></td><td>Attach images directly in Open WebUI</td></tr>
       <tr><td>Tool / function calling</td><td><code>granite-3.3-8b-instruct</code></td><td>Optimized for structured tool calls, 128K context</td></tr>
@@ -490,7 +633,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><td>google/gemma-4-e4b</td><td>6.33 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Current primary — BF16 quality with room for the local stack</td></tr>
       <tr><td>granite-3.3-8b-instruct</td><td>4.94 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Tool calling, 128K context, multilingual</td></tr>
       <tr><td>phi-4-reasoning (15B)</td><td>11.12 GB</td><td><span class="tag tag-yellow">⚠ One at a time</span></td><td>Load alone — no headroom for another large model</td></tr>
-      <tr><td>Gemma 3 27B</td><td>16 GB</td><td><span class="tag tag-red">✗ No</span></td><td>Marginal, expect swapping</td></tr>
+      <tr><td>mlx-community/gemma-4-26b-a4b-instruct-4bit</td><td>~16 GB</td><td><span class="tag tag-yellow">⚠ One at a time</span></td><td>Load alone — unload primary first; no headroom for anything else</td></tr>
       <tr><td>Gemma 4 31B</td><td>20 GB</td><td><span class="tag tag-red">✗ No</span></td><td>Too large for 24 GB</td></tr>
     </table>
   </div>
@@ -551,22 +694,57 @@ footer a:hover{color:var(--text);text-decoration:none}
 
   <h3>Plan → Build Workflow</h3>
   <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">For complex tasks, split reasoning and implementation across two models:</p>
-  <div class="flow-wrap">
-    <div class="flow-step">
-      <div class="flow-num">1</div>
-      <div>
-        <div class="flow-title">Plan <span class="tag tag-yellow">phi-4-reasoning</span></div>
-        <div class="flow-desc">Analyse the problem, identify edge cases, design the approach step-by-step before writing any code.</div>
-      </div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <div class="flow-num">2</div>
-      <div>
-        <div class="flow-title">Build <span class="tag tag-green">google/gemma-4-e4b</span></div>
-        <div class="flow-desc">Feed the plan to gemma-4-e4b. It handles day-to-day implementation without pushing the laptop to the old 26B memory ceiling.</div>
-      </div>
-    </div>
+  <div class="diagram">
+    <div class="diagram-bar">coding workflow</div>
+    <svg viewBox="0 0 760 130" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="12">
+      <defs>
+        <marker id="fa" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L0,8 L8,4 Z" fill="rgba(74,116,244,.55)"/>
+        </marker>
+      </defs>
+      <!-- Step 1: Prompt -->
+      <rect x="20" y="30" width="130" height="70" rx="8" fill="rgba(255,255,255,.025)" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <text x="85" y="58" text-anchor="middle" fill="rgba(255,255,255,.55)" font-weight="600" font-size="12">Your task</text>
+      <text x="85" y="76" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="10">describe the problem</text>
+      <text x="85" y="91" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="10">in plain English</text>
+
+      <!-- Arrow 1 -->
+      <line x1="150" y1="65" x2="185" y2="65" stroke="rgba(74,116,244,.45)" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 2: phi-4-reasoning -->
+      <rect x="185" y="30" width="160" height="70" rx="8" fill="rgba(212,168,67,.08)" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+      <circle cx="205" cy="50" r="8" fill="rgba(212,168,67,.2)" stroke="rgba(212,168,67,.5)" stroke-width="1"/>
+      <text x="205" y="54" text-anchor="middle" fill="rgba(212,168,67,.9)" font-size="9" font-family="'SF Mono',monospace">1</text>
+      <text x="275" y="55" text-anchor="middle" fill="#d4a843" font-weight="700" font-size="12">Plan</text>
+      <text x="265" y="70" text-anchor="middle" fill="rgba(212,168,67,.65)" font-size="10">phi-4-reasoning</text>
+      <text x="265" y="84" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9">edge cases · approach</text>
+      <text x="265" y="96" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9">step-by-step design</text>
+
+      <!-- Arrow 2 -->
+      <line x1="345" y1="65" x2="380" y2="65" stroke="rgba(74,116,244,.45)" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 3: gemma-4-e4b -->
+      <rect x="380" y="30" width="175" height="70" rx="8" fill="rgba(45,202,114,.07)" stroke="rgba(45,202,114,.4)" stroke-width="1"/>
+      <circle cx="400" cy="50" r="8" fill="rgba(45,202,114,.2)" stroke="rgba(45,202,114,.5)" stroke-width="1"/>
+      <text x="400" y="54" text-anchor="middle" fill="rgba(45,202,114,.9)" font-size="9" font-family="'SF Mono',monospace">2</text>
+      <text x="467" y="55" text-anchor="middle" fill="#2dca72" font-weight="700" font-size="12">Build</text>
+      <text x="467" y="70" text-anchor="middle" fill="rgba(45,202,114,.65)" font-size="10">google/gemma-4-e4b</text>
+      <text x="467" y="84" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9">feed the plan · write code</text>
+      <text x="467" y="96" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9">edit · commit</text>
+
+      <!-- Arrow 3 -->
+      <line x1="555" y1="65" x2="590" y2="65" stroke="rgba(74,116,244,.45)" stroke-width="1.5" marker-end="url(#fa)"/>
+
+      <!-- Step 4: Output -->
+      <rect x="590" y="30" width="140" height="70" rx="8" fill="rgba(74,116,244,.07)" stroke="rgba(74,116,244,.3)" stroke-width="1"/>
+      <text x="660" y="58" text-anchor="middle" fill="rgba(74,116,244,.85)" font-weight="600" font-size="12">Output</text>
+      <text x="660" y="74" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="10">working code</text>
+      <text x="660" y="88" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="10">committed to git</text>
+
+      <!-- Tool labels below -->
+      <text x="265" y="118" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="'SF Mono',monospace">aider-think / pi / opencode</text>
+      <text x="467" y="118" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="'SF Mono',monospace">aider-code / continue.dev</text>
+    </svg>
   </div>
 
   <div class="alert alert-blue">💡 Keep context under ~100K tokens even for large-context models. Also check the model's loaded context: a 128K-capable model loaded at 4K will still fail on long prompts. For Granite, default to 32K and move to 64K only when the session needs it.</div>
@@ -628,6 +806,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <h5>Models — LM Studio · chat</h5>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px;font-size:.83rem">
         <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>google/gemma-4-e4b</strong><br><span style="color:var(--muted2)">6.33 GB · </span><span class="tag tag-green" style="font-size:.64rem">● loaded</span></div>
+        <div style="background:rgba(232,148,58,.05);border:1px solid rgba(232,148,58,.25);border-radius:6px;padding:8px 12px"><strong>gemma-4-26b-a4b-instruct-4bit</strong><br><span style="color:var(--muted2)">~16 GB · </span><span class="tag tag-orange" style="font-size:.64rem">swap</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>granite-3.3-8b-instruct</strong><br><span style="color:var(--muted2)">4.94 GB · </span><span class="tag tag-blue" style="font-size:.64rem">idle</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>phi-4-reasoning</strong><br><span style="color:var(--muted2)">11.12 GB · </span><span class="tag tag-blue" style="font-size:.64rem">reasoning</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>smollm2-1.7b-instruct</strong><br><span style="color:var(--muted2)">1.82 GB · </span><span class="tag tag-blue" style="font-size:.64rem">autocomplete</span></div>
@@ -636,12 +815,61 @@ footer a:hover{color:var(--text);text-decoration:none}
   </div>
 
   <h3>Architecture</h3>
-  <div class="table-wrap">
-    <table>
-      <tr><th>Component</th><th>Where</th><th>Role</th></tr>
-      <tr><td><code>metrics-exporter.py</code></td><td>Mac host</td><td>Writes <code>/tmp/ai-metrics.json</code> every 3 s. Runs a fail-closed control server on port 9091 with required token auth.</td></tr>
-      <tr><td><code>local-ai-dashboard</code></td><td>Podman container</td><td>Serves the web UI on port 9090. Reads metrics via bind-mount, proxies control actions server-side.</td></tr>
-    </table>
+  <div class="diagram">
+    <div class="diagram-bar">metrics pipeline &middot; host → container → browser</div>
+    <svg viewBox="0 0 760 170" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono',Menlo,Consolas,monospace" font-size="11">
+      <defs>
+        <marker id="da" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 Z" fill="rgba(74,116,244,.55)"/>
+        </marker>
+        <marker id="da-r" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 Z" fill="rgba(232,148,58,.55)"/>
+        </marker>
+      </defs>
+
+      <!-- Host boundary -->
+      <rect x="10" y="10" width="360" height="150" rx="7" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="22" y="26" fill="rgba(255,255,255,.15)" font-size="9" letter-spacing="1">Mac host</text>
+
+      <!-- LM Studio / Ollama source boxes -->
+      <rect x="24" y="36" width="110" height="40" rx="5" fill="rgba(232,148,58,.07)" stroke="rgba(232,148,58,.25)" stroke-width="1"/>
+      <text x="79" y="53" fill="rgba(232,148,58,.7)" text-anchor="middle" font-size="10">LM Studio</text>
+      <text x="79" y="68" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">:1234</text>
+
+      <rect x="24" y="90" width="110" height="40" rx="5" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <text x="79" y="107" fill="rgba(255,255,255,.45)" text-anchor="middle" font-size="10">Ollama</text>
+      <text x="79" y="122" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">:11434</text>
+
+      <!-- metrics-exporter -->
+      <rect x="170" y="55" width="140" height="60" rx="5" fill="rgba(74,116,244,.07)" stroke="rgba(74,116,244,.3)" stroke-width="1"/>
+      <text x="240" y="77" fill="#8aaeff" text-anchor="middle" font-weight="600" font-size="11">metrics-exporter.py</text>
+      <text x="240" y="93" fill="rgba(255,255,255,.3)" text-anchor="middle" font-size="9">polls every 3 s</text>
+      <text x="240" y="106" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">control server :9091</text>
+
+      <!-- /tmp/ai-metrics.json -->
+      <rect x="390" y="55" width="140" height="60" rx="5" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <text x="460" y="77" fill="rgba(255,255,255,.5)" text-anchor="middle" font-weight="600" font-size="11">/tmp/ai-metrics.json</text>
+      <text x="460" y="93" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">atomic write</text>
+      <text x="460" y="106" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">bind-mounted</text>
+
+      <!-- Dashboard container -->
+      <rect x="570" y="36" width="160" height="98" rx="7" fill="rgba(74,116,244,.07)" stroke="rgba(74,116,244,.3)" stroke-width="1"/>
+      <text x="650" y="58" fill="#8aaeff" text-anchor="middle" font-weight="600" font-size="11">Dashboard</text>
+      <text x="650" y="74" fill="rgba(74,116,244,.6)" text-anchor="middle" font-size="10">:9090 · Podman</text>
+      <text x="650" y="92" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">reads metrics.json</text>
+      <text x="650" y="106" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">proxies /control</text>
+      <text x="650" y="120" fill="rgba(255,255,255,.25)" text-anchor="middle" font-size="9">auto-refresh 5 s</text>
+
+      <!-- Arrows -->
+      <line x1="134" y1="56" x2="170" y2="75" stroke="rgba(232,148,58,.4)" stroke-width="1.5" marker-end="url(#da)"/>
+      <line x1="134" y1="110" x2="170" y2="95" stroke="rgba(255,255,255,.2)" stroke-width="1.5" marker-end="url(#da)"/>
+      <line x1="310" y1="85" x2="390" y2="85" stroke="rgba(74,116,244,.45)" stroke-width="1.5" marker-end="url(#da)"/>
+      <line x1="530" y1="85" x2="570" y2="85" stroke="rgba(74,116,244,.45)" stroke-width="1.5" marker-end="url(#da)"/>
+
+      <!-- Control token label -->
+      <text x="540" y="140" fill="rgba(232,148,58,.45)" text-anchor="middle" font-size="9">Bearer CONTROL_TOKEN ←</text>
+      <line x1="570" y1="120" x2="480" y2="140" stroke="rgba(232,148,58,.25)" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#da-r)"/>
+    </svg>
   </div>
 
   <h3>Control API</h3>
@@ -733,8 +961,6 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="table-wrap">
     <table>
       <tr><th>Use case</th><th>Example prompt</th></tr>
-      <tr><td>Tax deadlines</td><td>"Quali sono le scadenze fiscali 2025 per la dichiarazione dei redditi in Italia?"</td></tr>
-      <tr><td>Deduction limits</td><td>"Massimale detraibile spese mediche 730/2025"</td></tr>
       <tr><td>Current news</td><td>"Latest news about [topic] this week"</td></tr>
       <tr><td>Documentation</td><td>"Swift concurrency best practices 2025"</td></tr>
     </table>
@@ -758,17 +984,17 @@ footer a:hover{color:var(--text);text-decoration:none}
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body"><h4>Create a Knowledge collection</h4><p>Workspace → Knowledge → New Knowledge. Name it (e.g. "Tax Docs 2025"). Upload PDFs — 730 forms, CU, F24, ricevute.</p></div>
+      <div class="step-body"><h4>Create a Knowledge collection</h4><p>Workspace → Knowledge → New Knowledge. Give it a name, then upload PDFs, Word files, or any documents you want to query.</p></div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
-      <div class="step-body"><h4>Use in chat</h4><p>Click <strong>+</strong> in a new chat → select your Knowledge collection. Or use 📎 to attach a single file directly. Then ask: "Quali spese mediche posso detrarre nel 730/2025?"</p></div>
+      <div class="step-body"><h4>Use in chat</h4><p>Click <strong>+</strong> in a new chat → select your Knowledge collection. Or use 📎 to attach a single file directly. Ask questions about the content &mdash; the model retrieves relevant passages and cites them.</p></div>
     </div>
   </div>
-  <div class="alert alert-blue">💡 Best local model for Italian tax RAG: <code>granite-3.3-8b-instruct</code> for multilingual 128K-context document Q&amp;A. Use <code>phi-4-reasoning</code> when the task is mostly reasoning rather than retrieval.</div>
+  <div class="alert alert-blue">💡 Best local model for RAG: <code>granite-3.3-8b-instruct</code> for multilingual 128K-context document Q&amp;A. Use <code>phi-4-reasoning</code> when the task is mostly reasoning rather than retrieval.</div>
 
   <h3>2 · Memory</h3>
-  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your tax situation — building a personal context that persists between sessions.</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Open WebUI remembers facts across conversations — your name, that you do iOS dev, your current projects — building a personal context that persists between sessions.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
@@ -776,7 +1002,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body"><h4>Seed your memory (optional)</h4><p>Profile → Memory. Add facts manually: "I'm an iOS developer using Swift 6 and TCA" or "I live in Italy and file 730/redditi with a partita IVA".</p></div>
+      <div class="step-body"><h4>Seed your memory (optional)</h4><p>Profile → Memory. Add facts manually: "I'm an iOS developer using Swift 6 and TCA" or "I work on local AI infrastructure on Apple Silicon".</p></div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
@@ -785,7 +1011,7 @@ footer a:hover{color:var(--text);text-decoration:none}
   </div>
 
   <h3>3 · Code Execution (Artifacts)</h3>
-  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Models can write Python or JavaScript and run it inline, showing output. Ideal for tax calculations, data processing, or verifying code snippets.</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">Models can write Python or JavaScript and run it inline, showing output. Ideal for data processing, quick calculations, or verifying code snippets.</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
@@ -793,7 +1019,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body"><h4>Ask the model to run code</h4><p>Ask naturally: "Calculate my IRPEF for €45,000 gross income" or "Write and run a Python script to parse this CSV". A Run button appears — tap to execute and see output inline.</p></div>
+      <div class="step-body"><h4>Ask the model to run code</h4><p>Ask naturally: "Plot this dataset as a bar chart" or "Write and run a Python script to parse this CSV". A Run button appears — tap to execute and see output inline.</p></div>
     </div>
   </div>
   <div class="alert alert-yellow">⚠️ Code runs inside the Open WebUI Podman container — sandboxed and safe.</div>
@@ -836,7 +1062,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <table>
       <tr><th>Use case</th><th>Prompt example</th></tr>
       <tr><td>Xcode error</td><td>Attach screenshot → "What's wrong and how do I fix this?"</td></tr>
-      <tr><td>Receipt scan</td><td>Attach photo → "List all items and amounts. Which are tax-deductible?"</td></tr>
+      <tr><td>Receipt scan</td><td>Attach photo → "List all items and amounts."</td></tr>
       <tr><td>UI sketch</td><td>Attach wireframe → "Write SwiftUI code for this layout"</td></tr>
       <tr><td>Bank statement</td><td>Attach PDF screenshot → "Summarise all transactions above €500"</td></tr>
     </table>

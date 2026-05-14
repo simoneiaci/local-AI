@@ -1,27 +1,27 @@
-# ⚡ Local-AI
+# Local-AI
 
-> **Run powerful LLMs privately on a MacBook Pro M4 Pro — for coding, chat, RAG, and productivity. No cloud. No API costs. Works on your iPhone too.**
+> Run powerful LLMs privately on a MacBook Pro M4 Pro — for coding, chat, RAG, and productivity. No cloud. No API costs.
 
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon-black?logo=apple)](https://www.apple.com/mac/)
-[![Ollama](https://img.shields.io/badge/Ollama-v0.20+-white?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0id2hpdGUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjgiLz48L3N2Zz4=)](https://ollama.com)
-[![Podman](https://img.shields.io/badge/Podman-5.x-892CA0?logo=podman)](https://podman.io)
+[![Ollama](https://img.shields.io/badge/Ollama-v0.20+-white)](https://ollama.com)
+[![LM Studio](https://img.shields.io/badge/LM%20Studio-latest-blue)](https://lmstudio.ai)
 [![License](https://img.shields.io/badge/license-Personal-gray)](#)
 
 ---
 
 ## What This Is
 
-A complete, production-ready local AI stack on Apple Silicon:
+A complete, production-ready local AI stack on Apple Silicon. The **menu bar app** is the single control surface — no containers required.
 
-| Component | What it does |
-|-----------|-------------|
-| **LM Studio** | Default runtime for MLX models and OpenAI-compatible local API |
-| **Ollama** | Alternate local runtime and model manager |
-| **Open WebUI** | ChatGPT-like interface, runs in Podman |
-| **Continue.dev** | AI assistant inside VS Code (Cmd+L / Cmd+I) |
-| **OpenCode + Aider** | Terminal AI coding agents |
-| **Dashboard** | Live system monitor at `localhost:9090` |
-| **Tailscale / Caddy** | Access your AI from iPhone, anywhere |
+| Component           | What it does                                                    |
+|---------------------|-----------------------------------------------------------------|
+| **LM Studio**       | Default runtime for MLX models, OpenAI-compatible API on :1234  |
+| **Ollama**          | Alternate local runtime and model manager on :11434             |
+| **Menu bar app**    | macOS status bar controller — live stats + start/stop controls  |
+| **Continue.dev**    | AI assistant inside VS Code (Cmd+L / Cmd+I, tab autocomplete)   |
+| **opencode**        | Terminal AI coding agent (TUI)                                  |
+| **Pi**              | Lightweight CLI coding agent                                    |
+| **Aider**           | CLI pair programmer                                             |
 
 ---
 
@@ -29,45 +29,72 @@ A complete, production-ready local AI stack on Apple Silicon:
 
 ```bash
 # 1. Clone
-git clone https://github.com/<your-org-or-user>/local-ai.git
-cd local-AI
+git clone https://github.com/simoneiaci/local-ai.git
+cd local-ai
 
-# 2. Run Phase 1 — Ollama + core models
+# 2. Phase 1 — Ollama + core models
 bash scripts/phase1-setup.sh
 
-# 3. Run Phase 2 — Coding tools (Continue.dev, OpenCode, Aider)
+# 3. Phase 2 — Coding tools (Continue.dev, opencode, Aider)
 bash scripts/phase2-coding-tools.sh
 
-# 4. Run Phase 3 — Open WebUI in Podman
-bash scripts/phase3-webui.sh
-
-# 5. Run Phase 4 — Live dashboard
-bash scripts/phase4-dashboard.sh
-
-# 6. Run Phase 5 — Remote access (Tailscale / Caddy / Cloudflare)
-bash scripts/phase5-remote.sh
-
-# 7. Run Phase 6 — Community improvements (LM Studio MLX, web search MCP, Pi, TurboQuant)
+# 4. Phase 6 — LM Studio MLX, web search MCP, Pi
 bash scripts/phase6-improvements.sh
 ```
 
-After Phase 1, use these aliases from any terminal:
+Source the aliases file (done automatically if `~/.zshrc` sources it):
 
 ```bash
-ai-stack-start      # start everything (LM Studio + WebUI + Dashboard)
-ai-stack-stop       # stop AI services (dashboard stays up)
+source stack-aliases-v2.sh
+```
+
+---
+
+## Key Aliases
+
+```bash
+ai-stack-start      # start LM Studio + metrics exporter
+ai-stack-stop       # stop AI services (metrics exporter stays up)
 ai-stack-off        # full shutdown — everything off
-ai-mlx-up           # launch LM Studio (MLX backend, faster than Ollama)
+ai-mlx-up           # launch LM Studio only
 ai-mlx-down         # quit LM Studio
-ai-mlx-status       # show MLX models loaded
-ai-mlx              # one-shot mlx-lm generation (--prompt "...")
-ai-use-mlx          # switch OpenCode to LM Studio backend (default)
-ai-use-ollama       # switch OpenCode back to Ollama
-ai-menubar-start    # launch menu bar app
-ai-menubar-stop     # quit menu bar app
-ai-health           # check all services at a glance
-ai-health-phase6    # check Phase 6 services (MLX, Pi, mlx-lm, search MCP)
-ai-monitor          # live GPU/CPU/RAM via macmon
+ai-mlx-status       # show models loaded in LM Studio
+ai-use-mlx          # switch opencode/Aider to LM Studio backend (default)
+ai-use-ollama       # switch opencode/Aider to Ollama
+ai-menubar-start    # launch the menu bar app in background
+ai-menubar-stop     # quit the menu bar app
+ai-health-phase6    # verify LM Studio + Pi + mlx-lm + search keys
+ai-secrets          # load .secrets into current shell
+```
+
+---
+
+## Architecture
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                  MacBook Pro M4 Pro · 24 GB                    │
+│                                                                │
+│   ┌──────────────────┐         ┌──────────────────┐           │
+│   │   LM Studio       │         │     Ollama        │           │
+│   │   (primary)       │         │   (alternate)     │           │
+│   │   :1234 /v1       │         │   :11434 /v1      │           │
+│   └────────┬──────────┘         └────────┬──────────┘           │
+│            │   OpenAI-compatible API      │                     │
+│            └──────────────┬──────────────┘                      │
+│                           │                                     │
+│   ┌───────────────────────┼───────────────────────────────────┐ │
+│   │       CLIENTS (all OpenAI-compatible, local-only)          │ │
+│   │   Continue.dev (VS Code)   Pi (CLI)   opencode (CLI)       │ │
+│   │   LM Studio Chat tab        Aider (CLI)                    │ │
+│   └────────────────────────────────────────────────────────────┘ │
+│                                                                │
+│   ┌────────────────────────────────────────────────────────────┐│
+│   │  CONTROL PLANE                                              ││
+│   │  Menu bar app (rumps)  ──▶  metrics-exporter :9091          ││
+│   │  /tmp/ai-metrics.json  ◀──  (host process, no container)    ││
+│   └─────────────────────────────────────────────────────────────┘│
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -85,58 +112,30 @@ ai-monitor          # live GPU/CPU/RAM via macmon
 
 ## Model Stack
 
-| Role | Model | Size | Notes |
-|------|-------|------|-------|
-| Daily driver · Coding | `google/gemma-4-e4b` | 6.33 GB | Primary LM Studio model (BF16 quality) |
-| Tool-calling · RAG · Multilingual alt | `granite-3.3-8b-instruct` | 4.94 GB | 128K context, 12 languages |
-| Reasoning · Math · Logic | `phi-4-reasoning` | 11.12 GB | Approved 15B chain-of-thought model |
-| Tab autocomplete | `smollm2-1.7b-instruct` | 1.82 GB | Instant, always loaded in LM Studio |
-| Embeddings | `text-embedding-nomic-embed-text-v1.5` | 84 MB | For RAG pipelines (LM Studio) |
+| Role | Model | Size | Runtime |
+|------|-------|------|---------|
+| Daily driver · Coding | `google/gemma-4-e4b` | 9.02 GB | LM Studio (primary, GGUF Q8_0) |
+| MLX alt · MTP enabled | `mlx-community/gemma-4-e4b-it-8bit` | 9.00 GB | LM Studio (MLX 8-bit) |
+| Tool-calling · RAG · Multilingual | `granite-3.3-8b-instruct` | 4.94 GB | LM Studio |
+| Reasoning · Math · Logic | `phi-4-reasoning` | 11.12 GB | LM Studio |
+| Tab autocomplete | `smollm2-1.7b-instruct` | 1.82 GB | LM Studio |
+| Embeddings | `text-embedding-nomic-embed-text-v1.5` | 84 MB | LM Studio |
+| Fast chat fallback | `phi4-mini` | ~3 GB | Ollama |
 
-> ⚠️ Only one large model fits in RAM at a time. `smollm2-1.7b-instruct` and `text-embedding-nomic-embed-text-v1.5` can stay loaded alongside any other model.
+Only one large model fits in RAM at a time. `smollm2-1.7b-instruct` and the embedding model can stay loaded alongside any other model.
 
-For `granite-3.3-8b-instruct` in LM Studio, set the per-model default context length to **32K** in **My Models → gear icon**. Use **64K** for long-document sessions only; avoid **128K** as the everyday default on this 24 GB laptop because KV cache memory can push the system into swap.
-
----
-
-## Architecture
-
-```
-┌────────────────────────────────────────────────┐
-│           MacBook Pro M4 Pro (24 GB)           │
-│                                                │
-│  LM Studio (:1234) ─► Open WebUI (:3000)       │
-│       │                                        │
-│       ├──► Continue.dev  (VS Code)             │
-│       ├──► OpenCode / Aider  (terminal)        │
-│       └──► Dashboard (:9090)                   │
-│                                                │
-│  Tailscale / Caddy ──► iPhone (anywhere)       │
-└────────────────────────────────────────────────┘
-```
-
----
-
-## Dashboard
-
-A lightweight Podman container at `http://localhost:9090` shows:
-
-- **System** — CPU%, RAM used/total, disk free, swap
-- **Services** — LM Studio app/API, Ollama, Open WebUI, Podman VM, Tailscale with start/stop buttons
-- **Models** — Active runtime models; LM Studio by default, Ollama when selected
-
-![Dashboard](docs/dashboard-preview.png)
+For `granite-3.3-8b-instruct` in LM Studio, set the per-model default context length to **32K** in **My Models → gear icon**. Use **64K** for long-document sessions only.
 
 ---
 
 ## Menu Bar App
 
-A native macOS menu bar widget that lives in your top menu bar.
+The native macOS menu bar widget is the primary control surface.
 
 **Install** (one-time):
 
 ```bash
-pip3 install --break-system-packages rumps
+pip3 install --break-system-packages rumps pyobjc-framework-Cocoa
 ```
 
 **Run:**
@@ -146,68 +145,74 @@ ai-menubar-start    # launch in background
 ai-menubar-stop     # quit
 ```
 
-The menu bar icon shows a live status dot:
+The `LAI` text in the menu bar is colored based on RAM pressure:
 
-| Icon | Meaning |
-|-------|---------|
-| Green | RAM under 60% |
-| Yellow | RAM 60–79% |
-| Red | RAM 80%+ |
-| Grey | Metrics exporter not running |
+| Color  | Meaning          |
+|--------|------------------|
+| Green  | RAM under 60%    |
+| Yellow | RAM 60–79%       |
+| Red    | RAM 80%+         |
+| Grey   | Exporter offline |
 
-Click the icon to expand the menu: CPU / RAM / Disk stats, per-service status, and **Start Stack / Stop Stack / Full Off** buttons — plus one-click links to Open WebUI and the Dashboard.
+Click to expand: CPU / RAM / Disk stats, LM Studio and Ollama status, model switcher, and **Start Stack / Stop Stack / Full Off** controls.
 
-LM Studio API status is green only when `:1234/v1/models` exposes a non-embedding chat model. Yellow means the API server is reachable but no chat model is exposed.
+LM Studio API is shown as "API ready" only when `/api/v0/models` exposes a non-embedding chat model. "API idle" means the server is reachable but no chat model is loaded.
 
-If the app is running under the `local-ai-menubar` launchd job, quitting from the menu or running `ai-menubar-stop` unloads that job first so macOS does not relaunch it immediately.
+**Autostart:** System Settings → General → Login Items → add a wrapper script that runs `ai-menubar-start`.
 
-**Add to Login Items** so it starts automatically:
-
-1. System Settings → General → Login Items → click `+`
-2. Navigate to `menubar/app.py` — or add a wrapper script that runs `ai-menubar-start`
-
-Log output goes to `/tmp/ai-menubar.log`.
+Log output → `/tmp/ai-menubar.log`.
 
 ---
 
-## Remote Access
+## IDE Integrations
 
-Run `bash scripts/phase5-remote.sh` and choose:
+### Continue.dev (VS Code)
 
-| Option | How | Setup time |
-|--------|-----|-----------|
-| **Tailscale** | Private mesh VPN | 5 min |
-| **Cloudflare Tunnel** | Zero-trust, no port forwarding | 15 min |
-| **Caddy + DuckDNS** | Public HTTPS, full control | 20 min |
-| **Both (recommended)** | Tailscale + Caddy | 25 min |
+Config: `~/.continue/config.json`
 
-Then on iPhone: Safari → Open WebUI → Share → **Add to Home Screen** for a native-looking PWA.
+```bash
+Cmd+L    # open AI chat sidebar
+Cmd+I    # inline edit / refactor
+Tab      # autocomplete (SmolLM2 1.7B via LM Studio — instant)
+```
+
+Primary local models (via LM Studio `:1234`):
+- `google/gemma-4-e4b` — daily coding/chat (default)
+- `granite-3.3-8b-instruct` — tools/RAG, 65K context
+- `phi-4-reasoning` — logic and math
+
+### opencode (CLI)
+
+Config: `~/.config/opencode/opencode.json`
+
+```bash
+opencode          # full TUI coding agent
+ai-use-mlx        # switch to LM Studio backend (default)
+ai-use-ollama     # switch to Ollama backend
+```
+
+Uses `google/gemma-4-e4b` via LM Studio by default. Cloud models (Gemini 3 Pro, Claude) available via Antigravity OAuth when needed.
+
+### Pi (CLI)
+
+```bash
+pi                                                  # interactive session
+pi -c                                               # continue last session
+pi --model lmstudio/google/gemma-4-e4b "..."        # force local model
+```
+
+Config: `~/.pi/agent/settings.json`. Default provider: `lmstudio`.
 
 ---
 
 ## Coding Tools
 
-Continue.dev is configured in `~/.continue/config.json` with two local runtime groups:
-
-- **Local LM Studio** entries are the primary local choices, using `http://localhost:1234/v1`.
-- **Local Ollama** entries remain available as fallback, with `smollm2-1.7b-instruct` for tab autocomplete and `text-embedding-nomic-embed-text-v1.5` for embeddings (both served by LM Studio).
-
 ```bash
-# VS Code — install Continue extension, then:
-Cmd+L    # open AI chat sidebar
-Cmd+I    # inline edit / refactor
-
-# Terminal agents
-opencode          # full TUI coding agent (uses google/gemma-4-e4b via LM Studio)
-aider-code        # Aider with google/gemma-4-e4b
-aider-think       # Aider with phi-4-reasoning (for complex refactors)
-
-# Quick model switching
-ai-use-mlx        # → LM Studio primary
-ai-use-ollama     # → Ollama fallback
+opencode          # full TUI agent (uses google/gemma-4-e4b via LM Studio)
+pi                # lighter CLI agent (uses google/gemma-4-e4b via LM Studio)
+aider-code        # Aider with Ollama/devstral
+aider-think       # Aider with Ollama/phi4-reasoning
 ```
-
-Recommended Continue selection for daily local coding: **google/gemma-4-e4b** (Local LM Studio).
 
 ---
 
@@ -217,78 +222,46 @@ Recommended Continue selection for daily local coding: **google/gemma-4-e4b** (L
 Local-AI/
 ├── scripts/
 │   ├── phase1-setup.sh          # Ollama + core models + shell aliases
-│   ├── phase2-coding-tools.sh   # Continue.dev, OpenCode, Aider
-│   ├── phase3-webui.sh          # Open WebUI via Podman
-│   ├── phase4-dashboard.sh      # Dashboard container + metrics exporter
-│   ├── phase5-remote.sh         # Tailscale / Caddy / Cloudflare
-│   ├── phase6-improvements.sh   # LM Studio MLX, web search MCP, Pi, TurboQuant
-│   ├── metrics-exporter.py      # Host metrics + control server (port 9091)
+│   ├── phase2-coding-tools.sh   # Continue.dev, opencode, Aider
+│   ├── phase6-improvements.sh   # LM Studio MLX, web search MCP, Pi
+│   ├── metrics-exporter.py      # Host metrics + control server (:9091)
+│   ├── mcp-with-secrets.sh      # MCP launcher with .secrets sourced
 │   └── status.sh                # Quick stack health check
-├── dashboard/
-│   ├── app.py                   # Dashboard web server (no dependencies)
-│   └── Dockerfile               # python:3.11-alpine, port 9090
 ├── menubar/
 │   ├── app.py                   # macOS menu bar app (rumps)
-│   └── requirements.txt         # pip: rumps
+│   └── requirements.txt
 ├── docs/
 │   └── index.html               # GitHub Pages documentation
-├── stack-aliases-v2.sh          # Shell functions: ai-stack-* and ai-menubar-*
+├── stack-aliases-v2.sh          # Shell functions: ai-stack-* / ai-use-* / ai-mlx-*
 ├── PROJECT-PLAN.md              # Full architecture + decisions log
 └── AGENTS.md                    # Rules for AI agents working on this project
 ```
 
 ---
 
-## Documentation
-
-📖 **Full docs can be published with GitHub Pages from `docs/index.html`.**
-
----
-
 ## Phase 6 — Community-Recommended Improvements
 
-Based on community-reported local AI practices. On a 24 GB MacBook Pro M4 Pro, these close the biggest gaps vs what experienced practitioners run.
+| Improvement | Why |
+|---|---|
+| **LM Studio (MLX)** | Faster Apple Silicon inference path |
+| **mlx-lm CLI** | Direct Apple MLX framework, scriptable |
+| **Web search MCP** | Live search compensates for model training cutoffs |
+| **Pi coding agent** | Smaller base prompt, lower overhead |
+| **Speculative decoding** | Pair `smollm2-1.7b-instruct` as draft model |
 
-> All figures below are **community-reported** (room participants), not benchmarks reproduced on this machine. Treat as directional until you measure on your own workload.
+### Web search API keys
 
-| Improvement | Why | Reported gain |
-|---|---|---|
-| **LM Studio (MLX)** | Faster Apple Silicon inference path than Ollama on some workloads | +20–30% tok/s (reported) |
-| **mlx-lm CLI** | Direct Apple MLX framework — best Apple Silicon perf | Comparable to LM Studio, scriptable |
-| **Web search MCP** | Live search helps compensate for model training cutoffs | Quality bump on doc lookups (qualitative) |
-| **Pi coding agent** | Lower base prompt can reduce prompt-processing overhead | Faster prompt-processing than OpenCode (reported) |
-| **Speculative decoding** | Pair `smollm2-1.7b-instruct` (draft) with the active LM Studio chat model | 1.5–2× tok/s (reported) |
-| **TurboQuant variants** | Recent llama.cpp addition — lower VRAM for tight-fit models | Bigger approved models on same hardware |
-
-### Switch backends on the fly
+Add to `.secrets`:
 
 ```bash
-ai-use-mlx       # OpenCode → LM Studio (MLX) at :1234, persists for new shells (default)
-ai-use-ollama    # OpenCode → Ollama at :11434, persists for new shells
-ai-mlx-up        # launch LM Studio
-ai-mlx-down      # quit LM Studio
-ai-mlx-status    # see what's loaded in MLX
-ai-mlx "prompt"  # one-shot generation via mlx-lm
-ai-health-phase6 # verify all phase 6 services
+TAVILY_API_KEY=tvly-xxxxx   # 1000 free searches/month
+BRAVE_API_KEY=BSAxxxxx      # 2000 free searches/month
 ```
 
-### Web search for your local models
-
-Phase 6 writes a shared Tavily + Brave + fetch MCP config and wires it into Continue.dev when `config.json` is present. Add API keys to `.secrets`:
-
-```bash
-TAVILY_API_KEY=tvly-xxxxx   # 1000 free searches/month — https://tavily.com
-BRAVE_API_KEY=BSAxxxxx      # 2000 free searches/month — https://brave.com/search/api/
-```
-
-The MCP launch wrapper loads `.secrets` automatically when Continue starts the servers. Use `ai-secrets` only when you also want those keys in the current shell.
-
-`ai-stack-start` uses LM Studio as the default runtime. Use `ai-use-ollama` when you explicitly want the Ollama API instead.
-
-> ⚠️ **Compliance note:** Qwen and DeepSeek models are not used in this project. Use `phi-4-reasoning` for reasoning workflows and `granite-3.3-8b-instruct` for multilingual/RAG work.
+Load into the current shell: `ai-secrets`
 
 ---
 
-## Key Tools
+## Key Links
 
-[Ollama](https://ollama.com) · [Open WebUI](https://openwebui.com) · [Continue.dev](https://continue.dev) · [OpenCode](https://github.com/opencode-ai/opencode) · [Aider](https://aider.chat) · [Tailscale](https://tailscale.com) · [macmon](https://github.com/vladkens/macmon) · [Podman](https://podman.io)
+[Ollama](https://ollama.com) · [LM Studio](https://lmstudio.ai) · [Continue.dev](https://continue.dev) · [opencode](https://github.com/opencode-ai/opencode) · [Pi](https://pi.dev) · [Aider](https://aider.chat) · [macmon](https://github.com/vladkens/macmon)

@@ -301,8 +301,8 @@ footer a:hover{color:var(--text);text-decoration:none}
       </div>
       <div class="hero-panel-rows">
         <div class="hp-row"><span class="hp-lbl">runtime</span><span class="hp-val">LM Studio · <span class="dim">:1234</span></span></div>
-        <div class="hp-row"><span class="hp-lbl">primary</span><span class="hp-val">google/gemma-4-e4b <span class="dim">6.33 GB</span></span></div>
-        <div class="hp-row"><span class="hp-lbl">heavy</span><span class="hp-val">gemma-4-26b-a4b <span class="dim">~16 GB &middot; swap out primary</span></span></div>
+        <div class="hp-row"><span class="hp-lbl">primary</span><span class="hp-val">google/gemma-4-e4b <span class="dim">9.02 GB</span></span></div>
+        <div class="hp-row"><span class="hp-lbl">mlx (MTP)</span><span class="hp-val">mlx-community/gemma-4-e4b-it-8bit <span class="dim">9.00 GB</span></span></div>
         <div class="hp-row"><span class="hp-lbl">alt</span><span class="hp-val">granite-3.3-8b-instruct <span class="dim">4.94 GB</span></span></div>
         <div class="hp-row"><span class="hp-lbl">autocomplete</span><span class="hp-val">smollm2-1.7b-instruct <span class="ok">● loaded</span></span></div>
         <div class="hp-row"><span class="hp-lbl">embeddings</span><span class="hp-val">nomic-embed-text-v1.5</span></div>
@@ -494,15 +494,15 @@ footer a:hover{color:var(--text);text-decoration:none}
         <div class="table-wrap" style="margin-top:12px">
           <table>
             <tr><th>Model</th><th>Size</th><th>Role</th></tr>
-            <tr><td><code>google/gemma-4-e4b</code></td><td>6.33 GB</td><td>Primary &mdash; daily chat &amp; coding</td></tr>
-            <tr><td><code>mlx-community/gemma-4-26b-a4b-instruct-4bit</code></td><td>~16 GB</td><td>Heavy &mdash; load alone when quality matters</td></tr>
+            <tr><td><code>google/gemma-4-e4b</code></td><td>9.02 GB</td><td>Primary &mdash; daily chat &amp; coding (GGUF Q8_0, multimodal)</td></tr>
+            <tr><td><code>mlx-community/gemma-4-e4b-it-8bit</code></td><td>9.00 GB</td><td>MLX 8-bit alt &mdash; MTP speculative decoding, faster inference</td></tr>
             <tr><td><code>granite-3.3-8b-instruct</code></td><td>4.94 GB</td><td>Tool-calling &amp; multilingual RAG</td></tr>
             <tr><td><code>phi-4-reasoning</code></td><td>11.12 GB</td><td>Reasoning &amp; math &mdash; load alone</td></tr>
             <tr><td><code>smollm2-1.7b-instruct</code></td><td>1.82 GB</td><td>Tab autocomplete in VS Code</td></tr>
             <tr><td><code>text-embedding-nomic-embed-text-v1.5</code></td><td>84 MB</td><td>Embeddings for RAG</td></tr>
           </table>
         </div>
-        <div class="alert alert-yellow" style="margin-top:12px">&#x26A0;&#xFE0F; Only one large model at a time. Load <code>gemma-4-26b</code> or <code>phi-4-reasoning</code> alone &mdash; eject the primary first.</div>
+        <div class="alert alert-yellow" style="margin-top:12px">&#x26A0;&#xFE0F; Only one large model at a time. Load <code>phi-4-reasoning</code> alone &mdash; eject the primary first. <code>mlx-community/gemma-4-e4b-it-8bit</code> can replace the primary instead of stacking alongside it.</div>
       </div>
     </div>
     <div class="step">
@@ -570,10 +570,10 @@ footer a:hover{color:var(--text);text-decoration:none}
       <text x="176" y="43" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">macOS</text>
       <text x="398" y="43" fill="rgba(240,107,107,.7)" font-size="10"> 8 GB</text>
 
-      <!-- gemma-4-e4b 6.33 GB -->
-      <rect x="180" y="58" width="169" height="22" rx="3" fill="rgba(45,202,114,.15)" stroke="rgba(45,202,114,.4)" stroke-width="1"/>
+      <!-- gemma-4-e4b 9.02 GB -->
+      <rect x="180" y="58" width="241" height="22" rx="3" fill="rgba(45,202,114,.15)" stroke="rgba(45,202,114,.4)" stroke-width="1"/>
       <text x="176" y="73" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">gemma-4-e4b</text>
-      <text x="353" y="73" fill="rgba(45,202,114,.8)" font-size="10"> 6.33 GB ✓ primary</text>
+      <text x="425" y="73" fill="rgba(45,202,114,.8)" font-size="10"> 9.02 GB ✓ primary</text>
 
       <!-- smollm2 1.82 GB -->
       <rect x="180" y="88" width="49" height="22" rx="3" fill="rgba(45,202,114,.1)" stroke="rgba(45,202,114,.25)" stroke-width="1"/>
@@ -590,10 +590,10 @@ footer a:hover{color:var(--text);text-decoration:none}
       <text x="176" y="163" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">phi-4-reasoning</text>
       <text x="482" y="163" fill="rgba(212,168,67,.8)" font-size="10"> 11.12 GB ⚠ alone</text>
 
-      <!-- gemma-4-26b 16 GB -->
-      <rect x="180" y="178" width="428" height="22" rx="3" fill="rgba(232,148,58,.1)" stroke="rgba(232,148,58,.4)" stroke-width="1"/>
-      <text x="176" y="193" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">gemma-4-26b</text>
-      <text x="612" y="193" fill="rgba(232,148,58,.8)" font-size="10"> ~16 GB ⚠ alone</text>
+      <!-- mlx-community/gemma-4-e4b-it-8bit 9.00 GB -->
+      <rect x="180" y="178" width="241" height="22" rx="3" fill="rgba(74,116,244,.12)" stroke="rgba(74,116,244,.3)" stroke-width="1"/>
+      <text x="176" y="193" fill="rgba(255,255,255,.35)" text-anchor="end" font-size="10">gemma-4-e4b-mlx</text>
+      <text x="425" y="193" fill="rgba(74,116,244,.8)" font-size="10"> 9.00 GB ✓ MLX+MTP</text>
     </svg>
   </div>
 
@@ -603,8 +603,8 @@ footer a:hover{color:var(--text);text-decoration:none}
   <div class="table-wrap">
     <table>
       <tr><th>Role</th><th>Model</th><th>Size</th><th>Best for</th></tr>
-      <tr><td>Primary · Daily driver · Coding</td><td><code>google/gemma-4-e4b</code></td><td><span class="tag tag-green">6.33 GB</span></td><td>Chat, code generation, writing, and refactoring with BF16 quality</td></tr>
-      <tr><td>Heavy · High-quality generation</td><td><code>mlx-community/gemma-4-26b-a4b-instruct-4bit</code></td><td><span class="tag tag-orange">~16 GB</span></td><td>Deeper reasoning and longer context — load alone, unload primary first</td></tr>
+      <tr><td>Primary · Daily driver · Coding</td><td><code>google/gemma-4-e4b</code></td><td><span class="tag tag-green">9.02 GB</span></td><td>GGUF Q8_0 — chat, code, multimodal (images), loaded at :1234</td></tr>
+      <tr><td>MLX alt · MTP enabled</td><td><code>mlx-community/gemma-4-e4b-it-8bit</code></td><td><span class="tag tag-green">9.00 GB</span></td><td>MLX 8-bit with speculative decoding (MTP) — swap in for faster local inference</td></tr>
       <tr><td>Tool-calling · RAG · Multilingual alt</td><td><code>granite-3.3-8b-instruct</code></td><td><span class="tag tag-green">4.94 GB</span></td><td>Function calling, 128K context, multilingual</td></tr>
       <tr><td>Reasoning · Math · Logic</td><td><code>phi-4-reasoning</code></td><td><span class="tag tag-yellow">11.12 GB</span></td><td>Approved 15B reasoning model that fits comfortably</td></tr>
       <tr><td>Tab autocomplete</td><td><code>smollm2-1.7b-instruct</code></td><td><span class="tag tag-green">1.82 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
@@ -630,7 +630,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><td>Code generation · Daily chat</td><td><code>google/gemma-4-e4b</code></td><td>Primary LM Studio model — general code, writing, and refactoring with practical RAM headroom</td></tr>
       <tr><td>iOS / Swift coding</td><td><code>google/gemma-4-e4b</code></td><td>Strong general coding; use a system prompt with Swift 6 + TCA context</td></tr>
       <tr><td>Long-form / multilingual documents</td><td><code>granite-3.3-8b-instruct</code></td><td>Multilingual, 128K context, strong RAG fit</td></tr>
-      <tr><td>Deep generation &middot; Nuanced tasks</td><td><code>mlx-community/gemma-4-26b-a4b-instruct-4bit</code></td><td>26B 4-bit MLX &mdash; load alone when quality matters more than speed</td></tr>
+      <tr><td>Faster inference &middot; MTP enabled</td><td><code>mlx-community/gemma-4-e4b-it-8bit</code></td><td>MLX 8-bit with speculative decoding &mdash; swap in for the GGUF primary when speed matters</td></tr>
       <tr><td>Complex reasoning</td><td><code>phi-4-reasoning</code></td><td>Approved 15B reasoning model that fits the laptop</td></tr>
       <tr><td>Image analysis</td><td><code>google/gemma-4-e4b</code></td><td>Attach images directly in Open WebUI</td></tr>
       <tr><td>Tool / function calling</td><td><code>granite-3.3-8b-instruct</code></td><td>Optimized for structured tool calls, 128K context</td></tr>
@@ -645,9 +645,9 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><td><code>smollm2-1.7b-instruct</code></td><td>1.82 GB</td><td><span class="tag tag-green">✓ Always on</span></td><td>Tab autocomplete — stays loaded alongside any other model</td></tr>
       <tr><td><code>text-embedding-nomic-embed-text-v1.5</code></td><td>84 MB</td><td><span class="tag tag-green">✓ Always on</span></td><td>Embeddings — negligible footprint</td></tr>
       <tr><td><code>granite-3.3-8b-instruct</code></td><td>4.94 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Tool calling, 128K context, multilingual — fits alongside smollm2</td></tr>
-      <tr><td><code>google/gemma-4-e4b</code></td><td>6.33 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Primary daily driver — fits comfortably with room for the OS</td></tr>
+      <tr><td><code>google/gemma-4-e4b</code></td><td>9.02 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>Primary daily driver (GGUF Q8_0) — fits with room for OS and tools</td></tr>
+      <tr><td><code>mlx-community/gemma-4-e4b-it-8bit</code></td><td>9.00 GB</td><td><span class="tag tag-green">✓ Yes</span></td><td>MLX 8-bit alt with MTP — swap in for the GGUF primary, same RAM footprint</td></tr>
       <tr><td><code>phi-4-reasoning</code></td><td>11.12 GB</td><td><span class="tag tag-yellow">⚠ Alone</span></td><td>Load alone — eject primary first, no room for anything else large</td></tr>
-      <tr><td><code>mlx-community/gemma-4-26b-a4b-instruct-4bit</code></td><td>~16 GB</td><td><span class="tag tag-yellow">⚠ Alone</span></td><td>Load alone — eject primary first; ~0 headroom left after macOS overhead</td></tr>
       <tr><td>Gemma 4 31B or larger</td><td>20+ GB</td><td><span class="tag tag-red">✗ No</span></td><td>Exceeds available RAM — causes heavy swap, unusable</td></tr>
     </table>
   </div>
@@ -815,7 +815,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <div class="dash-card" style="margin-top:12px">
       <h5>Loaded model &mdash; LM Studio</h5>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px;font-size:.83rem">
-        <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>google/gemma-4-e4b</strong><br><span style="color:var(--muted2)">6.33 GB &middot; </span><span class="tag tag-green" style="font-size:.64rem">&#x25CF; loaded</span></div>
+        <div style="background:rgba(45,202,114,.05);border:1px solid rgba(45,202,114,.25);border-radius:6px;padding:8px 12px"><strong>google/gemma-4-e4b</strong><br><span style="color:var(--muted2)">9.02 GB &middot; </span><span class="tag tag-green" style="font-size:.64rem">&#x25CF; loaded</span></div>
         <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><strong>smollm2-1.7b-instruct</strong><br><span style="color:var(--muted2)">1.82 GB &middot; </span><span class="tag tag-green" style="font-size:.64rem">&#x25CF; autocomplete</span></div>
       </div>
     </div>
@@ -1056,7 +1056,7 @@ EOF
   <span class="kw">"defaultModel"</span>: <span class="str">"lmstudio/lmstudio-community/gemma-4-E4B-it-GGUF"</span>,
   <span class="kw">"enabledModels"</span>: [
     <span class="str">"lmstudio/lmstudio-community/gemma-4-E4B-it-GGUF"</span>,    <span class="c">// primary</span>
-    <span class="str">"lmstudio/mlx-community/gemma-4-26b-a4b-it-4bit"</span>,    <span class="c">// heavy — load alone</span>
+    <span class="str">"lmstudio/mlx-community/gemma-4-e4b-it-8bit"</span>,         <span class="c">// MLX 8-bit alt — MTP enabled</span>
     <span class="str">"lmstudio/granite3.3:8b"</span>,                             <span class="c">// tools / RAG</span>
     <span class="str">"lmstudio/phi4-reasoning"</span>                             <span class="c">// reasoning</span>
   ],
@@ -1092,14 +1092,14 @@ EOF
       },
       <span class="kw">"models"</span>: {
         <span class="kw">"lmstudio-community/gemma-4-E4B-it-GGUF"</span>: {
-          <span class="kw">"name"</span>: <span class="str">"Gemma 4 E4B (local &middot; ~5 GB)"</span>,
+          <span class="kw">"name"</span>: <span class="str">"Gemma 4 E4B Q8 (local &middot; ~9 GB)"</span>,
           <span class="kw">"capabilities"</span>: [<span class="str">"image"</span>],
           <span class="kw">"limit"</span>: { <span class="kw">"context"</span>: <span class="str">131072</span>, <span class="kw">"output"</span>: <span class="str">8192</span> }
         },
-        <span class="kw">"mlx-community/gemma-4-26b-a4b-it-4bit"</span>: {
-          <span class="kw">"name"</span>: <span class="str">"Gemma 4 26B 4bit MLX (local &middot; ~16 GB)"</span>,
+        <span class="kw">"mlx-community/gemma-4-e4b-it-8bit"</span>: {
+          <span class="kw">"name"</span>: <span class="str">"Gemma 4 E4B MLX 8-bit (local &middot; ~9 GB, MTP)"</span>,
           <span class="kw">"capabilities"</span>: [<span class="str">"image"</span>],
-          <span class="kw">"limit"</span>: { <span class="kw">"context"</span>: <span class="str">65536</span>, <span class="kw">"output"</span>: <span class="str">8192</span> }
+          <span class="kw">"limit"</span>: { <span class="kw">"context"</span>: <span class="str">131072</span>, <span class="kw">"output"</span>: <span class="str">8192</span> }
         },
         <span class="kw">"granite-3.3-8b-instruct"</span>: {
           <span class="kw">"name"</span>: <span class="str">"Granite 3.3 8B (local &middot; 4.94 GB)"</span>,
@@ -1138,12 +1138,13 @@ EOF
       <span class="kw">"multimodal"</span>: <span class="str">true</span>
     },
     {
-      <span class="kw">"title"</span>: <span class="str">"Local LM Studio - Gemma 4 26B 4bit MLX"</span>,
+      <span class="kw">"title"</span>: <span class="str">"Local LM Studio - Gemma 4 E4B MLX 8-bit (MTP)"</span>,
       <span class="kw">"provider"</span>: <span class="str">"lmstudio"</span>,
-      <span class="kw">"model"</span>: <span class="str">"mlx-community/gemma-4-26b-a4b-it-4bit"</span>,
+      <span class="kw">"model"</span>: <span class="str">"mlx-community/gemma-4-e4b-it-8bit"</span>,
       <span class="kw">"apiBase"</span>: <span class="str">"http://localhost:1234/v1"</span>,
       <span class="kw">"apiKey"</span>: <span class="str">"&lt;your-lmstudio-token&gt;"</span>,
-      <span class="kw">"contextLength"</span>: <span class="str">65536</span>
+      <span class="kw">"contextLength"</span>: <span class="str">131072</span>,
+      <span class="kw">"multimodal"</span>: <span class="str">true</span>
     },
     {
       <span class="kw">"title"</span>: <span class="str">"Local LM Studio - Granite 3.3 8B (tools/RAG)"</span>,

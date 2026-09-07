@@ -334,6 +334,7 @@ footer a:hover{color:var(--text);text-decoration:none}
     <a href="#s-websearch"><span class="num">06</span>Web Search</a>
     <a href="#s-webui"><span class="num">07</span>Open WebUI</a>
     <a href="#s-commands"><span class="num">08</span>Commands</a>
+    <a href="#s-agents"><span class="num">09</span>Agents</a>
     <div class="nav-progress" id="nav-progress"></div>
   </div>
 </nav>
@@ -1195,6 +1196,50 @@ EOF
       <tr><td><kbd>&#x2318;</kbd><kbd>L</kbd></td><td>Open AI chat sidebar</td></tr>
       <tr><td><kbd>&#x2318;</kbd><kbd>I</kbd></td><td>Inline edit &mdash; select code and describe the change</td></tr>
       <tr><td><kbd>Tab</kbd></td><td>Accept autocomplete from <code>smollm2-1.7b-instruct</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ── Agents ── -->
+<section class="section" id="s-agents">
+  <div class="s-num">09 <span class="dim">/</span> Agents</div>
+  <h2>Automation &amp; agents.</h2>
+  <p class="section-desc">Three patterns for putting a local model to work unattended, in increasing order of risk. An agent that can run shell commands is not a better cron job &mdash; pick by what the task actually needs.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Pattern</th><th>Tool</th><th>What it does</th><th>Risk</th></tr>
+      <tr><td>Workflow automation</td><td><strong>n8n</strong> + local endpoint</td><td>You define the logic; the model is one node. Versionable, debuggable. Digests, monitoring, scheduled reports.</td><td><span class="tag tag-green">Low</span></td></tr>
+      <tr><td>Messaging agent</td><td><strong>OpenClaw</strong></td><td>Telegram/WhatsApp/Discord. Heartbeat daemon every 30 min. Reads files, manages calendars &mdash; and executes commands on the host.</td><td><span class="tag tag-yellow">High</span></td></tr>
+      <tr><td>Desktop automation</td><td><strong>Hermes Agent</strong></td><td>Playwright browser control, cron, dashboard. Needs <strong>64K context minimum</strong> from the endpoint.</td><td><span class="tag tag-yellow">High</span></td></tr>
+    </table>
+  </div>
+
+  <div class="alert alert-yellow">&#x26A0;&#xFE0F; <strong>Hermes remote access is a known open issue</strong> (<code>NousResearch/hermes-agent#84865</code>). <code>hermes serve</code> shows a login page but disables the web UI &mdash; you need <code>hermes dashboard</code>. OAuth registration on a VPN host fails with <code>redirect_uri_mismatch</code>, and the MagicDNS workaround is undocumented.</div>
+
+  <div class="alert alert-blue">&#x1F4A1; <strong>NemoClaw was evaluated and does not fit.</strong> NVIDIA&rsquo;s sandboxed OpenClaw variant is attractive &mdash; the agent reaches neither host filesystem nor host network &mdash; but it requires Docker, and this stack is container-free by design. Its primary target is DGX Spark or a 24 GB+ NVIDIA GPU on Ubuntu; the Apple Silicon host-to-sandbox inference bridge is incomplete.</div>
+
+  <h3>Reaching them remotely</h3>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">Remote access is Tailscale. Three surfaces, best first.</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Surface</th><th>How</th><th>Open ports</th></tr>
+      <tr><td><strong>Tailscale Serve</strong> &mdash; any web dashboard</td><td><code>tailscale serve --bg 3000</code> &mdash; automatic HTTPS via MagicDNS, stable hostname</td><td><span class="tag tag-green">None</span></td></tr>
+      <tr><td><strong>Messaging</strong> &mdash; Telegram, Discord</td><td>Agent long-polls outward. Works from anywhere, no tailnet needed on the client</td><td><span class="tag tag-green">None</span></td></tr>
+      <tr><td><strong>OpenAI-compatible API</strong></td><td><code>http://&lt;tailscale-ip&gt;:1234/v1</code> from any chat client</td><td><span class="tag tag-green">LAN only</span></td></tr>
+    </table>
+  </div>
+  <div class="alert alert-yellow">&#x26A0;&#xFE0F; Never use <code>tailscale funnel</code> for any of these &mdash; Funnel publishes to the public internet and defeats the whole design. The inference endpoint has no authentication of its own; the tailnet is the only thing protecting it.</div>
+
+  <h3>Before enabling agent tooling</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Concern</th><th>Why it matters here</th></tr>
+      <tr><td>Prompt injection</td><td>The dominant failure mode. Models don&rsquo;t separate instructions from data &mdash; every web page, email and stranger&rsquo;s message the agent reads is untrusted input that can issue commands.</td></tr>
+      <tr><td>Quantization is a security parameter</td><td>Aggressively quantized checkpoints raise injection risk. <code>UD-IQ3_S</code> is fine for chat, questionable for an agent with shell access &mdash; prefer <code>UD-IQ4_XS</code> and recheck the memory budget.</td></tr>
+      <tr><td>Agent runtime overhead</td><td>500 MB&ndash;2 GB on top of weights and KV cache. With a 64K context floor: 13.7 + 3 + 2 + 4 = <strong>~22.7 GB of 24 GB</strong>. No slack.</td></tr>
+      <tr><td>Exposed endpoints</td><td>1,100+ Ollama instances were indexed on Shodan in 2025, 85% with no authentication.</td></tr>
+      <tr><td>Account isolation</td><td>Standard guidance is a dedicated non-primary account or an isolated machine. The mini is also the inference host &mdash; decide deliberately.</td></tr>
     </table>
   </div>
 </section>

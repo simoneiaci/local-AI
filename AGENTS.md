@@ -782,3 +782,116 @@ git show 29adcf1^:scripts/phase5-remote.sh
 
 It has **not** been reviewed against the current stack — its Open WebUI and
 Podman references are stale (§11.3: no containers).
+
+---
+
+## 21. Automation & Agents
+
+Three patterns, in increasing order of risk. Pick by what the task needs — an
+agent that can run shell commands is not a better cron job.
+
+### Pattern 1 — Workflow automation (n8n + local endpoint)
+
+The default. n8n fires a workflow, calls the local OpenAI-compatible endpoint
+as one node, acts on the result. The logic is yours; the model does not decide
+what runs. Workflows are versionable and debuggable in a way a pile of scripts
+and crontab entries is not.
+
+Use for: digests, monitoring, summarisation, scheduled reports.
+Risk: **low** — no command execution, minimal prompt-injection surface.
+
+### Pattern 2 — Messaging agent (OpenClaw)
+
+Formerly Clawdbot/Moltbot. Self-hosted, connects to Telegram/WhatsApp/Discord,
+points at LM Studio or Ollama. A heartbeat daemon wakes it periodically (30 min
+default) to run scheduled tasks. It reads files, manages calendars, monitors
+repos, and **executes commands on the host**.
+
+Use for: a conversational assistant reachable from a phone.
+Risk: **high** — see Security below. Start with filesystem and shell tools
+disabled, enable one at a time.
+
+### Pattern 3 — Desktop automation (Hermes Agent)
+
+Nous Research. Local Ollama/MLX inference, Playwright browser automation, cron,
+messaging, web dashboard. The Mac mini M4 is its canonical deployment target.
+
+**Hard requirement: the model endpoint must serve at least 64K context.** That
+is a floor, not a suggestion — budget the KV cache for it (§2).
+
+**Known issue for this setup:** remote dashboard access over Tailscale is an
+open usability problem (`NousResearch/hermes-agent#84865`). `hermes serve`
+accepts credentials and shows a login page but disables the web UI — the
+browser interface only loads via `hermes dashboard`. Separately, OAuth
+registration on a VPN host fails with `redirect_uri_mismatch`, and the MagicDNS
+workaround is undocumented. Budget time for this, or prefer Pattern 2.
+
+### NemoClaw — evaluated, does not fit as the stack stands
+
+NVIDIA's sandboxed OpenClaw variant. Attractive on paper: the agent runs in a
+container, so it reaches neither the host filesystem nor the host network.
+
+**It requires Docker.** §11.3 of this file says no containers, and Podman was
+deliberately removed. Revisit only if that rule changes.
+
+Also relevant even if it did: the primary target is DGX Spark, or an NVIDIA GPU
+with 24 GB+ VRAM on Ubuntu. Apple Silicon is supported through Colima or Docker
+Desktop, but the host-to-sandbox inference bridge is incomplete — pointing it at
+a local Mac endpoint is not a solved path.
+
+### Remote interaction — reaching any of these
+
+Remote access is Tailscale (§20). Three surfaces, in order of preference:
+
+**1. Tailscale Serve — for any web dashboard.** Automatic HTTPS via MagicDNS, a
+stable hostname, and **zero open ports**:
+
+```bash
+tailscale serve --bg 3000     # dashboard listening on localhost:3000
+tailscale serve status
+```
+
+Reachable from phone, laptop or iPad — anything on the tailnet. Requires HTTPS
+enabled for the tailnet; the CLI prompts to turn it on.
+
+**2. Messaging (Telegram, Discord, WhatsApp).** The agent long-polls outward, so
+there is no inbound port and nothing to expose. Lowest attack surface, and it
+works from anywhere without needing the tailnet on the client.
+
+**3. The OpenAI-compatible API over the tailnet.** Point any client at
+`http://<tailscale-ip>:1234/v1`. Fine for chat clients — but the endpoint has no
+auth of its own (§20), so the tailnet is the only thing protecting it.
+
+**Never `tailscale funnel` for any of these.** Funnel publishes to the public
+internet and defeats the entire design.
+
+### Security — read before enabling agent tooling
+
+1. **Prompt injection is the dominant failure mode.** LLMs do not separate
+   instructions from data. Once an agent can chain filesystem access, memory
+   writes and web fetches, injected text reaches the host. Everything the agent
+   reads — a web page, an email, a message from a stranger — is untrusted input
+   capable of issuing commands.
+2. **Quantization is a security parameter here, not only a quality one.**
+   OpenClaw's guidance is that aggressively quantized checkpoints raise
+   prompt-injection risk. The §3 shortlist recommends `UD-IQ3_S`, which is fine
+   for conversation and questionable for an agent holding shell access. For
+   agent use prefer `UD-IQ4_XS` and re-check the §2 budget.
+3. **Budget for the agent runtime** — 500 MB to 2 GB on top of weights and KV
+   cache. With a 64K context floor this gets tight fast on 24 GB:
+
+```
+13.7 GB  model (UD-IQ3_S)
+ ~3 GB   KV cache @ 64K
+ ~2 GB   agent runtime
+ ~4 GB   headless macOS
+─────────
+~22.7 GB of 24 GB — no slack left
+```
+
+4. **Never expose the inference endpoint.** Over 1,100 Ollama instances were
+   indexed on Shodan in 2025, 85% of them without authentication. This is
+   exactly why §20 is Tailscale-only.
+5. **Prefer a dedicated account.** Standard guidance is to run agents on an
+   isolated machine or VM under a non-primary account. The mini is also the
+   inference host, so make that call deliberately rather than by default.

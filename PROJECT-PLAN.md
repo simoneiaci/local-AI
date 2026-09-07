@@ -839,3 +839,39 @@ git show 29adcf1^:scripts/phase5-remote.sh   # Tailscale + Caddy + Cloudflare
 
 Not reviewed against the current stack — its Open WebUI and Podman references
 are stale.
+
+---
+
+## 14. Automation & Agents
+
+Three patterns for running a local model unattended, in increasing order of risk:
+
+| Pattern | Tool | Risk | Notes |
+|---------|------|------|-------|
+| Workflow automation | n8n + local endpoint | Low | You define the logic; the model is one node. No command execution. |
+| Messaging agent | OpenClaw | High | Telegram/WhatsApp/Discord, 30-min heartbeat. Executes commands on the host. |
+| Desktop automation | Hermes Agent | High | Playwright, cron, dashboard. Requires **64K context minimum**. |
+
+**NemoClaw** (NVIDIA's sandboxed OpenClaw) was evaluated and rejected: it
+requires Docker, and this stack is container-free by design (§11.3 of
+`AGENTS.md`). Its primary target is DGX Spark or a 24 GB+ NVIDIA GPU on Ubuntu,
+and the Apple Silicon host-to-sandbox inference bridge is incomplete.
+
+**Hermes caveat:** remote dashboard access over Tailscale is an open issue
+(`NousResearch/hermes-agent#84865`) — `hermes serve` disables the web UI, and
+OAuth registration on a VPN host fails with `redirect_uri_mismatch`.
+
+### Remote interaction
+
+Tailscale (§13). Best surface first:
+
+1. **Tailscale Serve** for dashboards — `tailscale serve --bg 3000` gives
+   automatic HTTPS via MagicDNS, a stable hostname and zero open ports.
+2. **Messaging** — the agent long-polls outward; no inbound port at all.
+3. **The OpenAI-compatible API over the tailnet** — no auth of its own, so the
+   tailnet is the only protection.
+
+Never `tailscale funnel` — it publishes to the public internet.
+
+> Full operational detail, the memory maths and the security checklist live in
+> `AGENTS.md` §21. Read that before enabling any agent tooling.

@@ -606,13 +606,26 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><td>Primary · Daily driver · Coding</td><td><code>google/gemma-4-e4b</code></td><td><span class="tag tag-green">9.02 GB</span></td><td>GGUF Q8_0 — chat, code, multimodal (images), loaded at :1234</td></tr>
       <tr><td>MLX alt · MTP enabled</td><td><code>mlx-community/gemma-4-e4b-it-8bit</code></td><td><span class="tag tag-green">9.00 GB</span></td><td>MLX 8-bit with speculative decoding (MTP) — swap in for faster local inference</td></tr>
       <tr><td>Tool-calling · RAG · Multilingual alt</td><td><code>granite-3.3-8b-instruct</code></td><td><span class="tag tag-green">4.94 GB</span></td><td>Function calling, 128K context, multilingual</td></tr>
-      <tr><td>Reasoning · Math · Logic</td><td><code>phi-4-reasoning</code></td><td><span class="tag tag-yellow">11.12 GB</span></td><td>Approved 15B reasoning model that fits comfortably</td></tr>
+      <tr><td>Reasoning · Math · Logic</td><td><code>phi-4-reasoning</code></td><td><span class="tag tag-yellow">11.12 GB</span></td><td>15B reasoning model that fits comfortably</td></tr>
       <tr><td>Tab autocomplete</td><td><code>smollm2-1.7b-instruct</code></td><td><span class="tag tag-green">1.82 GB</span></td><td>VS Code inline completions — always loaded</td></tr>
       <tr><td>Embeddings</td><td><code>text-embedding-nomic-embed-text-v1.5</code></td><td><span class="tag tag-green">84 MB</span></td><td>RAG pipelines, semantic search</td></tr>
     </table>
   </div>
 
-  <div class="alert alert-yellow">⚠️ Qwen and DeepSeek models are not used in this project. Qwen model entries were removed from configs, aliases, setup scripts, and docs.</div>
+  <h3>Mac mini &mdash; chat &amp; Telegram bot candidates</h3>
+  <p style="color:var(--muted)">Shortlisted for the headless Mac mini. <strong>Not yet installed</strong> &mdash; evaluate before adopting.</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Model</th><th>Quant</th><th>Size</th><th>Notes</th></tr>
+      <tr><td><code>Qwen3.6-35B-A3B</code></td><td>UD-IQ3_S</td><td><span class="tag tag-green">13.7 GB</span></td><td>MoE, 3B active &mdash; fast. Multimodal, 262K ctx. Loads under the default wired limit. Primary candidate.</td></tr>
+      <tr><td><code>gemma-4-26b-a4b-it-4bit</code></td><td>MLX 4-bit</td><td><span class="tag tag-yellow">~16 GB</span></td><td>Multimodal MoE, 140+ languages. Needs a raised wired limit &mdash; mini only.</td></tr>
+      <tr><td><code>mistral-small3.2:24b</code></td><td>Q4_K_M</td><td><span class="tag tag-green">14.3 GB</span></td><td>Dense, native tool calling. Zero-tuning fallback.</td></tr>
+      <tr><td><code>maple-preview-2bit-mlx</code></td><td>2-bit MLX</td><td><span class="tag tag-green">&mdash;</span></td><td>20B-A1B ternary MoE. Vendor claims 200+ tok/s on a base M4 mini. Preview quality &mdash; latency test only.</td></tr>
+      <tr><td><code>Qwen3.8-27B</code></td><td>IQ4_XS</td><td><span class="tag tag-yellow">~15.6 GB</span></td><td>Dense 27B, ~11 tok/s on M4 Pro. Only if it beats every MoE above.</td></tr>
+    </table>
+  </div>
+  <div class="alert alert-blue">💡 Model choice is constrained by <strong>hardware fit only</strong> &mdash; there is no vendor allow/deny list. For MoE models use Unsloth Dynamic (<code>UD-</code>) quants: expert layers tolerate low bit-depth, the shared and attention path does not.</div>
+  <div class="alert alert-yellow">⚠️ macOS caps GPU-addressable memory at ~16&ndash;18 GB on a 24 GB machine. Anything larger needs <code>sudo sysctl iogpu.wired_limit_mb=20480</code> &mdash; which resets on reboot, and should only be set on the headless mini, never the laptop.</div>
   <div class="alert alert-blue">💡 Use <strong>phi-4-reasoning</strong> for reasoning-heavy prompts and <strong>granite-3.3-8b-instruct</strong> for multilingual/RAG document work.</div>
 
   <h3>Custom Modelfiles</h3>

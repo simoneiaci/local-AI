@@ -43,24 +43,51 @@
 
 ## 2. Memory Budget
 
-With 24GB total, you need to plan around this:
+Two hosts, both 24 GB M4 Pro. The difference is what macOS and the GUI take.
+
+### MacBook Pro M4 Pro (24 GB) — interactive
 
 | Component          | RAM Usage  | Notes                              |
 |--------------------|------------|------------------------------------|
 | macOS + system     | ~8 GB      | Varies with apps open              |
-| LLM model (active) | 5–16 GB   | Depends on model size + quant      |
+| LLM model (active) | 5–15 GB    | Depends on model size + quant      |
 | RAG / embedding    | ~0.5–1 GB  | Small embedding model              |
 | Apps & headroom    | ~2 GB      | Browsers, IDE, etc.                |
 
-**Rule of thumb:** Keep total model VRAM under **14 GB** to avoid swapping. Swapping kills performance on LLMs.
+**Rule of thumb:** keep model weights under **15 GB**. Swapping kills LLM performance.
+
+### Mac mini M4 Pro (24 GB) — headless inference server
+
+| Component          | RAM Usage  | Notes                                    |
+|--------------------|------------|------------------------------------------|
+| macOS (headless)   | ~4 GB      | No GUI apps, no browser                  |
+| LLM model + KV     | up to 18 GB| Requires raised Metal wired limit         |
+| Bot + exporter     | ~1 GB      | Telegram bot process, metrics exporter    |
+
+**Rule of thumb:** keep weights + KV cache under **18 GB combined**.
+
+### The Metal wired limit
+
+macOS caps GPU-addressable memory at ~16–18 GB on a 24 GB machine. A model
+above the cap will not load regardless of free RAM:
+
+```bash
+sysctl iogpu.wired_limit_mb                # 0 = default cap
+sudo sysctl iogpu.wired_limit_mb=20480     # 20 GB — mini only
+```
+
+It is a ceiling, not an allocation, and it **resets on every reboot** —
+persist it with a LaunchDaemon on the mini. Leave 4 GB for macOS. Do not
+raise it on the MacBook; pick a smaller model there instead.
 
 ---
 
-## 3. Approved Models Only
+## 3. Model Selection
 
-> **IMPORTANT:** Only models from the organization's approved list are permitted.
-> Models are classified as **Green** (fully approved) or **Yellow** (elevated risk, use with caution).
-> Notably, **Qwen** and **DeepSeek** models are NOT on the approved list.
+> **Hardware fit is the only constraint.** There is no vendor allow/deny list —
+> these are personal machines. A model is acceptable if it fits the host budget
+> in §2 with room for KV cache and the OS.
+> **Green** = fits with headroom · **Yellow** = fits but tight · **Red** = does not fit.
 
 Use `phi4-reasoning` for local reasoning, math, and logic work on this laptop. Use `granite3.3:8b` for multilingual/RAG document workflows where long context matters.
 
@@ -68,7 +95,7 @@ Use `phi4-reasoning` for local reasoning, math, and logic work on this laptop. U
 
 ### 3a. Complete Gemma Family (All Green)
 
-All Gemma models are Green-approved. Here's every variant and whether it runs on your 24GB M4 Pro:
+Every Gemma variant and whether it runs on a 24 GB M4 Pro:
 
 | Model                    | Ollama name              | VRAM (Q4) | Fits 24GB? | Best for                          |
 |--------------------------|--------------------------|-----------|------------|-----------------------------------|
@@ -91,7 +118,7 @@ All Gemma models are Green-approved. Here's every variant and whether it runs on
 
 ---
 
-### 3b. Other Approved Models — Green
+### 3b. Other Models That Fit — Green
 
 | Model                   | Ollama name              | VRAM (Q4) | Speed (est.)  | Best for              |
 |-------------------------|--------------------------|-----------|---------------|-----------------------|
@@ -121,15 +148,24 @@ All Gemma models are Green-approved. Here's every variant and whether it runs on
 | SmolLM2 1.7B            | `smollm2:1.7b`          | ~1 GB    | Tab-completion in IDE               |
 | Nomic Embed Text v1.5   | `nomic-embed-text`       | ~0.3 GB  | Embeddings for RAG                  |
 
-### 3e. Models That DON'T Fit 24GB — Avoid
+### 3e. Models That Don't Fit — by host
 
-| Model              | Why                                           |
-|--------------------|-----------------------------------------------|
-| Gemma 4 31B        | ~20 GB at Q4 — context buffer pushes over limit|
-| Gemma 3 27B        | ~16 GB at Q4 — marginal, swapping likely      |
-| Gemma 2 27B        | ~17 GB at Q4 — older, same problem            |
-| CodeLlama 34B/70B  | ~22 GB+ at Q4 — doesn't fit                   |
-| Any 70B+ model     | Requires 48GB+ RAM                            |
+**Mini only** (over the MacBook's 15 GB ceiling, under the mini's 18 GB):
+
+| Model                       | Size      | Requires                    |
+|-----------------------------|-----------|-----------------------------|
+| Qwen3.6-35B-A3B UD-IQ4_XS   | 17.7 GB   | raised wired limit          |
+| Gemma 4 26B-A4B (MLX 4-bit) | ~16 GB    | raised wired limit          |
+| Gemma 3 27B / Gemma 2 27B   | ~16–17 GB | raised wired limit; dense, slow |
+
+**Neither host:**
+
+| Model                      | Why                                            |
+|----------------------------|------------------------------------------------|
+| Gemma 4 31B                | ~20 GB at Q4 — over budget on both              |
+| Qwen3.6-35B-A3B UD-Q4_K_M  | 22.1 GB — use UD-IQ3_S or UD-IQ4_XS instead     |
+| CodeLlama 34B/70B          | ~22 GB+ at Q4                                   |
+| Any dense 70B+             | Requires 48 GB+ RAM                             |
 
 ---
 
@@ -160,7 +196,50 @@ TAB AUTOCOMPLETE IN IDE            → smollm2:1.7b (~1 GB, instant)      → ph
 - **Q4_K_M** — Sweet spot. ~4-bit, great quality-to-size ratio. Use this by default.
 - **Q5_K_M** — Slightly better quality, ~20% larger. Use if model fits comfortably.
 - **Q8_0** — Near-original quality, 2x size of Q4. Only for small models (≤7B).
-- **MLX format** — ~25% faster than GGUF on models under 7B. Check `mlx-community` on HuggingFace.
+- **UD-IQ3_S / UD-IQ4_XS** — Unsloth Dynamic quants. Use these for **MoE**
+  models, not plain K-quants. Expert layers tolerate low bits; the shared and
+  attention path does not, and UD quants budget bits accordingly.
+- **MLX format** — sometimes faster than GGUF, sometimes not. It is model- and
+  version-specific: on `gpt-oss-20b`, llama.cpp measured ~1.6x faster prefill
+  and ~9% faster generation than MLX (`ml-explore/mlx-lm#858`). Benchmark the
+  specific pair you intend to run rather than assuming.
+
+---
+
+### 3g. MoE Models & the Chat / Telegram Shortlist
+
+A Mixture-of-Experts model holds N total parameters but activates only a
+subset per token. On a memory-bound Mac that is the highest-leverage property
+available — 35B of knowledge at roughly 3B of compute cost. **Prefer MoE over
+dense at equal footprint.**
+
+Quality retention for `Qwen3.6-35B-A3B` (35B total / 3B active, 262K context,
+natively multimodal), measured on code-gen benchmarks — directional for chat:
+
+| Quant       | Size    | vs BF16 | Host      |
+|-------------|---------|---------|-----------|
+| UD-IQ2_M    | 11.5 GB | ~87%    | both      |
+| UD-IQ3_XXS  | 13.2 GB | ~95%    | both      |
+| UD-IQ3_S    | 13.7 GB | ~95%    | both      |
+| UD-IQ4_XS   | 17.7 GB | ~99%    | mini only |
+| UD-Q4_K_M   | 22.1 GB | ~99%    | neither   |
+
+`UD-IQ3_S` is the sweet spot: ~95% of full quality, and it loads under the
+**default** Metal wired limit, so it needs no sysctl change on either host.
+
+**Shortlist for general chat / the Telegram bot** (not a coding shortlist):
+
+| Model | Quant | Size | Host | Why |
+|-------|-------|------|------|-----|
+| `Qwen3.6-35B-A3B` | UD-IQ3_S | 13.7 GB | both | 3B active, fast. Multimodal, 262K ctx. No wired-limit change needed. Primary candidate. |
+| `gemma-4-26b-a4b-it-4bit` | MLX 4-bit | ~16 GB | mini | Multimodal MoE, 140+ languages. A/B against Qwen for tone and Italian. |
+| `mistral-small3.2:24b` | Q4_K_M | 14.3 GB | both | Dense, native tool calling. Zero-tuning fallback. |
+| `maple-preview-2bit-mlx` | 2-bit MLX | — | both | 20B-A1B ternary MoE. Vendor claims 200+ tok/s on a base M4 mini. Preview quality — test for latency only. |
+| `Qwen3.8-27B` | IQ4_XS | ~15.6 GB | both | Dense 27B, ~11 tok/s on M4 Pro. Only if it beats every MoE above. |
+
+**Validate on real traffic.** Run the same five Italian prompts, one
+follow-up turn and one image through each candidate. Benchmark scores do not
+predict whether a model is pleasant to talk to.
 
 ---
 
@@ -334,7 +413,7 @@ Tabby provides IDE-integrated code completion similar to GitHub Copilot, entirel
 
 Real-world users of coding agents (see r/opencodeCLI discussions) consistently land on a two-phase workflow: one model reasons about the plan, a second model executes it. This splits cognitive vs. mechanical work and keeps each model in its comfort zone.
 
-Adapted to the approved-model roster on a 24 GB M4 Pro:
+Adapted to the local model roster on a 24 GB M4 Pro:
 
 | Phase           | Model                                | Why                                                  |
 |-----------------|--------------------------------------|------------------------------------------------------|
@@ -355,7 +434,7 @@ opencode "Now implement the plan we just designed"
 
 ### 5.7 Context Budget — Keep Prompts Under ~100K Tokens
 
-Reddit practitioners consistently report that even models advertising 128K context degrade noticeably after ~100K (hallucinations, language drift, lost references). Approved models and their realistic effective context:
+Reddit practitioners consistently report that even models advertising 128K context degrade noticeably after ~100K (hallucinations, language drift, lost references). Models and their realistic effective context:
 
 | Model                        | Advertised | Recommended working budget |
 |------------------------------|------------|----------------------------|
@@ -411,7 +490,7 @@ Drag & drop PDFs, markdown, code files → instant private knowledge base.
 ```bash
 pip install khoj --break-system-packages
 
-# Configure to use Ollama with approved model
+# Configure to use Ollama
 # Edit ~/.khoj/khoj.yml:
 #   chat-model: http://localhost:11434/v1
 #   model: Gemma4 BF16 e4b
@@ -419,7 +498,7 @@ pip install khoj --break-system-packages
 
 Khoj can index your notes, files, and even web content. Works with Obsidian via plugin.
 
-> **Note:** Configure all RAG tools to use approved models only. Use `Gemma4 BF16 e4b` or `granite3.3:8b` as the chat model, and `nomic-embed-text` for embeddings.
+> **Note:** Use `Gemma4 BF16 e4b` or `granite3.3:8b` as the RAG chat model, and `nomic-embed-text` for embeddings.
 
 ---
 
@@ -682,3 +761,60 @@ Advanced reasoning                 → magistral:24b-small-2506 (Mistral)     Gr
 - **Tabby:** https://tabby.tabbyml.com
 - **macmon:** https://github.com/vladkens/macmon
 - **MLX Community Models:** https://huggingface.co/mlx-community
+
+---
+
+## 13. Remote Access & the Telegram Bot
+
+Remote access was removed in `29adcf1` when the stack went local-only. The
+Mac mini as an always-on host brings it back.
+
+### Tailscale only — never port-forward
+
+LM Studio (:1234) and Ollama (:11434) have **no authentication**. Exposing
+either publicly hands out a free GPU and every prompt. The metrics-exporter
+control server (:9091) has bearer auth but must stay on `127.0.0.1`.
+
+```bash
+brew install --cask tailscale
+tailscale up
+tailscale ip -4          # 100.x.y.z
+```
+
+From any device on the tailnet:
+
+- LM Studio — `http://<tailscale-ip>:1234/v1`
+- Ollama — `http://<tailscale-ip>:11434/v1`
+
+`scripts/status.sh` already reports Tailscale state; its check was never
+removed and starts working again after `tailscale up`.
+
+**Watch out:** `OLLAMA_HOST=0.0.0.0:11434` binds Ollama to *all* interfaces,
+not just the tailnet. Bind to the Tailscale IP or enable the macOS firewall,
+especially on the MacBook.
+
+### Telegram bot
+
+The bot runs on the mini against `http://127.0.0.1:1234/v1`, so it does not
+need the tailnet. Telegram is reached by outbound long-polling
+(`getUpdates`) — **no inbound port, no webhook, no public endpoint**. Switch
+to webhooks only if polling latency becomes a problem; that changes the
+threat model and needs public HTTPS.
+
+`TELEGRAM_BOT_TOKEN` goes in `.secrets`, never in git.
+
+Keep the model warm so each message does not pay a cold load:
+
+```bash
+export OLLAMA_KEEP_ALIVE=-1        # mini only — overrides the 5m laptop default
+export OLLAMA_MAX_LOADED_MODELS=1
+```
+
+### Recovering the old script
+
+```bash
+git show 29adcf1^:scripts/phase5-remote.sh   # Tailscale + Caddy + Cloudflare
+```
+
+Not reviewed against the current stack — its Open WebUI and Podman references
+are stale.

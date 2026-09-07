@@ -202,13 +202,13 @@ header "6. TurboQuant model variants — fit bigger models on 24 GB"
 info "TurboQuant (recent llama.cpp addition) reduces VRAM significantly."
 info "On your 24 GB Mac (~14-16 GB usable), this opens up:"
 echo ""
-echo "    • Phi-4-Reasoning Q4                    ~9 GB   (approved reasoning)"
-echo "    • Gemma-4-26B-a4b-it                   ~15 GB  (approved, tight fit)"
+echo "    • Phi-4-Reasoning Q4                    ~9 GB   (fits both hosts)"
+echo "    • Qwen3.6-35B-A3B UD-IQ3_S             ~13.7 GB (MoE, fits both hosts)"
 echo "    • Mistral-Small-24B-MLX-4bit           ~13 GB"
+echo "    • Gemma-4-26B-a4b-it                   ~16 GB  (mini only — needs raised wired limit)"
 echo ""
-warn "Compliance note:"
-warn "Qwen and DeepSeek models are not used in this project."
-warn "For corporate hardware, follow your organization's approved-model policy."
+info "Model choice is constrained by hardware fit only — no vendor allow/deny list."
+info "MacBook ceiling ~15 GB; headless Mac mini ~18 GB with iogpu.wired_limit_mb raised."
 echo ""
 
 # Show free RAM before any 'tight on 24 GB' prompts.
@@ -226,7 +226,7 @@ else
   warn "Skipped — pull manually with: ollama pull phi4-reasoning"
 fi
 
-warn "Skipping Gemma 27B pulls: project policy says Gemma 27B variants are marginal/risky on 24 GB and must not be loaded."
+warn "Skipping Gemma 27B pulls: ~16-17 GB dense — over the MacBook ceiling. Mini only, and an MoE of the same size is a better use of the RAM."
 
 # ── 7. Shell aliases ──────────────────────────────────────────────────────────
 header "7. Shell environment — Phase 6 aliases"

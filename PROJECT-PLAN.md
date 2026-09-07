@@ -769,10 +769,17 @@ Advanced reasoning                 → magistral:24b-small-2506 (Mistral)     Gr
 Remote access was removed in `29adcf1` when the stack went local-only. The
 Mac mini as an always-on host brings it back.
 
-### Tailscale only — never port-forward
+### Never route the inference ports straight through the firewall
 
-LM Studio (:1234) and Ollama (:11434) have **no authentication**. Exposing
-either publicly hands out a free GPU and every prompt. The metrics-exporter
+The mini sits on the home LAN behind the router firewall, on a network that
+already exposes a public API. That does not make the LLM endpoints safe to
+expose: LM Studio (:1234) and Ollama (:11434) have **no authentication** —
+no API key, no token. A firewall governs reachability, not authorization, so
+any external path to :1234 is an open GPU and every prompt in the clear.
+
+To reach the API from outside the LAN, front it with a reverse proxy that
+requires an API key or mTLS, or use Tailscale and avoid the exposure
+entirely. The raw ports stay LAN-bound either way. The metrics-exporter
 control server (:9091) has bearer auth but must stay on `127.0.0.1`.
 
 ```bash

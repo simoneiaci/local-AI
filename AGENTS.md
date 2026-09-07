@@ -672,12 +672,26 @@ After any infrastructure change:
 Remote access was removed in `29adcf1` when the stack went local-only. The
 Mac mini as an always-on inference host brings it back.
 
-**Design: Tailscale only. Never port-forward.**
+**Topology:** the mini sits on the home LAN, behind the router firewall.
+That network already exposes a public API through the firewall.
 
-LM Studio (:1234) and Ollama (:11434) have **no authentication**. Exposing
-either to the public internet hands anyone a free GPU and full visibility of
-every prompt. The metrics-exporter control server (:9091) does take bearer
-auth (§8) but binds to `127.0.0.1` — keep it there.
+**The rule that matters: never route the inference ports straight through.**
+LM Studio (:1234) and Ollama (:11434) have **no authentication of any kind**
+— no API key, no bearer token, nothing. A firewall controls *reachability*,
+not *authorization*: any path that reaches :1234 from outside the LAN is an
+open GPU and full visibility of every prompt, firewall or not.
+
+If the LLM API is to be reachable from outside the LAN, put something in
+front of it that authenticates:
+
+- a reverse proxy terminating TLS and requiring an API key or mTLS, or
+- Tailscale, which sidesteps the question entirely for personal devices.
+
+Either way, :1234 and :11434 stay bound to the LAN, never forwarded.
+
+The metrics-exporter control server (:9091) does take bearer auth (§8) but
+binds to `127.0.0.1` — keep it there. It can start and stop services; it has
+no business being reachable off-host.
 
 Setup on the mini:
 

@@ -218,7 +218,7 @@ Ranked for conversational use on the mini. This is not a coding shortlist.
 | `Qwen3.6-35B-A3B` | UD-IQ3_S | 13.7 GB | both | 3B active, so fast. Multimodal, 262K ctx. Fits under the **default** wired limit — no sysctl needed. Primary candidate. |
 | `mlx-community/gemma-4-26b-a4b-it-4bit` | MLX 4-bit | ~16 GB | mini | Multimodal MoE, 140+ languages. A/B against Qwen for chat tone and Italian. |
 | `mistral-small3.2:24b` | Q4_K_M | 14.3 GB | both | Dense, native tool calling. Zero-tuning fallback — loads under the default cap. |
-| `deepgrove/maple-preview-2bit-mlx` | 2-bit MLX | — | both | 20B-A1B ternary MoE. Vendor claims 200+ tok/s on a *base* M4 mini. Preview quality, weak on agentic tasks. Test for latency. |
+| `deepgrove/maple-preview-2bit-mlx` | 2-bit MLX | — | both | 20B-A1B ternary MoE. Vendor claims 200+ tok/s on a *base* M4 mini. Needs the `mlx-lm-deepgrove` fork — will not load in stock LM Studio or Ollama (§4). Experiment only. |
 | `Qwen3.8-27B` | IQ4_XS | ~15.6 GB | both | Dense 27B, ~11 tok/s on M4 Pro. Only if its quality beats every MoE above. |
 
 **Test on real traffic, not benchmarks.** Run the same five Italian prompts,
@@ -234,7 +234,41 @@ you intend to run.
 
 ## 4. Runtime Selection — when to use LM Studio vs Ollama
 
-**Decision rule (apply in order):**
+### Mac mini (headless server): LM Studio via `llmster`
+
+`llmster` is LM Studio's standalone headless daemon, introduced in 0.4.0 —
+the inference engine packaged server-native, with no GUI and no desktop
+session required. It serves the same API, MCP tools and model lifecycle as
+the desktop app.
+
+```bash
+curl -fsSL https://lmstudio.ai/install.sh | bash
+lms server start
+```
+
+**Why LM Studio and not Ollama on the mini** — the deciding factor is stack
+continuity, not performance:
+
+- Every existing integration already points at LM Studio `:1234` (§5-§6:
+  Pi, opencode, Continue.dev), and the metrics exporter probes
+  `/api/v0/models` (§9). One runtime across both hosts means one set of
+  aliases, one exporter check, one mental model.
+- The `lms` CLI covers download/load/unload, which is what the model A/B in
+  §3 needs.
+- Ollama is no longer behind on Apple Silicon — its MLX engine went stable
+  in v0.30 (May 2026), dual-stacked with llama.cpp. If the mini ever needs
+  `ollama pull` ergonomics or `OLLAMA_KEEP_ALIVE=-1`, switching is a real
+  option, not a downgrade. This is a close call, not a clear win.
+
+Keep exactly one runtime serving on the mini. Two daemons both holding a
+model is the fastest way to blow the §2 budget.
+
+**Note on `maple-preview`:** it ships against `deepgrove-ai/mlx-lm-deepgrove`,
+a *fork* of mlx-lm. It will not load in stock LM Studio or Ollama. Testing it
+means running that fork directly — treat it as an experiment, not a candidate
+backend.
+
+### MacBook (interactive) — decision rule (apply in order):
 
 1. Is the request about the **primary model** (`Gemma4 BF16 e4b`)? →
    **LM Studio** (port 1234). Use LM Studio chat tab, opencode, Pi, or Continue.dev.
@@ -672,26 +706,26 @@ After any infrastructure change:
 Remote access was removed in `29adcf1` when the stack went local-only. The
 Mac mini as an always-on inference host brings it back.
 
-**Topology:** the mini sits on the home LAN, behind the router firewall.
-That network already exposes a public API through the firewall.
+**Topology:** the mini sits on the home LAN behind the router firewall, on a
+network that already exposes a public API through that firewall.
 
-**The rule that matters: never route the inference ports straight through.**
-LM Studio (:1234) and Ollama (:11434) have **no authentication of any kind**
-— no API key, no bearer token, nothing. A firewall controls *reachability*,
-not *authorization*: any path that reaches :1234 from outside the LAN is an
-open GPU and full visibility of every prompt, firewall or not.
+**Decision: remote access is Tailscale. The inference ports are never
+forwarded through the firewall.**
 
-If the LLM API is to be reachable from outside the LAN, put something in
-front of it that authenticates:
+This is not belt-and-braces. LM Studio (:1234) and Ollama (:11434) have **no
+authentication of any kind** — no API key, no bearer token, nothing. A
+firewall governs *reachability*, not *authorization*, so any path that
+reaches :1234 from outside the LAN is an open GPU and every prompt in the
+clear. Tailscale removes the question: devices authenticate to the tailnet,
+and the ports stay LAN-bound.
 
-- a reverse proxy terminating TLS and requiring an API key or mTLS, or
-- Tailscale, which sidesteps the question entirely for personal devices.
-
-Either way, :1234 and :11434 stay bound to the LAN, never forwarded.
+If that ever changes and the API must be exposed without Tailscale, it needs
+a reverse proxy terminating TLS and requiring an API key or mTLS in front —
+never the raw port.
 
 The metrics-exporter control server (:9091) does take bearer auth (§8) but
 binds to `127.0.0.1` — keep it there. It can start and stop services; it has
-no business being reachable off-host.
+no business being reachable off-host, tailnet included.
 
 Setup on the mini:
 

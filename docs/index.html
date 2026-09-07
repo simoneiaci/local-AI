@@ -620,7 +620,7 @@ footer a:hover{color:var(--text);text-decoration:none}
       <tr><td><code>Qwen3.6-35B-A3B</code></td><td>UD-IQ3_S</td><td><span class="tag tag-green">13.7 GB</span></td><td>MoE, 3B active &mdash; fast. Multimodal, 262K ctx. Loads under the default wired limit. Primary candidate.</td></tr>
       <tr><td><code>gemma-4-26b-a4b-it-4bit</code></td><td>MLX 4-bit</td><td><span class="tag tag-yellow">~16 GB</span></td><td>Multimodal MoE, 140+ languages. Needs a raised wired limit &mdash; mini only.</td></tr>
       <tr><td><code>mistral-small3.2:24b</code></td><td>Q4_K_M</td><td><span class="tag tag-green">14.3 GB</span></td><td>Dense, native tool calling. Zero-tuning fallback.</td></tr>
-      <tr><td><code>maple-preview-2bit-mlx</code></td><td>2-bit MLX</td><td><span class="tag tag-green">&mdash;</span></td><td>20B-A1B ternary MoE. Vendor claims 200+ tok/s on a base M4 mini. Preview quality &mdash; latency test only.</td></tr>
+      <tr><td><code>maple-preview-2bit-mlx</code></td><td>2-bit MLX</td><td><span class="tag tag-green">&mdash;</span></td><td>20B-A1B ternary MoE. Vendor claims 200+ tok/s on a base M4 mini. Needs the <code>mlx-lm-deepgrove</code> fork &mdash; will not load in stock LM Studio or Ollama. Experiment only.</td></tr>
       <tr><td><code>Qwen3.8-27B</code></td><td>IQ4_XS</td><td><span class="tag tag-yellow">~15.6 GB</span></td><td>Dense 27B, ~11 tok/s on M4 Pro. Only if it beats every MoE above.</td></tr>
     </table>
   </div>

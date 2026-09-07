@@ -234,7 +234,7 @@ natively multimodal), measured on code-gen benchmarks — directional for chat:
 | `Qwen3.6-35B-A3B` | UD-IQ3_S | 13.7 GB | both | 3B active, fast. Multimodal, 262K ctx. No wired-limit change needed. Primary candidate. |
 | `gemma-4-26b-a4b-it-4bit` | MLX 4-bit | ~16 GB | mini | Multimodal MoE, 140+ languages. A/B against Qwen for tone and Italian. |
 | `mistral-small3.2:24b` | Q4_K_M | 14.3 GB | both | Dense, native tool calling. Zero-tuning fallback. |
-| `maple-preview-2bit-mlx` | 2-bit MLX | — | both | 20B-A1B ternary MoE. Vendor claims 200+ tok/s on a base M4 mini. Preview quality — test for latency only. |
+| `maple-preview-2bit-mlx` | 2-bit MLX | — | both | 20B-A1B ternary MoE. Vendor claims 200+ tok/s on a base M4 mini. Needs the `mlx-lm-deepgrove` fork — will not load in stock LM Studio or Ollama. Experiment only. |
 | `Qwen3.8-27B` | IQ4_XS | ~15.6 GB | both | Dense 27B, ~11 tok/s on M4 Pro. Only if it beats every MoE above. |
 
 **Validate on real traffic.** Run the same five Italian prompts, one
@@ -769,7 +769,7 @@ Advanced reasoning                 → magistral:24b-small-2506 (Mistral)     Gr
 Remote access was removed in `29adcf1` when the stack went local-only. The
 Mac mini as an always-on host brings it back.
 
-### Never route the inference ports straight through the firewall
+### Decision: Tailscale. The inference ports are never forwarded.
 
 The mini sits on the home LAN behind the router firewall, on a network that
 already exposes a public API. That does not make the LLM endpoints safe to
@@ -777,10 +777,9 @@ expose: LM Studio (:1234) and Ollama (:11434) have **no authentication** —
 no API key, no token. A firewall governs reachability, not authorization, so
 any external path to :1234 is an open GPU and every prompt in the clear.
 
-To reach the API from outside the LAN, front it with a reverse proxy that
-requires an API key or mTLS, or use Tailscale and avoid the exposure
-entirely. The raw ports stay LAN-bound either way. The metrics-exporter
-control server (:9091) has bearer auth but must stay on `127.0.0.1`.
+Tailscale removes the problem: devices authenticate to the tailnet and the
+ports stay LAN-bound. The metrics-exporter control server (:9091) has bearer
+auth but must stay on `127.0.0.1`, tailnet included.
 
 ```bash
 brew install --cask tailscale
@@ -799,6 +798,21 @@ removed and starts working again after `tailscale up`.
 **Watch out:** `OLLAMA_HOST=0.0.0.0:11434` binds Ollama to *all* interfaces,
 not just the tailnet. Bind to the Tailscale IP or enable the macOS firewall,
 especially on the MacBook.
+
+### Runtime on the mini
+
+LM Studio via `llmster`, its standalone headless daemon (0.4.0+) — no GUI or
+desktop session needed:
+
+```bash
+curl -fsSL https://lmstudio.ai/install.sh | bash
+lms server start
+```
+
+Chosen for continuity with the existing stack, which already targets
+`:1234` everywhere. Ollama is a legitimate alternative — its MLX engine went
+stable in v0.30 (May 2026) — but running both daemons at once will blow the
+memory budget in §2. Pick one.
 
 ### Telegram bot
 

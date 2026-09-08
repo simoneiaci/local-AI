@@ -1250,6 +1250,8 @@ EOF
       <tr><td><strong>Screen Sharing</strong> &mdash; remote desktop</td><td>On the mini: Sharing settings &rarr; Screen Sharing (plain VNC). From a client: any VNC app, or <strong>Screens</strong> on iOS/iPadOS, to <code>&lt;mini&gt;.tailXXXX.ts.net:5900</code></td><td><span class="tag tag-green">Tailnet only</span></td></tr>
     </table>
   </div>
+  <div class="alert alert-yellow">&#x26A0;&#xFE0F; <strong>Skip Remote Management</strong> (Apple Remote Desktop &mdash; fleet/MDM tooling). It shares port 5900 with Screen Sharing and takes over when enabled. One mini, one admin: Screen Sharing alone is correct here.</div>
+  <div class="alert alert-yellow">&#x26A0;&#xFE0F; <strong>FileVault can lock the mini out on reboot.</strong> It needs its password at the pre-boot decryption screen &mdash; before Tailscale, SSH, or Screen Sharing have even started. A power flicker or update then leaves it unreachable until someone is physically at the keyboard. Disable FileVault for a headless box, or confirm macOS Tahoe 26.5+'s remote unlock actually works over Tailscale before trusting it. Also enable <strong>automatic login</strong> (Users &amp; Groups) &mdash; the same lockout risk exists one layer up at the user login screen.</div>
   <div class="alert alert-yellow">&#x26A0;&#xFE0F; Never use <code>tailscale funnel</code> for any of these &mdash; Funnel publishes to the public internet and defeats the whole design. The inference endpoint has no authentication of its own; the tailnet is the only thing protecting it.</div>
 
   <h3>Before enabling agent tooling</h3>

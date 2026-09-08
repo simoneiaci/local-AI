@@ -807,6 +807,32 @@ Viewer; iPhone/iPad: **Screens**, which has native Tailscale support) to
 mini, disable display sleep on it — a display-less Mac can behave oddly
 waking for an incoming Screen Sharing session.
 
+**Do not also enable Remote Management** (`Settings → General → Sharing →
+Remote Management` — this is Apple Remote Desktop, fleet-admin tooling for
+managing many Macs via MDM). It shares port 5900 with Screen Sharing and
+turning it on grays Screen Sharing out and takes over. There is exactly one
+mini and one admin here — Screen Sharing alone is the right tool.
+
+**FileVault will lock this out on reboot — decide about it before setup,
+not after.** If FileVault is on, the disk needs its password typed at the
+**pre-boot** decryption screen, before macOS — and therefore Tailscale,
+Screen Sharing, and SSH — has even started. A power flicker, an OS update,
+or a kernel panic leaves the mini sitting at that screen, unreachable by any
+remote means, until someone is physically at the keyboard. For a headless
+box this is the single most likely way to get locked out.
+
+- **Disable FileVault** on this machine — the straightforward answer for a
+  personal always-on server where physical access isn't guaranteed.
+- macOS Tahoe 26.5+ added remote FileVault unlock over network (Wi-Fi
+  included). If FileVault must stay on, verify this actually works over
+  Tailscale specifically before relying on it — it's new enough not to
+  assume.
+
+Also enable **automatic login** (`Settings → Users & Groups`) — otherwise
+the mini sits at the user login screen after any reboot, services included,
+with the same "physically at the keyboard" problem one layer up from
+FileVault.
+
 ### Telegram bot
 
 The bot process runs on the mini and talks to `http://127.0.0.1:1234/v1`, so

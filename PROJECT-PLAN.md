@@ -839,6 +839,20 @@ Sharing app, RealVNC Viewer, or **Screens** on iOS/iPadOS) to
 `<mini>.tailXXXX.ts.net:5900`. Disable display sleep on the mini before
 disconnecting its monitor.
 
+**Skip Remote Management** (Apple Remote Desktop / MDM fleet tooling) — it
+shares port 5900 with Screen Sharing and takes it over when enabled. One
+mini, one admin: Screen Sharing alone is right here.
+
+**FileVault decision, before setup:** FileVault needs its password at the
+pre-boot decryption screen, before Tailscale/SSH/Screen Sharing have even
+started. A reboot from a power flicker or update leaves the mini unreachable
+by any remote means until someone is at the keyboard — the most likely way
+to get locked out of a headless box. Disable FileVault, or, if it must stay
+on, verify macOS Tahoe 26.5+'s remote unlock over network actually works via
+Tailscale before relying on it. Also enable **automatic login** (`Settings →
+Users & Groups`) — otherwise a reboot leaves the mini at the user login
+screen with the same problem one layer up.
+
 ### Runtime on the mini
 
 LM Studio via `llmster`, its standalone headless daemon (0.4.0+) — no GUI or

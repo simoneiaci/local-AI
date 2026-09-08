@@ -727,15 +727,37 @@ The metrics-exporter control server (:9091) does take bearer auth (§8) but
 binds to `127.0.0.1` — keep it there. It can start and stop services; it has
 no business being reachable off-host, tailnet included.
 
-Setup on the mini:
+### Which variant, on which machine
+
+Three separate ways to run Tailscale on macOS exist — they are not
+interchangeable and **must not be mixed on one machine**:
+
+| Variant | How to get it | Notes |
+|---------|----------------|-------|
+| **Standalone** | `.pkg` from https://tailscale.com/download | Full feature set: Funnel, Tailscale SSH server/client, MDM, runs pre-login. Tailscale's own recommended default. **Use this — on every Mac in this project.** |
+| Mac App Store | App Store, or `brew install --cask tailscale` | Sandboxed under Apple's App Sandbox: conflicts with Screen Time's web filter, can't detect other VPN tools interfering with the tunnel. **Do not use.** |
+| CLI-only | `brew install tailscale` (formula) | No GUI — `tailscaled` as a LaunchDaemon, runs without any user logged in. Only needed if Tailscale's own SSH server (identity-based, no key management) is wanted later; not required for this project's SSH setup below. |
+
+**Never install both the App Store and Standalone variants on the same
+Mac** — Tailscale's own warning: having both can stop the extension from
+launching at all. If the cask was installed previously, uninstall it before
+installing the Standalone `.pkg`.
+
+| Host | Role | Install |
+|------|------|---------|
+| MacBook | client — reaches the mini | Standalone `.pkg` |
+| Mac mini | **server** — this is what makes `:1234`, SSH, and Screen Sharing reachable | Standalone `.pkg` |
+| iPhone / iPad (optional) | client only | Tailscale from the App Store — no server-side concept on iOS |
+
+Setup, on the Mac mini:
 
 ```bash
-brew install --cask tailscale
+# download and run the .pkg from https://tailscale.com/download — not brew --cask
 tailscale up
-tailscale ip -4          # note the 100.x.y.z address
+tailscale ip -4          # note the 100.x.y.z address, or use MagicDNS: <mini>.tailXXXX.ts.net
 ```
 
-Then from any device on the tailnet:
+Then from any client device on the tailnet:
 
 - LM Studio — `http://<tailscale-ip>:1234/v1`
 - Ollama — `http://<tailscale-ip>:11434/v1`
@@ -751,34 +773,39 @@ removed) and will show "Connected" again once `tailscale up` has run.
 - Keep `:9091` on `127.0.0.1`. Do not expose the control server to the tailnet.
 - Use Tailscale ACLs to restrict which devices reach which ports.
 
-**`brew install --cask tailscale` is the GUI/Network-Extension variant.** It
-gives the tailnet itself, and that's all this project needs. It does **not**
-run Tailscale's own SSH server — Tailscale SSH (identity-based, no key
-management) needs the open-source CLI daemon instead
-(`brew install tailscale`, formula not cask, then `tailscale up --ssh`), and
-the two installs are not interchangeable. Not needed for a single-user setup
-— see below.
-
 ### SSH and screen sharing (once the mini is racked)
 
-Regular macOS services, tunneled through the tailnet — no extra install.
+Both toggles below live in **System Settings on the Mac mini** — it's the
+machine being connected *to*. Nothing extra to install on the client side;
+the MacBook and phone already have Tailscale from the table above and use
+their normal `ssh`/VNC client.
+
+Ordinary macOS services, tunneled through the tailnet — no extra install
+beyond the Standalone Tailscale already on the mini:
 
 ```bash
+# on the mini:
 sudo systemsetup -setremotelogin on     # or: Settings → General → Sharing → Remote Login
+```
+
+```bash
+# from the MacBook (or any tailnet client):
 ssh simone@<mini>.tailXXXX.ts.net       # key-based auth, ordinary SSH
 ```
 
-Screen Sharing in System Settings is a plain VNC server — any VNC client can
+Screen Sharing, also on the mini, is a plain VNC server — any VNC client can
 reach it, not only other Macs:
 
 ```
+# on the mini:
 Settings → General → Sharing → Screen Sharing → On, set a VNC password
 ```
 
-Connect on `<mini>.tailXXXX.ts.net:5900` from the macOS Screen Sharing app,
-RealVNC Viewer, or **Screens** (iOS/iPadOS, has native Tailscale support).
-Before disconnecting the monitor, disable display sleep — a display-less Mac
-can behave oddly waking for an incoming Screen Sharing session.
+Connect from the client (MacBook: macOS Screen Sharing app or RealVNC
+Viewer; iPhone/iPad: **Screens**, which has native Tailscale support) to
+`<mini>.tailXXXX.ts.net:5900`. Before disconnecting the monitor from the
+mini, disable display sleep on it — a display-less Mac can behave oddly
+waking for an incoming Screen Sharing session.
 
 ### Telegram bot
 

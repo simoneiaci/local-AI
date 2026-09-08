@@ -781,13 +781,33 @@ Tailscale removes the problem: devices authenticate to the tailnet and the
 ports stay LAN-bound. The metrics-exporter control server (:9091) has bearer
 auth but must stay on `127.0.0.1`, tailnet included.
 
+### Which variant, on which machine
+
+Three ways to run Tailscale on macOS, not interchangeable, **never mixed on
+one machine**:
+
+| Variant | Get it | Notes |
+|---------|--------|-------|
+| **Standalone** | `.pkg` from tailscale.com/download | Full features (Funnel, SSH server, MDM, pre-login). **Use this everywhere in this project.** |
+| Mac App Store | App Store, or `brew install --cask tailscale` | Sandboxed, limited. **Do not use** — supersedes the old cask instruction. |
+| CLI-only | `brew install tailscale` (formula) | Headless daemon, no GUI. Only needed for Tailscale's own identity-based SSH — not required below. |
+
+Never install both App Store and Standalone on the same Mac — Tailscale's
+own warning is that it can stop the extension launching entirely.
+
+| Host | Role | Install |
+|------|------|---------|
+| MacBook | client | Standalone `.pkg` |
+| Mac mini | **server** | Standalone `.pkg` |
+| iPhone/iPad (optional) | client | Tailscale from the App Store |
+
 ```bash
-brew install --cask tailscale
+# on the Mac mini — download the .pkg from tailscale.com/download, not brew --cask
 tailscale up
 tailscale ip -4          # 100.x.y.z
 ```
 
-From any device on the tailnet:
+From any client device on the tailnet:
 
 - LM Studio — `http://<tailscale-ip>:1234/v1`
 - Ollama — `http://<tailscale-ip>:11434/v1`
@@ -799,24 +819,25 @@ removed and starts working again after `tailscale up`.
 not just the tailnet. Bind to the Tailscale IP or enable the macOS firewall,
 especially on the MacBook.
 
-**Cask vs formula:** the cask above is the GUI/Network-Extension variant —
-enough for the tailnet, but it does not run Tailscale's own SSH server. That
-needs the open-source CLI daemon (`brew install tailscale`, not the cask)
-plus `tailscale up --ssh`. Not needed here — see below.
-
 ### SSH and screen sharing
 
-Ordinary macOS services, reached over the tailnet, no extra install:
+Both toggles live in System Settings **on the Mac mini** — it's the machine
+being connected to. Nothing extra to install on the client side.
 
 ```bash
+# on the mini:
 sudo systemsetup -setremotelogin on
+```
+```bash
+# from the MacBook or any tailnet client:
 ssh simone@<mini>.tailXXXX.ts.net
 ```
 
-Screen Sharing (`Settings → General → Sharing`) is a plain VNC server — set a
-password there and connect from the macOS Screen Sharing app, RealVNC
-Viewer, or **Screens** (iOS/iPadOS) on `<mini>.tailXXXX.ts.net:5900`. Disable
-display sleep before disconnecting the monitor.
+Screen Sharing (`Settings → General → Sharing`, on the mini) is a plain VNC
+server — set a password there and connect from the client (macOS Screen
+Sharing app, RealVNC Viewer, or **Screens** on iOS/iPadOS) to
+`<mini>.tailXXXX.ts.net:5900`. Disable display sleep on the mini before
+disconnecting its monitor.
 
 ### Runtime on the mini
 

@@ -1219,19 +1219,37 @@ EOF
 
   <div class="alert alert-blue">&#x1F4A1; <strong>NemoClaw was evaluated and does not fit.</strong> NVIDIA&rsquo;s sandboxed OpenClaw variant is attractive &mdash; the agent reaches neither host filesystem nor host network &mdash; but it requires Docker, and this stack is container-free by design. Its primary target is DGX Spark or a 24 GB+ NVIDIA GPU on Ubuntu; the Apple Silicon host-to-sandbox inference bridge is incomplete.</div>
 
+  <h3>Which Tailscale variant, on which machine</h3>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">Three ways to run Tailscale on macOS &mdash; not interchangeable, and never mixed on one machine.</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Variant</th><th>Get it</th><th>Notes</th></tr>
+      <tr><td><strong>Standalone</strong></td><td><code>.pkg</code> from tailscale.com/download</td><td><span class="tag tag-green">Use this</span> &mdash; full features (Funnel, SSH server, MDM, pre-login)</td></tr>
+      <tr><td>Mac App Store</td><td>App Store, or <code>brew install --cask tailscale</code></td><td><span class="tag tag-yellow">Avoid</span> &mdash; sandboxed, limited</td></tr>
+      <tr><td>CLI-only</td><td><code>brew install tailscale</code> (formula)</td><td>Headless daemon, no GUI &mdash; only for Tailscale&rsquo;s own SSH server, not required here</td></tr>
+    </table>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Host</th><th>Role</th><th>Install</th></tr>
+      <tr><td>MacBook</td><td>client</td><td>Standalone <code>.pkg</code></td></tr>
+      <tr><td>Mac mini</td><td><strong>server</strong></td><td>Standalone <code>.pkg</code></td></tr>
+      <tr><td>iPhone / iPad (optional)</td><td>client</td><td>Tailscale from the App Store</td></tr>
+    </table>
+  </div>
+
   <h3>Reaching them remotely</h3>
-  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">Remote access is Tailscale. Three surfaces, best first.</p>
+  <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">SSH and Screen Sharing toggles live in System Settings on the <strong>Mac mini</strong> &mdash; the machine being connected to. Clients need nothing beyond the tailnet.</p>
   <div class="table-wrap">
     <table>
       <tr><th>Surface</th><th>How</th><th>Open ports</th></tr>
       <tr><td><strong>Tailscale Serve</strong> &mdash; any web dashboard</td><td><code>tailscale serve --bg 3000</code> &mdash; automatic HTTPS via MagicDNS, stable hostname</td><td><span class="tag tag-green">None</span></td></tr>
       <tr><td><strong>Messaging</strong> &mdash; Telegram, Discord</td><td>Agent long-polls outward. Works from anywhere, no tailnet needed on the client</td><td><span class="tag tag-green">None</span></td></tr>
       <tr><td><strong>OpenAI-compatible API</strong></td><td><code>http://&lt;tailscale-ip&gt;:1234/v1</code> from any chat client</td><td><span class="tag tag-green">LAN only</span></td></tr>
-      <tr><td><strong>SSH</strong> &mdash; shell access to the mini</td><td><code>ssh simone@&lt;mini&gt;.tailXXXX.ts.net</code> after enabling Remote Login in Sharing settings</td><td><span class="tag tag-green">Tailnet only</span></td></tr>
-      <tr><td><strong>Screen Sharing</strong> &mdash; remote desktop</td><td>Sharing settings &rarr; Screen Sharing (plain VNC). Any VNC client, or <strong>Screens</strong> on iOS/iPadOS, to <code>&lt;mini&gt;.tailXXXX.ts.net:5900</code></td><td><span class="tag tag-green">Tailnet only</span></td></tr>
+      <tr><td><strong>SSH</strong> &mdash; shell access to the mini</td><td>On the mini: enable Remote Login in Sharing settings. From a client: <code>ssh simone@&lt;mini&gt;.tailXXXX.ts.net</code></td><td><span class="tag tag-green">Tailnet only</span></td></tr>
+      <tr><td><strong>Screen Sharing</strong> &mdash; remote desktop</td><td>On the mini: Sharing settings &rarr; Screen Sharing (plain VNC). From a client: any VNC app, or <strong>Screens</strong> on iOS/iPadOS, to <code>&lt;mini&gt;.tailXXXX.ts.net:5900</code></td><td><span class="tag tag-green">Tailnet only</span></td></tr>
     </table>
   </div>
-  <div class="alert alert-blue">&#x1F4A1; <code>brew install --cask tailscale</code> gives the tailnet itself, which is all this project needs for SSH-over-tunnel and Screen Sharing above. It does <strong>not</strong> run Tailscale&rsquo;s own SSH server (identity-based, no key management) &mdash; that needs the open-source CLI daemon (<code>brew install tailscale</code>, formula not cask) plus <code>tailscale up --ssh</code>. Not needed for a single-user setup.</div>
   <div class="alert alert-yellow">&#x26A0;&#xFE0F; Never use <code>tailscale funnel</code> for any of these &mdash; Funnel publishes to the public internet and defeats the whole design. The inference endpoint has no authentication of its own; the tailnet is the only thing protecting it.</div>
 
   <h3>Before enabling agent tooling</h3>

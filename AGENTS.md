@@ -751,6 +751,35 @@ removed) and will show "Connected" again once `tailscale up` has run.
 - Keep `:9091` on `127.0.0.1`. Do not expose the control server to the tailnet.
 - Use Tailscale ACLs to restrict which devices reach which ports.
 
+**`brew install --cask tailscale` is the GUI/Network-Extension variant.** It
+gives the tailnet itself, and that's all this project needs. It does **not**
+run Tailscale's own SSH server — Tailscale SSH (identity-based, no key
+management) needs the open-source CLI daemon instead
+(`brew install tailscale`, formula not cask, then `tailscale up --ssh`), and
+the two installs are not interchangeable. Not needed for a single-user setup
+— see below.
+
+### SSH and screen sharing (once the mini is racked)
+
+Regular macOS services, tunneled through the tailnet — no extra install.
+
+```bash
+sudo systemsetup -setremotelogin on     # or: Settings → General → Sharing → Remote Login
+ssh simone@<mini>.tailXXXX.ts.net       # key-based auth, ordinary SSH
+```
+
+Screen Sharing in System Settings is a plain VNC server — any VNC client can
+reach it, not only other Macs:
+
+```
+Settings → General → Sharing → Screen Sharing → On, set a VNC password
+```
+
+Connect on `<mini>.tailXXXX.ts.net:5900` from the macOS Screen Sharing app,
+RealVNC Viewer, or **Screens** (iOS/iPadOS, has native Tailscale support).
+Before disconnecting the monitor, disable display sleep — a display-less Mac
+can behave oddly waking for an incoming Screen Sharing session.
+
 ### Telegram bot
 
 The bot process runs on the mini and talks to `http://127.0.0.1:1234/v1`, so

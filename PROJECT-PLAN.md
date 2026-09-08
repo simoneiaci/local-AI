@@ -799,6 +799,25 @@ removed and starts working again after `tailscale up`.
 not just the tailnet. Bind to the Tailscale IP or enable the macOS firewall,
 especially on the MacBook.
 
+**Cask vs formula:** the cask above is the GUI/Network-Extension variant —
+enough for the tailnet, but it does not run Tailscale's own SSH server. That
+needs the open-source CLI daemon (`brew install tailscale`, not the cask)
+plus `tailscale up --ssh`. Not needed here — see below.
+
+### SSH and screen sharing
+
+Ordinary macOS services, reached over the tailnet, no extra install:
+
+```bash
+sudo systemsetup -setremotelogin on
+ssh simone@<mini>.tailXXXX.ts.net
+```
+
+Screen Sharing (`Settings → General → Sharing`) is a plain VNC server — set a
+password there and connect from the macOS Screen Sharing app, RealVNC
+Viewer, or **Screens** (iOS/iPadOS) on `<mini>.tailXXXX.ts.net:5900`. Disable
+display sleep before disconnecting the monitor.
+
 ### Runtime on the mini
 
 LM Studio via `llmster`, its standalone headless daemon (0.4.0+) — no GUI or
